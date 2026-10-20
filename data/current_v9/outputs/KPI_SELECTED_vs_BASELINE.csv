@@ -1,0 +1,3 @@
+run_id,system,prepared_qty,sold_qty,waste_qty,lost_sales_qty,revenue_vnd,production_cost_assumed_vnd,contribution_before_overhead_vnd
+d8b621a5bff64203a32d79ed790dadd2,BASELINE,9492,6810,2682,34,105249380,67073760,38175620
+d8b621a5bff64203a32d79ed790dadd2,M1_M2_SELECTED,9176,6957,2219,54,106158050,65110140,41047910

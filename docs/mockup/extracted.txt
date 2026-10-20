@@ -1,0 +1,1026 @@
+PAGE 1
+Main Dashboard
+Trung tâm hỗ trợ quyết định Bakery
+Module 1
+Module 2
+Dynamic
+Clearance Pricing
+Next-day Prep
+Recommendation
+Đề xuất mức giảm giá theo thời gian
+để tối ưu doanh thu cuối ngày.
+Gợi ý sản lượng chuẩn bị cho ngày
+mai dựa trên dự báo nhu cầu.
+Quy trình AI
+Thu thập dữ liệu thời
+gian thực từ cửa hàng.
+Nhận dữ liệu
+1
+AI phân tích dữ liệu và
+dự báo nhu cầu.
+AI phân tích & dự báo
+2
+Đề xuất giảm giá và
+sản lượng chuẩn bị.
+Đề xuất
+3
+Hiển thị đề xuất để quản lý
+xem xét và áp dụng.
+AI Output
+4
+
+
+PAGE 2
+Main Dashboard
+Trung tâm hỗ trợ quyết định Bakery
+ĐĂNG NHẬP
+TÊN ĐĂNG NHẬP
+MẬT KHẨU
+
+
+PAGE 3
+Module 1 · Dynamic Clearance Pricing
+Khung giờ 19:30-22:00 · Chu kỳ 30 phút
+Chu kỳ 20:30 · AI đã có đề xuất
+Xem đề xuất
+SKU giữ nguyên
+giá 0%
+SKU dù điều kiện xả
+5
+7
+Xem đề xuất
+Xem đề xuất
+Reject
+Không áp dụng để xuất
+Adjust
+Điều chỉnh mức giảm
+Approve
+Áp dụng toàn bộ để xuất
+PoC · Dữ liệu mô phỏng
+29/09/2026
+AEON
+Bakery
+Chi nhánh V
+Tổng quan
+Module 1 ·
+Dynamic
+Clearance Pricing
+Tổng quan hôm nay
+Module 2 ·
+Next-day Prep
+Recommendation
+21:00
+1h30
+Chu kỳ Module 1 tiếp theo
+Còn lại đến 22:00
+Module 2 · Next-day Prep Recommendation
+(CURRENTLY CLOSED)
+Chạy 06:00 cho ngày kể tiếp
+Đề xuất cho 30/09/2026 · Chờ duyệt
+Tổng định mức
+đề xuất (chiếc)
+SKU
+746
+Xem đề xuất
+12
+SKU
+12
+Việc cần xử lý
+Module 1 · Chu kỳ 20:30 – chở Approve / Adjust / Reject
+Quản lý Bake
+20h30
+Cài đặt
+
+
+PAGE 4
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Cài đặt
+Nhận dữ liệu & Business
+Rule Gate
+AI chỉ đưa ra đề xuất – quyết định cuối cùng thuộc về Quản lý Bakery
+5 / 12 SKU
+Business Rule Gate
+đủ điều kiện
+Tốn kho nằm trong ngưỡng
+Thời gian còn lại phù hợp
+Tốc độ bán đủ dữ liệu
+Thời tiết hợp lệ
+Thông tin SKU đầy đủ
+8 / 12
+7 / 12
+6 / 12
+9 / 12
+10 / 12
+29/09/2026
+Quản lý Bake
+20h30
+Module 1 ·
+Dynamic
+Clearance Pricing
+2
+1
+3
+4
+Nhận dữ liệu
+Business Rule Gate
+AI Model
+Đề xuất AI
+20:30
+Đã kiểm tra
+AI đang tính mức giảm.....
+(chờ quyết định)
+Thời gian còn lại đến 22:00: 1h30   | Thời tiết hiện tại: Mưa nhẹ 28°C
+Bánh su kem
+Bánh ngọt
+28.000đ
+10.000đ
+Tiramisu cup
+Bánh ngọt
+55.000đ
+18.000đ
+Dữ liệu hiện tại
+Bán 60 phút
+gần nhất
+SKU
+Danh mục
+Giá gốc
+Giá vốn
+Tồn hiện
+tại
+Croissant bơ
+Viennoiserie
+35.000đ
+14.000đ
+18
+Pain au
+chocolat
+Viennoiserie
+38.000đ
+15.000đ
+16
+2
+Baguette
+truyền thống
+Bánh mì
+30.000đ
+8.000đ
+22
+4
+Bánh mì
+sandwich
+Bánh mì
+32.000đ
+12.000đ
+20
+5
+15
+2
+14
+2
+Cập nhật dữ liệu
+3
+Đang xử lý dữ liệu
+Trạng thái:
+
+
+PAGE 5
+PoC · Dữ liệu mô phỏng
+29/09/2026
+2
+1
+3
+4
+AEON
+Bakery
+Tổng quan
+Module 1 ·
+Dynamic
+Clearance Pricing
+Quản lý Bake
+20h30
+Chi nhánh V
+Nhận dữ liệu
+Business Rule Gate
+AI Model
+Đề xuất AI
+20:30
+Đã kiểm tra
+AI đã tính mức giảm
+(chờ quyết định)
+Thời gian còn lại đến 22:00: 1h30   | Thời tiết hiện tại: Mưa nhẹ 28°C
+Đề xuất chiết khấu - Chu kỳ 20:30
+Bán 60'
+SKU
+Giá gốc
+Tồn
+hiện tại
+Pain au
+chocolat
+38.000đ
+16
+2
+Baguette
+truyền thống
+30.000đ
+22
+4
+Bánh mì
+sandwich
+32.000đ
+20
+5
+Bánh su kem
+28.000đ
+15
+2
+Tiramisu cup
+55.000đ
+14
+2
+Cập nhật dữ liệu
+Croissant
+bơ
+35.000đ
+18
+3
+Mức giảm
+để xuất
+35%
+25%
+25%
+15%
+15%
+0%
+32.300đ
+46.750đ
+Giá sau
+giảm
+18.200đ
+22.500đ
+26.250đ
+30.000đ
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Lý do
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Chưa vượt
+ngưỡng tồn an
+toàn
+Approve toàn bộ để xuất
+Quyết định
+Adjust Reject
+Adjust Reject
+Adjust Reject
+Adjust Reject
+Adjust Reject
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến
+đề xuất cho Bánh su kem
+Tốc độ bán
+chậm
+Nhu cầu dự báo
+thấp
+Thời tiết không thuận
+lợi
+Tổn kho hiện tại cao
+Thời gian còn lại
+ngắn
+Adjust Reject
+AI chỉ đưa ra đề xuất – quyết định cuối cùng thuộc về Quản lý Bakery
+Cài đặt
+Đề xuất giảm giá
+AI Output
++0.48
++0.32
++0.21
+-0.12
+-0.09
+Tổng điểm tác động:
+0.72
+Điểm dương thúc đẩy tăng mức giảm
+giá đề xuất
+
+
+PAGE 6
+PoC · Dữ liệu mô phỏng
+29/09/2026
+2
+1
+3
+4
+AEON
+Bakery
+Tổng quan
+Module 1 ·
+Dynamic
+Clearance Pricing
+Quản lý Bake
+20h30
+Chi nhánh V
+Nhận dữ liệu
+Business Rule Gate
+AI Model
+Đề xuất AI
+20:30
+Đã kiểm tra
+AI đã tính mức giảm
+(chờ quyết định)
+Thời gian còn lại đến 22:00: 1h30   | Thời tiết hiện tại: Mưa nhẹ 28°C
+Đề xuất chiết khấu - Chu kỳ 20:30
+Bán 60'
+SKU
+Giá gốc
+Tồn
+hiện tại
+Pain au
+chocolat
+38.000đ
+16
+2
+Baguette
+truyền thống
+30.000đ
+22
+4
+Bánh mì
+sandwich
+32.000đ
+20
+5
+Bánh su kem
+28.000đ
+15
+2
+Tiramisu cup
+55.000đ
+14
+2
+Cập nhật dữ liệu
+Croissant
+bơ
+35.000đ
+18
+3
+Mức giảm
+để xuất
+35%
+25%
+25%
+15%
+15%
+0%
+32.300đ
+46.750đ
+Giá sau
+giảm
+18.200đ
+22.500đ
+26.250đ
+30.000đ
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Lý do
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Tốn cao, bán
+chậm
+Chưa vượt
+ngưỡng tồn an
+toàn
+Approve toàn bộ để xuất
+Trạng thái
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến
+đề xuất cho Bánh su kem
+Tốc độ bán
+chậm
+Nhu cầu dự báo
+thấp
+Thời tiết không thuận
+lợi
+Tổn kho hiện tại cao
+Thời gian còn lại
+ngắn
+AI chỉ đưa ra đề xuất – quyết định cuối cùng thuộc về Quản lý Bakery
+Cài đặt
+Đề xuất giảm giá
+AI Output
++0.48
++0.32
++0.21
+-0.12
+-0.09
+Tổng điểm tác động:
+0.72
+Điểm dương thúc đẩy tăng mức giảm
+giá đề xuất
+Đang chỉnh sửa
+Bị từ chối
+Chờ quyết định
+Chờ quyết định
+Chờ quyết định
+Chờ quyết định
+Adjust mức giảm - Bánh su
+kem
+35%
+21.000đ
+AI đề xuất
+mức giảm
+Chọn lại mức giảm:
+15%
+25%
+35%
+50%
+Lý do điều chỉnh (tùy chọn):
+Giá sau giảm (cập nhật):
+Hủy
+Xác nhận
+25%
+0/200
+Nhập lý do điều chỉnh...
+Xác nhận
+
+
+PAGE 7
+Hành động
+đề xuất
+Approve
+Adjust
+Reject
+Không áp dụng để xuất
+Điều chỉnh mức giảm
+Áp dụng toàn bộ để xuất
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Module 1 - AI Output
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến đề xuất
+cho SKU: BK004
+Tốc độ bán chậm
++0.18
+Như cầu dự báo thấp
+Thời tiết không thuận lợi
+Tổn kho hiện tại cao
++0.36
+Thời gian còn lại ngắn
++0.28
+-0.12
+-0.08
+Đề xuất mức giảm giá
+35%
+Tổn kho rất cao, gần hết hạn
+50%
+Tổn kho cao nhất, sắp hết hạn
+SKU
+Tên sản phẩm
+Đề xuất
+Lý do chính
+0%
+BK001
+Bánh mì
+Nhu cầu cao, tốn kho thấp
+BK002
+Bánh ngọt
+15%
+Tổn kho trung bình
+25%
+BK003
+Bánh mì
+Tổn kho cao, thời gian còn lại ngắn
+BK004
+Bánh ngọt
+BK005
+Bánh mì
+OK
+X
+
+
+PAGE 8
+Giảm 8%
+AEON
+Bakery
+AI Decision Support System
+Thực thi & theo dõi
+Module 1 - Màn hình hiển thị
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+KHUYẾN MÃI HÔM NAY
+Giá khuyến mãi
+Tên sản phẩm
+Bánh mì
+Bánh ngọt
+15.300
+Bánh ngọt
+Bánh mì
+27.600
+Giá gốc
+35.000
+50.000
+18.000
+30.000
+Đơn vị: VNĐ
+Giảm 15%
+22.750
+25.000
+Giảm 35%
+Giảm 50%
+Tổng quan
+Module 1 ·
+Dynamic
+Clearance Pricing
+Chi nhánh V
+Cài đặt
+
+
+PAGE 9
+Hành động
+đề xuất
+Approve
+Adjust
+Reject
+Không áp dụng để xuất
+Điều chỉnh mức giảm
+Áp dụng toàn bộ để xuất
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Module 1 - AI Output
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến đề xuất
+cho SKU: BK004
+Tốc độ bán chậm
++0.18
+Như cầu dự báo thấp
+Thời tiết không thuận lợi
+Tổn kho hiện tại cao
++0.36
+Thời gian còn lại ngắn
++0.28
+-0.12
+-0.08
+Đề xuất mức giảm giá
+35%
+Tổn kho rất cao, gần hết hạn
+50%
+Tổn kho cao nhất, sắp hết hạn
+SKU
+Tên sản phẩm
+Đề xuất
+Lý do chính
+0%
+BK001
+Bánh mì
+Nhu cầu cao, tốn kho thấp
+BK002
+Bánh ngọt
+15%
+Tổn kho trung bình
+25%
+BK003
+Bánh mì
+Tổn kho cao, thời gian còn lại ngắn
+BK004
+Bánh ngọt
+BK005
+Bánh mì
+
+
+PAGE 10
+Hành động
+đề xuất
+Approve
+Adjust
+Reject
+Không áp dụng để xuất
+Điều chỉnh mức giảm
+Áp dụng toàn bộ để xuất
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Module 1 - AI Output
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến đề xuất
+cho SKU: BK004
+Tốc độ bán chậm
++0.18
+Như cầu dự báo thấp
+Thời tiết không thuận lợi
+Tổn kho hiện tại cao
++0.36
+Thời gian còn lại ngắn
++0.28
+-0.12
+-0.08
+Đề xuất mức giảm giá
+35%
+Tổn kho rất cao, gần hết hạn
+50%
+Tổn kho cao nhất, sắp hết hạn
+SKU
+Tên sản phẩm
+Đề xuất
+Lý do chính
+0%
+BK001
+Bánh mì
+Nhu cầu cao, tốn kho thấp
+BK002
+Bánh ngọt
+15%
+Tổn kho trung bình
+25%
+BK003
+Bánh mì
+Tổn kho cao, thời gian còn lại ngắn
+BK004
+Bánh ngọt
+BK005
+Bánh mì
+
+
+PAGE 11
+Hành động
+đề xuất
+Approve
+Adjust
+Reject
+Không áp dụng để xuất
+Điều chỉnh mức giảm
+Áp dụng toàn bộ để xuất
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Module 1 - AI Output
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến đề xuất
+cho SKU: BK004
+Tốc độ bán chậm
++0.18
+Như cầu dự báo thấp
+Thời tiết không thuận lợi
+Tổn kho hiện tại cao
++0.36
+Thời gian còn lại ngắn
++0.28
+-0.12
+-0.08
+Đề xuất mức giảm giá
+35%
+Tổn kho rất cao, gần hết hạn
+50%
+Tổn kho cao nhất, sắp hết hạn
+SKU
+Tên sản phẩm
+Đề xuất
+Lý do chính
+8%
+BK001
+Bánh mì
+Nhu cầu cao, tốn kho thấp
+BK002
+Bánh ngọt
+15%
+Tổn kho trung bình
+25%
+BK003
+Bánh mì
+Tổn kho cao, thời gian còn lại ngắn
+BK004
+Bánh ngọt
+BK005
+Bánh mì
+
+
+PAGE 12
+Hành động
+đề xuất
+Approve
+Adjust
+Reject
+Không áp dụng để xuất
+Điều chỉnh mức giảm
+Áp dụng toàn bộ để xuất
+AEON
+Bakery
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Module 1 - AI Output
+Đề xuất chiết khấu tối ưu theo SKU với giải thích minh bạch
+Giải thích AI (SHAP)
+Các yếu tố ảnh hưởng nhiều nhất đến đề xuất
+cho SKU: BK004
+Tốc độ bán chậm
++0.18
+Như cầu dự báo thấp
+Thời tiết không thuận lợi
+Tổn kho hiện tại cao
++0.36
+Thời gian còn lại ngắn
++0.28
+-0.12
+-0.08
+Đề xuất mức giảm giá
+35%
+Tổn kho rất cao, gần hết hạn
+50%
+Tổn kho cao nhất, sắp hết hạn
+SKU
+Tên sản phẩm
+Đề xuất
+Lý do chính
+BK001
+Bánh mì
+Nhu cầu cao, tốn kho thấp
+BK002
+Bánh ngọt
+15%
+Tổn kho trung bình
+25%
+BK003
+Bánh mì
+Tổn kho cao, thời gian còn lại ngắn
+BK004
+Bánh ngọt
+BK005
+Bánh mì
+8%
+
+
+PAGE 13
+Ngày
+30
+Hôm nay
+Không
+Ngày lễ
+Trong 7 ngày tới
+Nắng | 31C
+Thời tiết
+Mưa rào chiều
+Ổn định
+Lịch sử bán
+So với 14 ngày trước
+Đang xử lý
+Trạng thái dự báo
+Cặp nhật liên tục
+AEON
+Bakery
+Chi nhánh V
+Tổng quan
+Module 2 ·
+Next-day Prep
+Recommendation
+Cài đặt
+30/09/2026
+2
+1
+3
+Quản lý Bake
+6h00
+Nhận dữ liệu
+AI dự báo nhu cầu
+Đề xuất AI
+6:00
+Đang thực hiện.....
+(chờ quyết định)
+Context dự báo & Dữ liệu đầu vào
+Dự báo cho ngày 30/09/2026 (Thứ Tư)
+SKU
+Định mức
+hiện tại
+Tồn đầu
+ngày
+TB bán
+cùng thứ
+Donut đường
+Croissant bơ
+120
+8
+104
+Pain au
+chocolat
+90
+5
+92
+Baguette
+truyền thống
+150
+10
+158
+Bánh mì
+sandwich
+80
+6
+70
+Bánh su
+kem
+100
+12
+86
+110
+4
+115
+AI chỉ đưa ra đề xuất – quyết định cuối cùng thuộc về Quản lý Bakery
+Quy trình AI
+
+
+PAGE 14
+Đề xuất mức giảm giá
+SKU
+Định mức
+hiện tại
+Đề xuất AI
+Lý do chính
+Chênh lệch
++/-
+Approve toàn bộ định mức
+Dữ liệu lịch sử cho thấy nhu cầu thay đổi
+theo thứ trong tuần
+Tồn kho đầu ngày
+Tồn đầu ngày là yếu tố quan trọng để
+điều chỉnh định mức
+Mưa rào chiều
+Dự báo mưa rào vào chiều mai, ảnh
+hưởng đến lượng khách
+Không phải ngày lễ
+Hôm nay không phải ngày lễ hay ngày
+đặc biệt.
+Vì sao AI đề xuất?
+Xu hàng bán cùng thứ
+30/09/2026
+Quản lý Bake
+6h00
+AI Output
+AEON
+Bakery
+Chi nhánh V
+Tổng quan
+Module 2 ·
+Next-day Prep
+Recommendation
+Cài đặt
+2
+1
+3
+Nhận dữ liệu
+AI dự báo nhu cầu
+Đề xuất AI
+6:00
+Đang thực hiện.....
+(chờ quyết định)
+AI chỉ đưa ra đề xuất – quyết định cuối cùng thuộc về Quản lý Bakery
+530
+Tổng định mức: 550 ->
+Adjust Reject
+Croissant
+bơ
+Bánh mì
+sandwich
+120
+105
+Pain au
+chocolat
+90
+96
+Baguette
+truyền thống
+150
+162
+ 80
+68
+Bánh su
+kem
+100
+84
+Donut
+đường
+110
+118
+–15
++6
++12
+-12
+-16
++8
++
+-
++
+-
++
+-
++
+-
++
+-
++
+-
+Nhu cầu giảm
+Nhu cầu giảm
+Nhu cầu tăng nhẹ
+Nhu cầu tăng
+Nhu cầu giảm mạnh
+Nhu cầu tăng nhẹ
+Adjust
+Reject
+Adjust
+Reject
+Adjust Reject
+Adjust Reject
+Adjust Reject
+Hành động
+Đề xuất AI
+
+
+PAGE 15
+Đã duyệt
+Đề xuất đã sẵn sàng nhưng chưa thực thi.
+AI Decision Support System
+Dành cho
+Quản lý quầy
+Tổng quan
+Quy trình AI
+Đề xuất giảm giá
+Thực thi & theo dõi
+Cài đặt
+Báo cáo hiệu quả
+Trạng thái quyết định của
+Quản lý
+Duyệt hoặc điều chỉnh trước khi thực thi.
+1
+2
+3
+Chọn mức điều chỉnh phù hợp
+với tình hình thực tế.
+Xác nhận quyết định để
+chuyển sang trạng thái
+đã duyệt.
+Đề xuất được lưu lại.
+Hệ thống dừng trước bước
+thực thi.
+Điều chỉnh mức giảm giá
+Xác nhận duyệt
+Đã duyệt
+Medium
+High
+Low
+AEON
+Bakery
