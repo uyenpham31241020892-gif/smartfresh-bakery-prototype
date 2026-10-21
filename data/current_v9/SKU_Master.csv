@@ -1,0 +1,9 @@
+sku_code,product_name_reference,unit_price_vnd_reference,mapping_confidence,source_url,unit_production_cost_vnd_assumed_45pct,batch_size_units_assumed,source_status
+BK-001,AEON BREAD Bánh Mỳ Baguette Size Lớn 1 Cái,9800,High,https://aeoneshop.com/products/category/294/banh-mi,4410.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-002,AEON BREAD Bánh Croissant 1 Cái,9800,High,https://aeoneshop.com/product/19023/banh-croissant,4410.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-003,AEON BREAD Croissant Socola,14700,Medium,https://aeoneshop.com/products/highlight/1829/banh-mi-banh-ngot,6615.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-004,AEON BREAD Bánh Mì Phô Mai Bơ Tỏi 1 Cái,24500,Low,https://aeoneshop.com/products/category/294/banh-mi,11025.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-005,AEON BREAD Bánh Hàn Quốc 1 Cái,7800,Low,https://aeoneshop.com/products/category/294/banh-mi,3510.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-006,AEON BREAD Bánh Mì Ngũ Cốc 1 Cái,17600,High,https://aeoneshop.com/products/highlight/867/b%E1%BB%AFa-sang-ch%E1%BA%BF-bi%E1%BA%BFn-s%E1%BA%B5n,7920.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+BK-007,AEON BREAD Bánh Mì Sandwich Hotel 8 Lát 500g,49000,Medium,https://aeoneshop.com/products/highlight/1829/banh-mi-banh-ngot,22050.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED
+PA-001,AEON BREAD Croissant Hạnh Nhân 1 Cái,11700,High,https://aeoneshop.com/products/category/294/banh-mi,5265.0,4,V6_MAPPING_AND_DEMAND_PROXY_NOT_AEON_OBSERVED

@@ -5,4 +5,11 @@
 __pycache__/
 *.pyc
 runtime/
+.tools/
+docs/mockup/*.png
+docs/qa/
+data/source_v9/
+data/source_archives/
+reference/drive_v9/models/
+.pytest_cache/
 .DS_Store

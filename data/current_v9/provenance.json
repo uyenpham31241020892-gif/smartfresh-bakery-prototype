@@ -1,0 +1,33 @@
+{
+  "archive": "V9-20261020T063226Z-1-001.zip",
+  "archive_sha256": "0d23e880e8ed5bebef4ab1a9ba4127da25775000a4e93d06c8c87d95a27279e8",
+  "files": {
+    "data/current_v9/Baseline_Store_Preparation_Plan.csv": "29d5135448a289d29fe19eb56bf5eead841483a093aa8da4bec12a65cbf995e9",
+    "data/current_v9/Calendar_Weather.csv": "7eb524f3df5bb3371fb5675b94306ab5c9dc168350d57c62a3ed1901a5001671",
+    "data/current_v9/Historical_Store_Baseline_Logs.csv": "b9348e7b6a7c7784862432e01e4c5775b5fa3f0c9fd06412f8519d9468f71ad7",
+    "data/current_v9/history_through_aug15_synthetic.csv": "ae4b029fc1eff4967a3606d60c55f8e0a3eee2aef7ea32abd3ddccc076f10da7",
+    "data/current_v9/M1_Policy_Label_Train.csv": "2091249fd2bcb7ba6bf8a706faf98e8857e7188aad5ef0a9d123237fc23b1ab6",
+    "data/current_v9/M2_Training_Matrix.csv": "ce710a347fe7d41a84e6035b0bc83440b7067a053c82c313b1f7a327c23fc644",
+    "data/current_v9/M2_TRAIN_JUN_AUG.csv": "4b8396d411adcca648d2ea83983e8443a7788c4932edca2cde4da247984fa0bb",
+    "data/current_v9/M2_VALIDATION_AUG16_31.csv": "fcf4a5ba7143da10466211c65435ab338082ef93aad712f813b73926ce68e404",
+    "data/current_v9/SKU_Master.csv": "7c89aac828b27624f604a80da367f5e25e07a4ee9a85acaf088966f98a761113",
+    "data/current_v9/source_manifest.json": "37c1212f8108e166ff253104d42431d0c4f355ed607288f85c560369257dd75b",
+    "data/current_v9/V9_history_before_validation.csv": "3fca01abf15e3e28985121439bf8b43874f1f01f343bcbdec88c6dae822aebb7",
+    "data/current_v9/weather_forecast_feed_2022.csv": "7c2913e7805f6c3c90b5443fa087a8a2836cd44ca5e47364470d32d1d7d4791b",
+    "data/current_v9/outputs/BASELINE_daily_sep.csv": "67c6bb286ca78da5264f3cc6b83e15e7f9e5baed370afa856585b7f22cd1535d",
+    "data/current_v9/outputs/BASELINE_decisions_sep.csv": "df3b41f11b805f56fe64f4d5611bd73395d4ca927dd55fbfa1fb16dbe3824b53",
+    "data/current_v9/outputs/BASELINE_preparation_sep.csv": "f4c6c2a09472ed2f3b05290053569953d7f37a01e0c7a9e11cd5f58cd706d184",
+    "data/current_v9/outputs/BASELINE_transaction_ledger_sep.csv": "b1b966e671806f0fb9bfa182af1fa77b19d56661046b6eb0c0978e1b3ea158cb",
+    "data/current_v9/outputs/BY_DAY_V9_vs_BASELINE.csv": "456f23e7883461c38fc3a1cc301be2d70cbe314f8c6478218dd88beac8d434c2",
+    "data/current_v9/outputs/BY_SKU_V9_vs_BASELINE.csv": "128f577687f41242846ca6f663c180b0ecd56b5fd539735d627bc7263be6488a",
+    "data/current_v9/outputs/KPI_SELECTED_vs_BASELINE.csv": "b505ddfc3a5a9e8d9c9308890015efbd872b91306d8da9f4e54ca0231fd487f2",
+    "data/current_v9/outputs/M1_M2_SELECTED_daily_sep.csv": "72474ca7d91e1b7729be8f845774e2769e2de2b639c304269bd3741a26793614",
+    "data/current_v9/outputs/M1_M2_SELECTED_decisions_sep.csv": "c09f718aea413c7ca358e7e73b3eb9073eb5181f483cc366a74dca73fe563ae4",
+    "data/current_v9/outputs/M1_M2_SELECTED_preparation_sep.csv": "ab173571385fefcb569bd3cc8cff80a46cf4a31a25ae1891d20127455763241b",
+    "data/current_v9/outputs/M1_M2_SELECTED_transaction_ledger_sep.csv": "ca99e7b10afa84084930f9a180d64ae192edf93c85e52004feeec2dc4cde64ce",
+    "data/current_v9/outputs/M2_FORECASTS.csv": "74c7900a3cb4d71e4ab20a5abe748a83a4b1d81ceb1f74c8ed07e2b979efd9fb",
+    "data/current_v9/outputs/QA_AUDIT.csv": "7524abb3d433abea5bb60e7e20f4cfc7e9ce2d4b9292fa81ad955c08e05fd85f",
+    "data/current_v9/outputs/train_only_sku_safety_offsets.csv": "c7da0d90441b4f79702207cba259b2996b4c115b4de630f0f8eb8be95b63507f"
+  },
+  "missing_original_observations": true
+}

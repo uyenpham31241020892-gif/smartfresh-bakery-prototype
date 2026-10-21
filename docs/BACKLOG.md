@@ -1,5 +1,7 @@
 # Backlog để nhóm cùng build
 
+> Backlog ban đầu của bản replay. Xem [IMPLEMENTATION_V9.md](IMPLEMENTATION_V9.md) để biết chức năng đã chạy và các mục còn mở.
+
 | Ưu tiên | Nhóm việc | Đầu ra và điều kiện hoàn thành |
 |---|---|---|
 | P0 | Chốt nghiệp vụ | Chốt ngày mục tiêu M2, giờ chốt kế hoạch, giả định 30% từ 21h, xử lý tồn và từ chối đề xuất vi phạm sàn |

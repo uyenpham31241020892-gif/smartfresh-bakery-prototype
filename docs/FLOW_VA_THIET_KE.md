@@ -1,5 +1,7 @@
 # SmartFresh: flow sử dụng và hướng giao diện
 
+> Phân tích ban đầu của bản replay. Trạng thái triển khai hiện tại và ZIP ngày 20/10 được cập nhật ở [IMPLEMENTATION_V9.md](IMPLEMENTATION_V9.md).
+
 ## 1. Kết luận thiết kế
 
 Giữ cơ chế quản lý xem, chỉnh và duyệt. Tổ chức theo một ngày vận hành thay vì màn hình mang tên “AI Output”. Hai quyết định liên kết: M2 quyết định chuẩn bị bao nhiêu; M1 quyết định giá cuối ngày cho lượng còn lại. Cuối ngày ghi nhận kết quả để tạo lịch sử quan sát cho ngày tiếp theo.
