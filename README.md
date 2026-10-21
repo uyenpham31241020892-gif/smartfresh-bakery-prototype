@@ -1,4 +1,4 @@
-# SmartFresh · Bakery Intelligence
+# SmartFresh Bakery 
 
 Dashboard chạy local, dùng **hai mô hình LightGBM V9 đã huấn luyện sẵn** suy luận từ đầu vào mới, có upload dữ liệu, xác nhận quyết định, sổ giao dịch và Copilot tùy chọn (Gemini / OpenAI / Ollama).
 
@@ -94,7 +94,3 @@ Kiểm thử provider sử dụng HTTP giả lập để kiểm tra truyền b�
 
 
 Xem [c? ch? realtime, m? ph?ng v? chuy?n ng?y](docs/DAILY_REALTIME_LOOP.md).
-
-## Bàn giao và kịch bản demo V1
-
-Xem [Giai đoạn 4: QA Human Approval, ZIP và kịch bản demo](GIAI_DOAN_4_BAN_GIAO_VA_DEMO.md). Chạy `python -m pytest -q` và `python scripts/demo_gd4_check.py` để kiểm thử trên database tạm. Gói mã nguồn không chứa `.venv`, `.env` hoặc phiên SQLite.
