@@ -33,7 +33,7 @@ document.addEventListener('click',async e=>{
   }
   if(b.hasAttribute('data-next-day'))await nextDay();
   if(b.hasAttribute('data-confirm-zero')){
-    modal('Xác nhận thực tế chưa có bán','<p>Chỉ xác nhận nếu bạn đã kiểm tra và thực tế chưa bán sản phẩm nào. Thiếu file giao dịch không có nghĩa là chưa bán.</p><label class="field">Lý do<textarea id="zero-reason" required></textarea></label><button class="primary" id="zero-confirm">Xác nhận chưa bán</button>');
+    modal('Xác nhận không có bán mới','<p>Chỉ xác nhận sau khi đã kiểm tra không phát sinh bán mới từ lần cập nhật gần nhất đến phút hiện tại. Không xóa các giao dịch đã nhập; thao tác này làm mới mốc kiểm tra và lưu lý do.</p><label class="field">Lý do<textarea id="zero-reason" required></textarea></label><button class="primary" id="zero-confirm">Xác nhận đã kiểm tra</button>');
     $('zero-confirm').onclick=async()=>{const reason=$('zero-reason').value.trim();if(!reason){toast('Cần lý do xác nhận.',true);return}$('modal').close();await act('confirm_zero_sales',{confirmed:true,reason})};
   }
   if(b.hasAttribute('data-simulator-report')){
@@ -45,9 +45,9 @@ document.addEventListener('change',e=>{
   if(e.target.hasAttribute('data-pause-confirm'))changeClock(!!state.realtime?.enabled,state.realtime?.speed??5,e.target.checked);
 });
 setInterval(async()=>{
-  if(typeof state==='undefined'||!state||!state.realtime?.enabled||working||$('modal').open||chatting)return;
+  if(typeof state==='undefined'||!state||!state.realtime?.enabled||working||$('modal').open||chatting||document.activeElement?.matches('[data-discount],[data-qty]')||Object.keys(discountDraft).length||Object.keys(quantityDraft).length)return;
   const sid=state.id;
-  try{const fresh=await api('/api/state?session_id='+sid);if(state.id===sid&&!working){state=fresh;render()}}catch(e){toast(e.message,true)}
+  try{const fresh=await api('/api/state?session_id='+sid);if(state.id===sid&&!working&&!$('modal').open&&!document.activeElement?.matches('[data-discount],[data-qty]')&&!Object.keys(discountDraft).length&&!Object.keys(quantityDraft).length){const changed=fresh.revision!==state.revision||JSON.stringify(fresh.realtime)!==JSON.stringify(state.realtime);state=fresh;if(changed)render()}}catch(e){toast(e.message,true)}
 },1000);
 function refreshDayHistory(){
   if(!state||historySession===state.id)return;

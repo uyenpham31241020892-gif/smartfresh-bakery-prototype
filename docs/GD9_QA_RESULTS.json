@@ -1,0 +1,24 @@
+{
+  "release_id": "f7d69875e9297345e2d1e6892be0a97763b00d9c8d227570744d191aed9a02e9",
+  "created": "2026-10-22T05:43:04.758415+00:00",
+  "passed": 164,
+  "failed": 0,
+  "skipped": 0,
+  "pytest_exit_code": 0,
+  "e2e": {
+    "passed": true,
+    "temporary_workspace": true,
+    "closed_session_reconciled": true,
+    "manager_certification": true,
+    "stale_revision_blocked": true,
+    "viewer_denied": true,
+    "request_trace": true,
+    "backup_restore_verified": true,
+    "restored_tokens_invalidated": true,
+    "model_failure_health_503": true,
+    "steps": 19
+  },
+  "scope": "Local Python/API tests; synthetic fixtures; no AEON acceptance",
+  "github_ci_executed": false,
+  "windows_launcher_manually_verified": false
+}

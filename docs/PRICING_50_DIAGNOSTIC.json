@@ -1,0 +1,489 @@
+{
+  "scope": "Default synthetic day 2022-08-16 seed42, original frozen AI policy, no user runtime",
+  "prepared": 296,
+  "sold": 195,
+  "leftover": 101,
+  "revenue": 2993060,
+  "at_2130": [
+    {
+      "sku": "BK-001",
+      "stock": 18,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 5656.711599873326,
+          "expected_leftover": 17.175406472321672,
+          "objective": 1448.7367141545162,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 5252.660771310946,
+          "expected_leftover": 17.175406472321672,
+          "objective": 1044.685835592136,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 4848.609942748565,
+          "expected_leftover": 17.175406472321672,
+          "objective": 640.6349570297551,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 4444.559114186185,
+          "expected_leftover": 17.175406472321672,
+          "objective": 236.5840784673751,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 4744.863342795185,
+          "expected_leftover": 17.031660542286698,
+          "objective": 572.1060099349444,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-002",
+      "stock": 17,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 4145.187207277894,
+          "expected_leftover": 16.39574530506153,
+          "objective": 128.22930753781853,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 3849.102406758045,
+          "expected_leftover": 16.39574530506153,
+          "objective": -167.85554298203053,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 3553.017606238195,
+          "expected_leftover": 16.39574530506153,
+          "objective": -463.9403935018805,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 3256.932805718346,
+          "expected_leftover": 16.39574530506153,
+          "objective": -760.0252440217296,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 3456.650311011289,
+          "expected_leftover": 16.294561161018105,
+          "objective": -535.517673438147,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-003",
+      "stock": 16,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 6988.386447446706,
+          "expected_leftover": 15.320856516283119,
+          "objective": 1357.9713777126606,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 6489.215986914799,
+          "expected_leftover": 15.320856516283119,
+          "objective": 858.8008671807531,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 5990.045526382891,
+          "expected_leftover": 15.320856516283119,
+          "objective": 359.6303566488449,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 5490.875065850984,
+          "expected_leftover": 15.320856516283119,
+          "objective": -139.54015388306152,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 5602.133323073806,
+          "expected_leftover": 15.237804990057985,
+          "objective": 2.239489227496153,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-004",
+      "stock": 14,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 13661.456913351773,
+          "expected_leftover": 13.203413591058206,
+          "objective": 5574.365788828622,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 12685.638562398075,
+          "expected_leftover": 13.203413591058206,
+          "objective": 4598.5473878749235,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 11709.820211444376,
+          "expected_leftover": 13.203413591058206,
+          "objective": 3622.7289869212245,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 10734.00186049068,
+          "expected_leftover": 13.203413591058206,
+          "objective": 2646.9105859675287,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 10530.210326772343,
+          "expected_leftover": 13.14039099373287,
+          "objective": 2481.720343110959,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-005",
+      "stock": 13,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 2406.5338981736445,
+          "expected_leftover": 12.559242875792373,
+          "objective": -42.51876260586854,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 2234.63861973267,
+          "expected_leftover": 12.559242875792373,
+          "objective": -214.4140910468429,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 2062.7433412916953,
+          "expected_leftover": 12.559242875792373,
+          "objective": -386.30941948781776,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 1890.8480628507211,
+          "expected_leftover": 12.559242875792373,
+          "objective": -558.2047479287919,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 2044.649862898683,
+          "expected_leftover": 12.475730804384954,
+          "objective": -388.11814395638305,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-006",
+      "stock": 7,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 5553.053048351592,
+          "expected_leftover": 6.549265174646786,
+          "objective": 2671.376071507006,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 5156.406402040764,
+          "expected_leftover": 6.549265174646786,
+          "objective": 2274.7293751961784,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 4759.759755729936,
+          "expected_leftover": 6.549265174646786,
+          "objective": 1878.08267888535,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 4363.113109419109,
+          "expected_leftover": 6.549265174646786,
+          "objective": 1481.4359825745228,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 4225.043102950934,
+          "expected_leftover": 6.519881465573757,
+          "objective": 1356.29475809848,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "BK-007",
+      "stock": 8,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 7680.401796042897,
+          "expected_leftover": 7.7760815802902945,
+          "objective": -1845.298439812714,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 7131.80166775412,
+          "expected_leftover": 7.7760815802902945,
+          "objective": -2393.898618101491,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 6583.201539465341,
+          "expected_leftover": 7.7760815802902945,
+          "objective": -2942.4987963902704,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 6034.6014111765635,
+          "expected_leftover": 7.7760815802902945,
+          "objective": -3491.098974679048,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 6387.158193119069,
+          "expected_leftover": 7.739299665586977,
+          "objective": -3093.4843972249773,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "PA-001",
+      "stock": 11,
+      "chosen": 30,
+      "candidates": [
+        {
+          "discount": 30,
+          "expected_revenue": 3307.5837956483774,
+          "expected_leftover": 10.596143614694947,
+          "objective": 208.21148835010504,
+          "schedule": [
+            30
+          ]
+        },
+        {
+          "discount": 35,
+          "expected_revenue": 3071.327810244922,
+          "expected_leftover": 10.596143614694947,
+          "objective": -28.044547053350218,
+          "schedule": [
+            35
+          ]
+        },
+        {
+          "discount": 40,
+          "expected_revenue": 2835.0718248414664,
+          "expected_leftover": 10.596143614694947,
+          "objective": -264.30058245680596,
+          "schedule": [
+            40
+          ]
+        },
+        {
+          "discount": 45,
+          "expected_revenue": 2598.815839438011,
+          "expected_leftover": 10.596143614694947,
+          "objective": -500.5566178602612,
+          "schedule": [
+            45
+          ]
+        },
+        {
+          "discount": 50,
+          "expected_revenue": 2617.2048232176517,
+          "expected_leftover": 10.552614560133735,
+          "objective": -469.4354356214657,
+          "schedule": [
+            50
+          ]
+        }
+      ]
+    }
+  ],
+  "m2_plan_diagnostic": {
+    "forecast_sum": 200.97441507533532,
+    "prepared_sum": 296,
+    "floor_sum": 296,
+    "all_skus_floor_binding": true,
+    "rows": [
+      {
+        "sku": "BK-001",
+        "forecast": 44.732157329674095,
+        "buffer": 5.570024991951968,
+        "floor": 60,
+        "prepared": 60
+      },
+      {
+        "sku": "BK-002",
+        "forecast": 33.91708872210358,
+        "buffer": 4.027305592193342,
+        "floor": 52,
+        "prepared": 52
+      },
+      {
+        "sku": "BK-003",
+        "forecast": 25.596197629069792,
+        "buffer": 3.221150807146227,
+        "floor": 36,
+        "prepared": 36
+      },
+      {
+        "sku": "BK-004",
+        "forecast": 31.228335215651537,
+        "buffer": 5.157873241087561,
+        "floor": 44,
+        "prepared": 44
+      },
+      {
+        "sku": "BK-005",
+        "forecast": 21.480442020373783,
+        "buffer": 3.351509445780395,
+        "floor": 36,
+        "prepared": 36
+      },
+      {
+        "sku": "BK-006",
+        "forecast": 16.06436192928682,
+        "buffer": 2.7825183215467826,
+        "floor": 24,
+        "prepared": 24
+      },
+      {
+        "sku": "BK-007",
+        "forecast": 12.029446115267515,
+        "buffer": 2.06670194104529,
+        "floor": 20,
+        "prepared": 20
+      },
+      {
+        "sku": "PA-001",
+        "forecast": 15.926386113908203,
+        "buffer": 3.7994510542262327,
+        "floor": 24,
+        "prepared": 24
+      }
+    ]
+  }
+}

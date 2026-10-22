@@ -8,6 +8,7 @@ import math
 from pathlib import PurePosixPath
 import zipfile
 import pandas as pd
+from .quality import forbidden_columns, weather_check, timestamp, cutoff, history_quality
 
 MAX_BYTES = 20 * 1024 * 1024
 ALIASES = {'sku': 'sku_code', 'mã sku': 'sku_code', 'ma_sku': 'sku_code', 'ngày': 'date',
@@ -75,10 +76,18 @@ def inspect(name, raw, day, master, mapping=None):
         if len(frame) > 20000 or len(frame.columns) > 100:
             raise ValueError('Mỗi bảng tối đa 20.000 dòng và 100 cột.')
         frame.columns = [str(c).strip() for c in frame.columns]
+        blocked_original = forbidden_columns(frame.columns)
+        if blocked_original:
+            result['errors'].append({'table':table_name,'row':1,'message':'Cột nguồn evaluation/target bị cách ly: '+', '.join(blocked_original)})
+            continue
         frame = frame.rename(columns=mapping or {c: ALIASES.get(c.lower(), c) for c in frame.columns})
         if frame.columns.duplicated().any():
             raise ValueError('Tên cột trùng sau ánh xạ. Hãy giữ mỗi trường ở một cột.')
         cols = set(frame.columns)
+        blocked = forbidden_columns(cols)
+        if blocked:
+            result['errors'].append({'table': table_name, 'row': 1, 'message': 'Cột evaluation/target bị cách ly: ' + ', '.join(blocked)})
+            continue
         kind = 'history' if {'date', 'sku_code', 'sold_qty'} <= cols else 'weather' if {'date', 'forecast_rain_mm_previous_day1', 'forecast_temperature_max_c_previous_day1'} <= cols else 'transactions' if {'sku_code', 'minute', 'quantity'} <= cols else 'unknown'
         result['tables'].append({'name': table_name, 'kind': kind, 'rows': len(frame), 'columns': list(frame.columns),
                                  'sample': json.loads(frame.head(5).to_json(orient='records', date_format='iso'))})
@@ -96,8 +105,12 @@ def inspect(name, raw, day, master, mapping=None):
                     key = (d, sku)
                     if key in history_keys:
                         raise ValueError('Trùng khóa ngày–SKU')
+                    if 'available_at' in r and not pd.isna(r['available_at']):
+                        if timestamp(r['available_at']) > cutoff(day):
+                            raise ValueError('Lịch sử chưa có tại thời điểm dự báo 06:00 (available_at).')
                     history_keys.add(key)
-                    result['history'].append({'date': d, 'sku_code': sku, 'sold_qty': integer(r['sold_qty'], 'sold_qty')})
+                    result['history'].append({'date': d, 'sku_code': sku, 'sold_qty': integer(r['sold_qty'], 'sold_qty'),
+                        'available_at': str(r['available_at']) if 'available_at' in r and not pd.isna(r['available_at']) else None})
                 elif kind == 'weather':
                     d = iso(r['date'])
                     if d != day:
@@ -108,16 +121,8 @@ def inspect(name, raw, day, master, mapping=None):
                     temp = float(r['forecast_temperature_max_c_previous_day1'])
                     if not math.isfinite(rain) or not math.isfinite(temp) or not 0 <= rain <= 1000 or not -20 <= temp <= 60:
                         raise ValueError('Mưa/nhiệt độ không hợp lệ')
+                    weather_check(day, r, trusted_demo=False)
                     issued = r.get('issued_at')
-                    if issued is not None and not pd.isna(issued):
-                        issued = pd.Timestamp(issued)
-                        cutoff = pd.Timestamp(day + 'T06:00:00+07:00')
-                        if issued.tzinfo is None or issued > cutoff:
-                            raise ValueError('issued_at cần múi giờ và không sau 06:00 ngày lập kế hoạch')
-                    elif not ('JMA_GSM_PREVIOUS_DAY1' in str(r.get('forecast_source', '')) and day <= '2022-09-30'):
-                        raise ValueError('Dự báo mới cần issued_at có múi giờ, trước 06:00 ngày mục tiêu')
-                    else:
-                        result['warnings'].append('Forecast V9 có giả định previous_day1; chưa xác minh timestamp phát hành từng giờ.')
                     dt = date.fromisoformat(day)
                     holiday = integer(r.get('is_public_holiday', 0), 'is_public_holiday')
                     festival = integer(r.get('is_festival_non_public', 0), 'is_festival_non_public')
@@ -128,7 +133,8 @@ def inspect(name, raw, day, master, mapping=None):
                         'is_public_holiday': holiday, 'is_festival_non_public': festival,
                         'forecast_rain_mm_previous_day1': rain, 'forecast_temperature_max_c_previous_day1': temp,
                         'forecast_source': str(r.get('forecast_source', 'UPLOADED_FORECAST')),
-                        'issued_at': str(issued) if issued is not None else None}
+                        'issued_at': str(issued) if issued is not None else None,
+                        'available_at': str(r['available_at']) if 'available_at' in r and not pd.isna(r['available_at']) else str(issued)}
                 else:
                     sku = str(r['sku_code']).strip()
                     if sku not in master:
@@ -148,5 +154,19 @@ def inspect(name, raw, day, master, mapping=None):
             count = sum(r['sku_code'] == sku for r in result['history'])
             if count < 7:
                 result['warnings'].append(f'{sku}: ít hơn 7 ngày lịch sử; model sẽ dùng giá trị dự phòng đã khóa.')
+    result['quality_policy'] = 'GD5-v1'
+    result['prediction_as_of'] = cutoff(day).isoformat()
+    result['source_assurance'] = 'User-declared upload; SHA256 chứng minh nội dung, không chứng minh nguồn POS/JMA.'
+    result['history_availability'] = 'declared_timestamps' if result['history'] and all(r.get('available_at') for r in result['history']) else 'date_only_unverified'
+    if result['history'] and result['history_availability']!='declared_timestamps':
+        result['warnings'].append('Lịch sử chỉ có ngày bán chưa chứng minh lúc dữ liệu thực sự sẵn có; cần available_at để audit đầy đủ.')
+    if result['history']:
+        result['freshness'] = history_quality(day, {(r['date'],r['sku_code']):r['sold_qty'] for r in result['history']}, master)
+        # Full coverage and freshness are enforced at inference, preserving preview diagnostics for partial uploads.
+        for q in result['freshness']:
+            if q['status'] == 'BLOCK':
+                result['warnings'].append(q['sku'] + ': thiếu/quá cũ; sẽ chặn tạo dự báo nếu không đủ dữ liệu.')
+    result['quarantine'] = bool(result['errors'])
     result['valid'] = not result['errors'] and bool(result['history'] or result['weather'] or result['transactions'])
+    result['quarantine'] = not result['valid']
     return result

@@ -1,0 +1,37 @@
+[
+  {
+    "file": "01_valid_synthetic.xlsx",
+    "preview_valid": true,
+    "confirm_http": 200
+  },
+  {
+    "file": "02_forecast_late.csv",
+    "preview_valid": false,
+    "confirm_http": 400
+  },
+  {
+    "file": "03_forecast_stale.csv",
+    "preview_valid": false,
+    "confirm_http": 400
+  },
+  {
+    "file": "04_available_late.csv",
+    "preview_valid": false,
+    "confirm_http": 400
+  },
+  {
+    "file": "05_hidden_target_leakage.csv",
+    "preview_valid": false,
+    "confirm_http": 400
+  },
+  {
+    "file": "06_future_history.csv",
+    "preview_valid": false,
+    "confirm_http": 400
+  },
+  {
+    "file": "07_stale_history.csv",
+    "preview_valid": true,
+    "confirm_http": 400
+  }
+]

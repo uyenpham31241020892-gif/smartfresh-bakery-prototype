@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "temporary_database": true,
+  "open_day_accuracy": "N/A",
+  "closed_runtime_metric": {
+    "n": 8,
+    "wape_pct": 9.021497212596273,
+    "mae": 2.1313287164758696,
+    "bias_pct": 6.335669352029272,
+    "actual_sum": 189.0,
+    "prediction_sum": 200.97441507533534
+  },
+  "sandbox_rows": 224,
+  "sandbox_alerts": [
+    "DATA_DRIFT",
+    "PERFORMANCE_DRIFT",
+    "WAPE_V9-frozen-d8b621a5_controlled_synthetic_demand"
+  ],
+  "drift_changes_no_workflow_state": true,
+  "viewer_cannot_write": true,
+  "real_http_requests": 21
+}

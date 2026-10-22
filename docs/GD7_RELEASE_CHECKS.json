@@ -1,0 +1,30 @@
+{
+  "regression": {
+    "passed": 128,
+    "failed": 0
+  },
+  "javascript_syntax": "PASS",
+  "dom_rehearsal": {
+    "tabs": 4,
+    "empty_state": "PASS",
+    "synthetic_chart": "PASS",
+    "drift_alerts": "PASS",
+    "acknowledgement": "PASS",
+    "threshold_form": "PASS",
+    "staff_read_only": "PASS",
+    "workflow_unchanged": "PASS",
+    "js_errors": []
+  },
+  "api_rehearsal": "docs/GD7_API_REHEARSAL.json",
+  "upgrade_preserves_identity_and_sessions": "PASS",
+  "graphical_browser_verified": false,
+  "windows_launcher_executed": false,
+  "new_dependencies": false,
+  "packaging": {
+    "all_gd6_source_present": true,
+    "models_data_reference_unchanged": true,
+    "requirements_launchers_unchanged": true,
+    "patch_overlay_equals_full": true,
+    "environment_runtime_sentinels_preserved": true
+  }
+}

@@ -1,3 +1,62 @@
+## Bản cập nhật GD9.3
+
+Chế độ Assisted / Manual / Shadow dùng chung cho ca, đặt ở đầu Tổng quan, Kế hoạch sản lượng và Giảm giá cuối ngày. Đã xóa ô chuyển hướng thừa ở An toàn & sự cố và cập nhật hướng dẫn. Xem [hướng dẫn GD9.3](docs/GD9_3_SHARED_MODES.md).
+
+# GD9.2 — Sàn sản lượng khuyến nghị
+
+Manager được duyệt dưới sàn90%baseline khi ghi lý do và audit; giữ mẻ4 và số dương. Xem [hướng dẫn GD9.2](docs/GD9_2_SOFT_PRODUCTION_FLOOR.md). Bao gồm bản sửa giá GD9.1.
+
+# GD9.1 — Sửa Manager chỉnh giá
+
+Ba chế độ ở ngay trang M1; dropdown giữ lựa chọn khi polling; Manual tạo bảng mới; mở lại chỉnh giá cùng mốc. Xem [hướng dẫn và phân tích báo cáo](docs/GD9_1_MANAGER_PRICING_FIX.md). Model/data/policy giữ nguyên.
+
+# SmartFresh — Giai đoạn 9
+
+Final QA & Deployment Readiness: health 200/503, structured API errors, Request ID tracing, offline backup/restore, GitHub CI và GO/NO-GO có bằng chứng cho demo local. Chưa nghiệm thu production/AEON; BigQuery chưa tích hợp; F04 vẫn bỏ khỏi UI.
+
+Nâng cấp từ GD8 bằng patch, giữ environment/runtime và launcher cũ. Xem [hướng dẫn GD9](docs/GIAI_DOAN_9_HUONG_DAN.md) và [cách chép patch](docs/GD9_PATCH_GUIDE.md).
+
+QA: `python scripts/run_qa.py`. GitHub Actions: `.github/workflows/ci.yml` (Ubuntu/Windows; chưa chạy trên repository của bạn).
+
+# SmartFresh — Giai đoạn 8
+
+Đối soát cuối ca, model registry, fresh holdout, promotion và rollback. F04 baseline vs M1+M2 đã gỡ khỏi giao diện theo yêu cầu.
+
+Nâng cấp GD7: dùng patch, giữ environment/runtime và chạy launcher cũ. Xem [hướng dẫn GD8](docs/GIAI_DOAN_8_HUONG_DAN.md) và [cách chép patch](docs/GD8_PATCH_GUIDE.md).
+
+# SmartFresh — Giai đoạn 7: Monitoring & Drift Dashboard
+**Đang có GD6:** dùng ZIP PATCH, dừng server → chép đè vào thư mục có app.py → mở lại Start-Gemini.cmd cũ → Ctrl+F5. **Giữ nguyên .venv/runtime/.env/model/data**; không cần cài lại environment.
+
+**Source mới:** Start-Gemini.cmd hoặc Start.cmd như trước; tài khoản local theo GD6.
+Menu **Giám sát hệ thống** có 4 tab Dữ liệu/Mô hình/Vận hành/Cảnh báo. Nút **Tạo minh họa drift cô lập** giúp thử đầy đủ khi chưa có ca đã chốt.
+
+- [Cách dùng PATCH](docs/GD7_PATCH_GUIDE.md)
+- [Hướng dẫn GD7 đầy đủ](docs/GIAI_DOAN_7_HUONG_DAN.md)
+- `python scripts/demo_gd7_check.py`: diễn tập API trên database tạm.
+
+Full source bao gồm tất cả GD5/GD6 và bản sửa launcher; không đóng gói environment hay database phiên cũ.
+
+---
+
+# Bản bàn giao Giai đoạn 6 — Safety, Incident & Fallback
+Full source **GD5 + sửa Start-Gemini + GD6**. Chạy **Start-Gemini.cmd** (không khởi động Ollama) hoặc Start.cmd.
+Mở http://127.0.0.1:8000, lần đầu **tạo tài khoản Manager** bằng mật khẩu bạn tự chọn.
+Menu **An toàn & sự cố**: Manual/Assisted/Shadow, phân quyền, incident và diễn tập phục hồi.
+
+**Đọc:** [docs/GIAI_DOAN_6_HUONG_DAN.md](docs/GIAI_DOAN_6_HUONG_DAN.md).
+**Thử tự động:** `python scripts/demo_gd6_check.py` (database tạm, không đổi ca của bạn).
+Source gọn, không chứa .venv hoặc database phiên cũ. Hướng dẫn giữ runtime cũ nằm trong tài liệu trên.
+
+---
+
+# Bản bàn giao Giai đoạn 5 — Data Quality & Provenance
+Mở **Start.cmd** để chạy demo. Vào **Dữ liệu đầu vào** để xem kiểm tra mới.
+Hướng dẫn đầy đủ: [docs/GIAI_DOAN_5_HUONG_DAN.md](docs/GIAI_DOAN_5_HUONG_DAN.md).
+File thử: **examples/gd5/** (ngày mục tiêu 16/08/2022).
+Full source gọn, không kèm .venv/runtime của máy cũ. Giải nén vào thư mục mới.
+
+---
+
 # SmartFresh · Bakery Intelligence
 
 Dashboard chạy local, dùng **hai mô hình LightGBM V9 đã huấn luyện sẵn** suy luận từ đầu vào mới, có upload dữ liệu, xác nhận quyết định, sổ giao dịch và Copilot tùy chọn (Gemini / OpenAI / Ollama).

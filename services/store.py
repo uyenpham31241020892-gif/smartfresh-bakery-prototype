@@ -3,6 +3,7 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from .engine import ROOT
+from .identity import actor,request_trace
 
 
 class Store:
@@ -32,6 +33,19 @@ class Store:
             db.close()
 
     def save(self, db, state, action, detail=None):
+        old=db.execute('SELECT state FROM sessions WHERE id=?',(state['id'],)).fetchone()
+        before=json.loads(old['state']) if old else {}
+        def prices(s):return {sku:{'discount':p['discount'],'unit_price':round(p['price']*(1-p['discount']/100))} for sku,p in s.get('products',{}).items()}
+        def proposal(s):
+            p=s.get('pending') or {}
+            return {'id':p.get('id'),'origin':p.get('origin'),'rows':[{k:r.get(k) for k in ['sku','previous','discount','approved']} for r in p.get('rows',[])]}
+        def quantities(s):return {p['sku']:{'proposed':p['prepared'],'approved':p.get('approved')} for p in s.get('plan',[])}
+        detail={**(detail or {}),'actor':actor.get(),'request_id':request_trace.get(),'model_version':state.get('model_version'),
+                'model_hashes':state.get('model_hashes'),'feature_snapshot_id':state.get('feature_snapshot_id'),
+                'minute':state['minute'],'before':{'phase':before.get('phase'),'prices':prices(before),'proposal':proposal(before),'quantities':quantities(before)},
+                'after':{'phase':state['phase'],'prices':prices(state),'proposal':proposal(state),'quantities':quantities(state)},
+                'prediction_origin':state.get('prediction_origin')}
+        if action=='PLAN_APPROVE':detail['production_approval']=state.get('production_approval')
         db.execute('INSERT INTO sessions(id,state) VALUES (?,?) ON CONFLICT(id) DO UPDATE SET state=excluded.state,updated=CURRENT_TIMESTAMP',
                    (state['id'], json.dumps(state, ensure_ascii=False, allow_nan=False)))
         db.execute('INSERT INTO audit(session_id,action,detail) VALUES (?,?,?)',

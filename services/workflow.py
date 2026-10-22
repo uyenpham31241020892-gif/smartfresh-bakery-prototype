@@ -3,6 +3,9 @@ from datetime import datetime, timezone, timedelta
 import json
 import hashlib
 import uuid
+from .quality import build_snapshot, sales_quality, digest
+from .safety import Safety, GuardError
+from .identity import request_trace,actor,AccessError
 from .engine import SLOTS, END, LADDER, FLOORS, CAPS
 
 
@@ -17,24 +20,35 @@ class Workflow:
         self.version_engine = lambda version: self.engine
         self.observed_history = lambda day: {}
         self.observed_outcomes = lambda day: {}
+        self.safety = Safety(store,lambda version: self.version_engine(version) if version else self.active_engine())
 
-    def create(self, day='2022-08-16', seed=42, mode='simulation', history=None, weather=None, source='V9 sample', identifier=None,auto_run=False,engine_version=None,apply_closed_history=True,outcome_snapshot=None):
+    def create(self, day='2022-08-16', seed=42, mode='simulation', history=None, weather=None, source='V9 sample', identifier=None,auto_run=False,engine_version=None,apply_closed_history=True,outcome_snapshot=None,provenance=None,operation_mode="assisted"):
         engine = self.version_engine(engine_version) if engine_version else self.active_engine()
         if identifier:
             try:return self.store.get(identifier)
             except ValueError:pass
-        if day <= engine.manifest.get('trained_until', '2022-08-15'):
-            raise ValueError('Ngày dự báo phải sau dữ liệu huấn luyện của model đang dùng: ' + engine.manifest.get('trained_until', '2022-08-15'))
+        cutoff=engine.manifest.get('trained_until','2022-08-15')
+        with self.store.connect() as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='model_holdouts'").fetchone():
+                periods=[json.loads(r['report'])['through'] for r in db.execute('SELECT report FROM model_holdouts WHERE version=?',(engine.version,))]
+                cutoff=max([cutoff]+periods)
+        if day <= cutoff:
+            raise ValueError('Ngày dự báo phải sau dữ liệu huấn luyện/đánh giá model: ' + cutoff)
         if day <= '2022-08-15':
             raise ValueError('Ngày vận hành phải sau thời điểm khóa huấn luyện 15/08/2022.')
         if mode not in ['simulation', 'live']:
             raise ValueError('Chế độ không hợp lệ.')
+        trusted_demo_weather = weather is None
         weather = weather or self.simulator.calendar.get(day)
         if weather is None:
             raise ValueError('Cần tải dự báo thời tiết có thời điểm phát hành cho ngày mục tiêu.')
+        if weather == self.simulator.calendar.get(day):
+            trusted_demo_weather = True
         known = self.observed_history(day) if mode == 'live' and history is None else {}
         visible = history if history is not None else known or self.simulator.history_before(day, seed=seed)
-        visible = {k: v for k, v in visible.items() if k[0] < day}
+        if any(k[0] >= day for k in visible):
+            raise ValueError('Data leakage: lịch sử hiện tại/tương lai bị chặn, không tự bỏ qua.')
+        visible = dict(visible)
         # Only closed local sessions released before the target date may override source history.
         outcomes=outcome_snapshot if outcome_snapshot is not None else self.observed_outcomes(day) if mode=='live' else {}
         closed=self.store.closed_before(day,mode,seed if mode=='simulation' else None) if apply_closed_history else []
@@ -48,14 +62,28 @@ class Workflow:
         previous_day=str((datetime.fromisoformat(day)-timedelta(days=1)).date())
         if 'lag1_waste_qty' in engine.manifest['COLS'] and any((previous_day,sku) not in outcomes for sku in engine.master):
             raise ValueError('Model M2 mới cần sổ kết quả bán/tồn hủy ngày trước cho đủ SKU; không tự coi dữ liệu thiếu là 0.')
-        plans = engine.plan(day, visible, weather,outcomes)
+        lineage = dict(provenance or {'type':'bundled_demo' if history is None and not known else 'session_or_observed',
+                                     'source':source, 'availability':'date_only_unverified'})
+        lineage['history_origin'] = 'provided_history' if history is not None else 'observed_local_history' if known else 'seeded_synthetic_demo'
+        lineage['weather_origin'] = 'bundled_V9_previous_day1_unverified' if trusted_demo_weather else 'provided_forecast_declared_timestamps'
+        lineage['closed_session_ids'] = [c['id'] for c in closed]
+        lineage['seed'] = seed if mode=='simulation' else None
+        # Validate before model invocation; features are computed deterministically, then bound to the snapshot.
+        feature_rows = [{'sku':sku,'features':engine.features(day,sku,visible,weather,outcomes)} for sku in engine.master]
+        quality = build_snapshot(day,visible,weather,engine,feature_rows,outcomes,lineage,trusted_demo_weather)
+        identifier = identifier or uuid.uuid4().hex
+        if operation_mode not in ['assisted','shadow','manual']:raise ValueError('Chế độ vận hành không hợp lệ.')
+        with self.store.connect() as db:
+            db.execute('INSERT OR IGNORE INTO safety_controls(sid,mode) VALUES (?,?)',(identifier,operation_mode))
+        plans,origin = self.safety.safe_plan(identifier,engine,day,visible,weather,outcomes)
+        for p in plans:p['prediction_origin']=origin
         input_history = [{'date': d, 'sku': sku, 'sold': v} for (d, sku), v in sorted(visible.items())]
         input_outcomes=list(outcomes.values())
         input_hash = hashlib.sha256(json.dumps({'history': input_history, 'weather': weather,'outcomes':input_outcomes}, sort_keys=True).encode()).hexdigest()
-        s = {'id': identifier or uuid.uuid4().hex, 'day': day, 'seed': seed, 'mode': mode, 'revision': 0,
+        s = {'id': identifier, 'day': day, 'seed': seed, 'mode': mode, 'revision': 0,
              'minute': 360, 'phase': 'plan_pending', 'created': now(), 'model_version': engine.version,
-             'input_hash': input_hash, 'input_history': input_history, 'model_hashes': engine.manifest['native_model_hashes'],
-             'weather': weather, 'source': source, 'plan': plans, 'products': {}, 'ledger': [], 'decisions': [],
+             'data_quality':quality, 'feature_snapshot_id':quality['snapshot_id'], 'input_hash': input_hash, 'input_history': input_history, 'model_hashes': engine.manifest['native_model_hashes'],
+             'prediction_origin':origin, 'weather': weather, 'source': source, 'plan': plans, 'products': {}, 'ledger': [], 'decisions': [],
              'pending': None, 'keys': [], 'simulator_version': self.simulator.version if mode == 'simulation' else None,
              'simulator_hash':self.simulator.arrivals.hash if mode=='simulation' else None,'auto_run':bool(auto_run and mode=='simulation'),
              'input_outcomes':input_outcomes,'history_source':'uploaded_or_observed' if history is not None or known else 'seeded_demo_history',
@@ -75,7 +103,8 @@ class Workflow:
         history={(r['date'],r['sku']):r['sold'] for r in old['input_history']}
         return self.create(day=old['day'],seed=old['seed'],mode='simulation',history=history,weather=old['weather'],
                            source='Mô phỏng riêng từ ca '+sid,auto_run=True,engine_version=old['model_version'],apply_closed_history=False,
-                           outcome_snapshot={(r['date'],r['sku_code']):r for r in old.get('input_outcomes',[])})
+                           outcome_snapshot={(r['date'],r['sku_code']):r for r in old.get('input_outcomes',[])},
+                           provenance={**old.get('data_quality',{}).get('lineage',{}),'parent_session':sid})
 
     def next_day(self,sid,weather=None):
         old=self.store.get(sid)
@@ -89,8 +118,19 @@ class Workflow:
                            source='Kế hoạch sau chốt ca '+sid,auto_run=old.get('auto_run',False),identifier='next-'+sid)
 
     def mutate(self, sid, revision, action, payload=None, key=None):
+        try:
+            return self._mutate(sid,revision,action,payload,key)
+        except GuardError as exc:
+            # Write AFTER rollback so the incident survives the failed action.
+            self.safety.report(sid,'HARD_RULE_BLOCK',str(exc))
+            raise
+        except ValueError as exc:
+            if any(k in str(exc).lower() for k in ['checksum','artifact']):self.safety.report(sid,'ARTIFACT_MISMATCH',str(exc))
+            raise
+
+    def _mutate(self, sid, revision, action, payload=None, key=None):
         payload = payload or {}
-        with self.store.connect() as db:
+        with self.store.connect() as db, self.safety.bind(db):
             row = db.execute('SELECT state FROM sessions WHERE id=?', (sid,)).fetchone()
             if not row:
                 raise ValueError('Không tìm thấy ca vận hành.')
@@ -113,15 +153,26 @@ class Workflow:
         if s['phase'] != 'plan_pending':
             raise ValueError('Kế hoạch không ở trạng thái chờ duyệt.')
         overrides = payload.get('quantities', {})
+        if not isinstance(overrides,dict):raise ValueError('Số duyệt phải theo từng SKU.')
         if set(overrides) - {p['sku'] for p in s['plan']}:
             raise ValueError('SKU không hợp lệ.')
+        reason=payload.get('reason','')
+        if not isinstance(reason,str) or len(reason)>2000:raise ValueError('Lý do phải là văn bản tối đa 2.000 ký tự.')
+        reason=reason.strip();decisions=[]
         for p in s['plan']:
             qty = overrides.get(p['sku'], p['prepared'])
-            if type(qty) is not int or qty < max(4, p['floor']) or qty % 4 or qty > 100000:
-                raise ValueError(f"{p['sku']}: số lượng phải là bội số 4 và không nhỏ hơn sàn {p['floor']}.")
-            if qty != p['prepared'] and not payload.get('reason', '').strip():
-                raise ValueError('Cần lý do khi điều chỉnh sản lượng.')
-            p['approved'] = qty
+            if type(qty) is not int or qty < 4 or qty % 4 or qty > 100000:
+                raise GuardError(f"{p['sku']}: số lượng phải là số nguyên dương, bội số 4, tối thiểu 4; giới hạn nhập liệu 100.000 bánh.")
+            below=qty<p['floor']
+            if below and actor.get()['role']!='manager':raise AccessError('Chỉ Manager được duyệt thấp hơn sàn khuyến nghị.')
+            if (qty != p['prepared'] or below) and not reason:
+                raise ValueError('Cần lý do khi điều chỉnh sản lượng hoặc duyệt dưới sàn khuyến nghị.')
+            decisions.append({'sku':p['sku'],'recommended_quantity':p['prepared'],'recommended_floor':p['floor'],
+                              'approved_quantity':qty,'below_recommended_floor':below,'difference_from_recommendation':qty-p['prepared']})
+        for p,d in zip(s['plan'],decisions):p['approved']=d['approved_quantity']
+        s['production_approval']={'policy':'GD9.2-soft-recommended-floor-v1','actor':actor.get(),'reason':reason,'at':now(),
+                                  'rows':decisions,'below_floor_skus':[d['sku'] for d in decisions if d['below_recommended_floor']],
+                                  'note':'Sàn 90% baseline là khuyến nghị. Chưa cấu hình công suất/giới hạn sản xuất thật; 100.000 là giới hạn nhập liệu kỹ thuật.'}
         s['phase'] = 'plan_approved'
 
     def do_plan_reject(self, s, payload):
@@ -139,16 +190,29 @@ class Workflow:
 
     def proposals(self, s):
         j = max(i for i,t in enumerate(SLOTS) if t<=s['minute'])
-        if s['mode']=='live' and not s['ledger'] and not s.get('confirmed_zero_sales'):
+        gate=self.safety.price_gate(s)
+        if gate=='blocked':
             return {'id':uuid.uuid4().hex,'minute':SLOTS[j],'as_of_minute':s['minute'],'rows':[],
-                    'status':'missing_data','blocked_reason':'Chưa có nguồn giao dịch. Không được coi thiếu dữ liệu là bán bằng 0.','created':now()}
+                    'status':'missing_data','blocked_reason':'Nguồn giao dịch thiếu hoặc quá 30 phút. Hãy nhập bán hàng hoặc xác nhận không có bán mới.','created':now()}
         rows = []
-        for sku, p in s['products'].items():
+        if gate=='manual':
+            rows=self.safety.manual_rows(s,j)
+        for sku, p in ([] if rows else s['products'].items()):
             times = [(tx['minute'], tx['qty']) for tx in s['ledger'] if tx['sku'] == sku]
             s30 = sum(q for t, q in times if s['minute']-30<=t<=s['minute'])
             s60 = sum(q for t, q in times if s['minute']-60<=t<=s['minute'])
-            rows.append(self.version_engine(s['model_version']).price(sku, j, p['stock'], p['prepared'], p['discount'], s30, s60, p['forecast'], s['weather'],as_of=s['minute']))
-        return {'id': uuid.uuid4().hex, 'minute': SLOTS[j], 'as_of_minute':s['minute'],'rows': rows, 'status': 'pending', 'created': now()}
+            try:
+                r=self.version_engine(s['model_version']).price(sku, j, p['stock'], p['prepared'], p['discount'], s30, s60, p['forecast'], s['weather'],as_of=s['minute'])
+                if r['discount'] not in LADDER or not max(p['discount'],FLOORS[j])<=r['discount']<=CAPS[j]:
+                    raise GuardError('Model M1 vi phạm hard rules.')
+                rows.append(r)
+            except Exception as exc:
+                self.safety.report(s['id'],'M1_UNAVAILABLE',str(exc))
+                rows=self.safety.manual_rows(s,j);gate='manual'
+                break
+        return {'id': uuid.uuid4().hex, 'minute': SLOTS[j], 'as_of_minute':s['minute'],'rows': rows, 'status': 'pending', 'created': now(),
+                'feature_snapshot_id':digest({'m2':s.get('feature_snapshot_id'),'minute':s['minute'],'ledger':s['ledger'],
+                    'stock':s['products'],'model':s['model_hashes']}), 'sales_quality':sales_quality(s), 'origin':'MANUAL_RULE' if gate=='manual' else 'AI_M1'}
 
     def consume(self,s,destination):
         if s['mode']!='simulation':
@@ -206,13 +270,19 @@ class Workflow:
             raise ValueError('Đề xuất đã hết hiệu lực hoặc không còn chờ duyệt.')
         if s['pending'].get('status')=='missing_data' or s['mode']=='live' and not s['ledger'] and not s.get('confirmed_zero_sales'):
             raise ValueError('Cần nạp giao dịch hoặc xác nhận thực tế chưa có bán; không duyệt giá từ dữ liệu thiếu.')
+        c=self.safety.control(s['id'])
+        if 'stale_stock' in c['faults'] or sales_quality(s)['status']=='BLOCK':
+            raise GuardError('Nguồn tồn/bán không đáng tin; không được duyệt giá.')
+        if c['mode']=='manual' and s['pending'].get('origin')=='AI_M1':
+            raise GuardError('Gợi ý AI đã bị vô hiệu hóa; tạo lại đề xuất thủ công.')
+        if s['pending'].get('origin')=='AI_M1':self.version_engine(s['model_version']).require_integrity()
         overrides = payload.get('discounts', {})
         if set(overrides) - set(s['products']):
             raise ValueError('SKU không hợp lệ.')
         for p in s['pending']['rows']:
             tier = overrides.get(p['sku'], p['discount'])
             if type(tier) is not int or tier not in LADDER or not max(p['previous'], p['floor']) <= tier <= p['cap']:
-                raise ValueError(f"{p['sku']}: mức giảm phải tuân thủ thang giá, sàn, trần và không giảm ngược.")
+                raise GuardError(f"{p['sku']}: mức giảm phải tuân thủ thang giá, sàn, trần và không giảm ngược.")
             if tier != p['discount'] and not payload.get('reason', '').strip():
                 raise ValueError('Cần lý do khi điều chỉnh mức giảm.')
             p['approved'] = tier
@@ -229,9 +299,35 @@ class Workflow:
         s['pending'] = None
         s['phase'] = 'running'
 
+    def do_refresh_price(self,s,payload):
+        if not 1170<=s['minute']<END or s['phase'] not in ['running','price_pending','price_approved']:
+            raise ValueError('Làm mới gợi ý giá chỉ từ 19:30 đến trước 22:00.')
+        if s.get('pending'):
+            s['pending']['status']='superseded_refresh';s['decisions'].append(s['pending'])
+        s['pending']=self.proposals(s);s['phase']='price_pending'
+
+    def do_replan(self,s,payload):
+        if s['phase']!='plan_pending':raise ValueError('Chỉ tính lại sản lượng khi chưa duyệt kế hoạch.')
+        h={(r['date'],r['sku']):r['sold'] for r in s['input_history']}
+        o={(r['date'],r['sku_code']):r for r in s.get('input_outcomes',[])}
+        s['plan'],s['prediction_origin']=self.safety.safe_plan(s['id'],self.version_engine(s['model_version']),s['day'],h,s['weather'],o)
+        for p in s['plan']:p['prediction_origin']=s['prediction_origin']
+
     def do_price_apply(self, s, payload):
         if s['phase'] != 'price_approved' or payload.get('proposal_id') != s['pending']['id']:
             raise ValueError('Cần duyệt đề xuất trước khi áp dụng.')
+        if sales_quality(s)['status']=='BLOCK' or 'stale_stock' in self.safety.control(s['id'])['faults']:
+            raise GuardError('Tồn/bán không còn đáng tin; không áp giá.')
+        if s['pending'].get('origin')=='AI_M1':
+            if self.safety.control(s['id'])['mode']=='manual':raise GuardError('AI đã tạm dừng; tạo lại đề xuất thủ công.')
+            self.version_engine(s['model_version']).require_integrity()
+        for p in s['pending']['rows']:
+            if p['approved'] not in LADDER or not max(s['products'][p['sku']]['discount'],p['floor'])<=p['approved']<=p['cap']:
+                raise GuardError('Hard rules không còn hợp lệ ở lúc áp dụng.')
+        if self.safety.control(s['id'])['mode']=='shadow':
+            s['pending']['status']='shadow_only';s['pending']['applied_at']=None
+            s['decisions'].append(s['pending']);s['pending']=None;s['phase']='running'
+            return
         for p in s['pending']['rows']:
             s['products'][p['sku']]['discount'] = p['approved']
         s['pending']['status'] = 'applied'
@@ -243,9 +339,9 @@ class Workflow:
     def sale(self, s, sku, minute, qty, origin):
         p = s['products'][sku]
         if qty > p['stock']:
-            raise ValueError(f'{sku}: số lượng bán vượt tồn.')
+            raise GuardError(f'{sku}: số lượng bán vượt tồn.')
         paid = int(round(p['price'] * (1 - p['discount'] / 100)))
-        s['ledger'].append({'sku': sku, 'minute': minute, 'qty': qty, 'discount': p['discount'],
+        s['ledger'].append({'transaction_id':uuid.uuid4().hex,'request_id':request_trace.get(),'model_version':s['model_version'],'feature_snapshot_id':s.get('feature_snapshot_id'),'proposal_id':next((d['id'] for d in reversed(s['decisions']) if d.get('status')=='applied'),None),'sku': sku, 'minute': minute, 'qty': qty, 'discount': p['discount'],
                             'unit_price': paid, 'paid': paid * qty, 'origin': origin})
         p['stock'] -= qty
         p['sold'] += qty
@@ -269,15 +365,19 @@ class Workflow:
             s['phase'] = 'price_pending'
 
     def do_confirm_zero_sales(self,s,payload):
-        if s['mode']!='live' or s['ledger'] or not payload.get('confirmed') or not payload.get('reason','').strip():
+        if s['mode']!='live' or not payload.get('confirmed') or not payload.get('reason','').strip():
             raise ValueError('Cần xác nhận có lý do rằng thực tế chưa có lượt bán; chỉ dành cho ca live chưa có giao dịch.')
-        s['confirmed_zero_sales']=True
+        s['confirmed_zero_sales']=not bool(s['ledger'])
+        s['sales_verified_minute']=s['minute']
         if s['pending']:
             s['pending']=self.proposals(s);s['phase']='price_pending'
 
     def do_close(self, s, payload):
         if s['phase'] != 'close_pending' or s['minute'] != END:
             raise ValueError('Chỉ chốt ngày khi đã xử lý đủ các mốc và đến 22:00.')
+        from .evaluation import reconcile
+        check=reconcile(s)
+        if check['errors']:raise GuardError('Đối soát thất bại: '+'; '.join(check['errors']))
         s['phase'] = 'closed'
         s['closed'] = now()
 
@@ -286,4 +386,4 @@ class Workflow:
         for sku, p in s['products'].items():
             tx = [t for t in s['ledger'] if t['sku'] == sku]
             if p['prepared'] != p['stock'] + p['sold'] or p['stock'] < 0 or p['revenue'] != sum(t['paid'] for t in tx) or p['sold'] != sum(t['qty'] for t in tx):
-                raise ValueError('Đối soát tồn hoặc doanh thu thất bại.')
+                raise GuardError('Đối soát tồn hoặc doanh thu thất bại.')

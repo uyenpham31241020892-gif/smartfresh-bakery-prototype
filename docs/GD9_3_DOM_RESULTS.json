@@ -1,0 +1,8 @@
+{
+  "tool": "jsdom with local API",
+  "three_pages_first_panel": "PASS",
+  "shared_manual_assisted_state": "PASS",
+  "removed_safety_placeholder": "PASS",
+  "incident_center_retained": "PASS",
+  "js_errors": []
+}
