@@ -146,7 +146,7 @@ class Safety:
         history={(r['date'],r['sku']):r['sold'] for r in s['input_history']}
         outcomes={(r['date'],r['sku_code']):r for r in s.get('input_outcomes',[])}
         q=s.get('data_quality',{})
-        trusted_demo=q.get('weather',{}).get('status')=='WARN' and q.get('lineage',{}).get('weather_origin')=='bundled_V9_previous_day1_unverified'
+        trusted_demo=q.get('weather',{}).get('status')=='WARN' and q.get('lineage',{}).get('weather_origin')=='bundled_V606_lagged_reanalysis'
         feature_rows=[{'sku':sku,'features':engine.features(s['day'],sku,history,s['weather'],outcomes)} for sku in engine.master]
         build_snapshot(s['day'],history,s['weather'],engine,feature_rows,outcomes,q.get('lineage',{}),trusted_demo)
         rows=engine.plan(s['day'],history,s['weather'],outcomes)

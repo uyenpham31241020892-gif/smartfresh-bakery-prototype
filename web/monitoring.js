@@ -123,5 +123,5 @@ document.addEventListener('change',e=>{
  if(e.target.hasAttribute('data-monitor-auto'))monitoringAuto=e.target.checked;
  if(e.target.hasAttribute('data-monitor-group')){monitoringGroup=e.target.value;render();}
 });
-setInterval(()=>{if(typeof currentView!=='undefined'&&currentView==='monitoring'&&monitoringAuto&&!monitoringBusy&&!working&&!$('modal').open&&!document.activeElement?.closest('#monitor-config-form'))loadMonitoring();},30000);
+setInterval(()=>{if(typeof currentView!=='undefined'&&currentView==='monitoring'&&monitoringAuto&&!monitoringBusy&&!working&&!$('modal').open&&!document.activeElement?.closest('#monitor-config-form'))loadMonitoring();},3000);
 function monitoringLink(){const known=monitoringState?.scope.session_id===state.id&&monitoringState.scope.source==='runtime';return '<div class="monitor-overview-link"><span>'+icon('activity')+'<b>Giám sát hệ thống</b> · '+(known?monitoringState.overview.active_alerts+' cảnh báo ở lần kiểm tra gần nhất':'Mở để kiểm tra dữ liệu, sai số và drift')+'</span><button class="small" data-go="monitoring">Xem giám sát '+icon('arrow')+'</button></div>';}

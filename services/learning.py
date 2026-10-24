@@ -52,6 +52,10 @@ class Learning:
 
     def resolve(self, version):
         if version not in self.cache:
+            from .v606 import LEGACY_VERSION,ADAPTIVE_M2_VERSION,CONTEXTUAL_PRICE_VERSION,BENEFIT_GUARD_VERSION,TRAINED_CLEARANCE_VERSION
+            if version in (LEGACY_VERSION,ADAPTIVE_M2_VERSION,CONTEXTUAL_PRICE_VERSION,BENEFIT_GUARD_VERSION,TRAINED_CLEARANCE_VERSION):
+                self.cache[version]=Engine(version=version)
+                return self.cache[version]
             if not version.startswith('learn-') or not version.removeprefix('learn-').isalnum():
                 raise ValueError('Phiên bản model không hợp lệ.')
             try:
@@ -61,12 +65,12 @@ class Learning:
         return self.cache[version]
 
     def active(self):
-        with self.store.connect() as db:
+        with self.store.read() as db:
             row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
         return self.resolve(row['version']) if row else self.frozen
 
     def rows(self, kind, origin):
-        with self.store.connect() as db:
+        with self.store.read() as db:
             return [json.loads(r['payload']) for r in db.execute(
                 'SELECT payload FROM learning_rows WHERE kind=? AND origin=? ORDER BY row_key', (kind, origin))]
 
@@ -452,7 +456,7 @@ class Learning:
         for version,report in [(self.frozen.version,None)]+[(r['id'],r) for r in reports]:
             try:
                 e=self.resolve(version);e.require_integrity()
-                manifest_hash=hashlib.sha256((e.model_dir/'manifest.json').read_bytes()).hexdigest()
+                manifest_hash=digest(e.manifest)
                 compatibility=self.compatible(e,self.resolve(report['parent'])) if report else {}
                 integrity=True;error=None
             except Exception as exc:

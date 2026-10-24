@@ -1,3 +1,39 @@
+Current M1 v8: [late-first prices, explanations before approval, and baseline history](docs/V606_LATE_FIRST_AND_EXPLANATIONS_V8.md). Prefer clearance after 21:00, allow only severe slow-selling exceptions earlier, and budget whole-day price concessions. Grounded explanations arrive with the proposal. The original Jan–Jun baseline has its own report tab.
+
+Previous M1 v7: [retrained remaining-sales forecasts and conditional clearance](docs/V606_TRAINED_CLEARANCE_V7.md). Its trained risk predictors are retained; v8 changes pricing policy and explanation delivery, not weights or the market stream. No causal uplift or official test claim.
+
+Reports: [richer reports with grounded Copilot](docs/V606_BENEFIT_REPORTS.md). Three report tabs cover revenue, realized prices, discounts and SKU performance with scoped AI analysis. The blanket v6 HOLD guard described there is superseded only for new v7 simulated markets.
+
+Previous pricing: [conditional proposals from 19:30](docs/V606_PRICING_FROM_1930.md). V6 adds the economic benefit guard above; old observed-surplus rules no longer automatically release unverified discounts.
+
+Current M2: [adaptive planning and 64-configuration training review](docs/V606_ADAPTIVE_M2_REVIEW.md). Fixed constant preparation, normalized busy-scenario history, and preserved original weights after challengers failed the service-oriented validation gate.
+
+Business reports: [daily charts and day/week/month comparison](docs/V606_BUSINESS_REPORTS.md), based on saved operating sessions, with missing days and provisional totals clearly marked.
+
+Current report cost assumption: [45% of list price on all confirmed preparation](docs/V606_COST_ASSUMPTION.md), user-authorized simulation assumption; not net profit.
+
+# Current: V606 compact workspace / policy v3
+
+See [current guide](docs/V606_COMPACT_WORKSPACE.md). http://127.0.0.1:8000. Earlier sections below describe previous iterations.
+
+# Current: V606 service2130 v2
+
+See [current guide](docs/V606_SERVICE2130.md). Original prototype at http://127.0.0.1:8000. Start a NEW session for the changed supply policy; older sessions are preserved. Sections below describe earlier iterations.
+
+# V606 prototype integration
+
+Start.cmd -> http://127.0.0.1:8000 (original prototype UI). Frozen V606 models, default test-scenario date 2022-07-01. Background POS: declared synthetic busy 4x public past observed mean, 30 virtual minutes/second. Model comparison is under the simulation source/report button. This is a stress scenario, not the original private market evaluation. No test retraining, no profit or SHAP claims. The separate port 8765 POS is superseded for the prototype workflow.
+
+# SmartFresh V6.06 ? POS v?i model ?? train
+
+Ch?y **Start.cmd**, m? **http://127.0.0.1:8765** v? nh?p manager token t? terminal. Xem [h??ng d?n POS V6.06](docs/V606_POS.md).
+
+Runtime hi?n d?ng 7 SKU V6.06, model ??ng b?ng v? feature allowlist; d? li?u/model/database V9 ?? ??a ra ngo?i repo. DEMO ki?m tra t?ch h?p ? validation 15/06/2022. Test th?ng 7?8 ch?nh th?c c?n t?ch t?i kho?n/container custodian v? model nh? h??ng d?n. Kh?ng retrain, kh?ng n?p nh?n test v?o model.
+
+C?c ph?n d??i ??y l? t?i li?u l?ch s? V9, kh?ng ?p d?ng cho lu?ng ch?y hi?n t?i.
+
+---
+
 ## Bản cập nhật GD9.3
 
 Chế độ Assisted / Manual / Shadow dùng chung cho ca, đặt ở đầu Tổng quan, Kế hoạch sản lượng và Giảm giá cuối ngày. Đã xóa ô chuyển hướng thừa ở An toàn & sự cố và cập nhật hướng dẫn. Xem [hướng dẫn GD9.3](docs/GD9_3_SHARED_MODES.md).

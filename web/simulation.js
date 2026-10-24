@@ -9,9 +9,9 @@ function dayChainPanel(){
 function simulationStatus(){
   if(state.mode==='live')return '<div class="notice '+(state.sales_feed?.missing?'pink':'')+'">'+icon('database')+' Nguồn bán: giao dịch nhập từ tệp. '+(state.sales_feed?.missing?'Chưa nhận dữ liệu bán; không tự coi là bán bằng 0. ':'')+'<button class="small" data-fork-simulation>Tạo bản mô phỏng riêng</button></div>';
   const c=state.realtime||{},waiting=c.enabled&&c.pause_confirm&&['price_pending','price_approved'].includes(state.phase);
-  return '<div class="simulation-strip"><div><strong>'+icon('activity')+' Nguồn bán mô phỏng · '+(waiting?'Đợi xác nhận giá':c.enabled?'Đang chạy trên backend':'Đã tạm dừng')+'</strong><small>Mỗi lượt mua trừ đúng tồn và ghi sổ. M1/M2 không quyết định trước lượt bán. <button class="ghost small" data-simulator-report>Nguồn &amp; kiểm tra</button></small></div><label>Tốc độ<select data-sim-speed>'+[[1/60,'Thời gian thực · 1×'],[1,'1 giây = 1 phút'],[5,'1 giây = 5 phút'],[30,'1 giây = 30 phút']].map(([v,label])=>'<option value="'+v+'" '+(Math.abs((c.speed??5)-v)<.00001?'selected':'')+'>'+label+'</option>').join('')+'</select></label><label class="simulation-check"><input type="checkbox" data-pause-confirm '+(c.pause_confirm!==false?'checked':'')+'>Dừng ở bước duyệt</label></div><p class="muted" style="font-size:11px;margin:-7px 0 18px">Cửa hàng mở 08:00, đóng 22:00. Đây là đồng hồ mô phỏng; đóng tab vẫn tiếp tục khi backend đang chạy. '+(c.error?esc(c.error):'')+'</p>';
+  return '<div class="simulation-strip"><div><strong>'+icon('activity')+' Nguồn bán mô phỏng · '+(waiting?'Đợi xác nhận giá':c.enabled?'Đang chạy trên backend':'Đã tạm dừng')+'</strong><small>Mỗi lượt mua trừ đúng tồn và ghi sổ. M1/M2 không quyết định trước lượt bán. <button class="ghost small" data-simulator-report>Nguồn &amp; kiểm tra</button></small></div><label>Tốc độ<select data-sim-speed>'+[[1/60,'Thời gian thực · 1×'],[1,'1 giây = 1 phút'],[5,'1 giây = 5 phút'],[30,'1 giây = 30 phút']].map(([v,label])=>'<option value="'+v+'" '+(Math.abs((c.speed??30)-v)<.00001?'selected':'')+'>'+label+'</option>').join('')+'</select></label><label class="simulation-check"><input type="checkbox" data-pause-confirm '+(c.pause_confirm!==false?'checked':'')+'>Dừng ở bước duyệt</label></div><p class="muted" style="font-size:11px;margin:-7px 0 18px">Cửa hàng mở 08:00, đóng 22:00. Đây là đồng hồ mô phỏng; đóng tab vẫn tiếp tục khi backend đang chạy. '+(c.error?esc(c.error):'')+'</p>';
 }
-async function changeClock(enabled,speed=state.realtime?.speed??5,pause_confirm=state.realtime?.pause_confirm!==false){
+async function changeClock(enabled,speed=state.realtime?.speed??30,pause_confirm=state.realtime?.pause_confirm!==false){
   if(working)return;working=true;
   try{storeState(await api('/api/realtime/'+state.id,{enabled,speed,pause_confirm}))}catch(e){toast(e.message,true)}finally{working=false;render()}
 }
@@ -23,7 +23,7 @@ async function manualAdvance(target){
 }
 async function nextDay(){
   if(working)return;working=true;
-  try{const next=await api('/api/day-chain/'+state.id,{});currentView='m2';storeState(next);toast('Đã tạo kế hoạch ngày '+dateVN(next.day)+' từ kết quả chốt ngày trước và forecast đúng ngày.')}catch(e){toast(e.message,true)}finally{working=false}
+  try{const next=await api('/api/day-chain/'+state.id,{});currentView='m2';storeState(next);toast('Đã tạo kế hoạch ngày '+dateVN(next.day)+' từ lịch sử ca đã chốt và bối cảnh thời tiết khả dụng.')}catch(e){toast(e.message,true)}finally{working=false}
 }
 document.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -42,12 +42,21 @@ document.addEventListener('click',async e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.hasAttribute('data-sim-speed'))changeClock(!!state.realtime?.enabled,Number(e.target.value));
-  if(e.target.hasAttribute('data-pause-confirm'))changeClock(!!state.realtime?.enabled,state.realtime?.speed??5,e.target.checked);
+  if(e.target.hasAttribute('data-pause-confirm'))changeClock(!!state.realtime?.enabled,state.realtime?.speed??30,e.target.checked);
 });
+let salesPollBusy=false;
 setInterval(async()=>{
-  if(typeof state==='undefined'||!state||!state.realtime?.enabled||working||$('modal').open||chatting||document.activeElement?.matches('[data-discount],[data-qty]')||Object.keys(discountDraft).length||Object.keys(quantityDraft).length)return;
-  const sid=state.id;
-  try{const fresh=await api('/api/state?session_id='+sid);if(state.id===sid&&!working&&!$('modal').open&&!document.activeElement?.matches('[data-discount],[data-qty]')&&!Object.keys(discountDraft).length&&!Object.keys(quantityDraft).length){const changed=fresh.revision!==state.revision||JSON.stringify(fresh.realtime)!==JSON.stringify(state.realtime);state=fresh;if(changed)render()}}catch(e){toast(e.message,true)}
+ if(typeof state==='undefined'||!state||working||salesPollBusy||document.hidden)return;
+ salesPollBusy=true;const sid=state.id;
+ try{
+  const fresh=await api('/api/state?session_id='+sid);
+  if(state.id!==sid||working)return;
+  const changed=fresh.revision!==state.revision||JSON.stringify(fresh.realtime)!==JSON.stringify(state.realtime);
+  state=fresh;
+  const editing=document.activeElement?.matches('[data-discount],[data-qty],input,textarea,select');
+  if(changed&&!$('modal').open&&!chatting&&!editing)render();
+  if(typeof renderLiveSales==='function')renderLiveSales();
+ }catch(e){toast(e.message,true)}finally{salesPollBusy=false}
 },1000);
 function refreshDayHistory(){
   if(!state||historySession===state.id)return;

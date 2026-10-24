@@ -10,7 +10,7 @@ from .evaluation import reconcile
 
 SCHEMA_CONTRACT={'sessions':['id','state','updated'],'audit':['id','session_id','action','detail','created'],'imports':['id','payload'],'local_users':['id','username','password_hash','salt','role'],'login_sessions':['token_hash','user_id','expires'],'learning_runs':['id','report'],'model_active':['id','version']}
 
-PACKAGES=['fastapi','uvicorn','numpy','pandas','lightgbm','scikit-learn','openpyxl','python-multipart']
+PACKAGES=['fastapi','uvicorn','numpy','pandas','xgboost','joblib','scikit-learn','openpyxl','python-multipart']
 
 def file_hash(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -50,7 +50,7 @@ class Readiness:
     def snapshot(self,sid):
         s=self.store.get(sid);h=health(self.store,self.learning);r=release_check(self.root);a=reconcile(s)
         conditions=[]
-        def check(id,label,ok,evidence):conditions.append({'id':id,'label':label,'status':'PASS' if ok else 'FAIL','evidence':evidence})
+        def check(id,label,ok,evidence):conditions.append({'id':id,'label':label,'status':'PENDING' if ok is None else 'PASS' if ok else 'FAIL','evidence':evidence})
         check('G01_DB','Database đọc/ghi và quick_check',h['database'],'SQLite transaction + quick_check')
         check('G01_MODEL','Artifact model active nguyên vẹn',h['artifact_integrity'],h['model'])
         try:
@@ -60,11 +60,18 @@ class Readiness:
         check('G01_PINNED','Model ghim của ca nguyên vẹn',pinned_ok,s['model_version'])
         check('G01_DEPS','Dependencies hiện có',all(h['dependencies'].values()),h['dependencies'])
         check('G07_RELEASE','Source/model/data khớp release',r['status']=='PASS',{'reason':r['reason'],'mismatches':r['mismatches']})
-        check('F_RECONCILIATION','Ca đã đóng và đối soát khớp',a['publishable'],{'status':a['status'],'errors':a['errors'],'state_sha256':a['state_sha256']})
+        check('F_RECONCILIATION','Ca đã đóng và đối soát khớp',a['publishable'] if s['phase']=='closed' or a['errors'] else None,{'status':a['status'],'errors':a['errors'],'state_sha256':a['state_sha256']})
         with self.store.connect() as db:
             receipt=db.execute("SELECT payload FROM reconciliation_receipts WHERE session_id=? AND id=?",(sid,a['state_sha256'])).fetchone() if db.execute("SELECT 1 FROM sqlite_master WHERE name='reconciliation_receipts'").fetchone() else None
-            qa_path=self.root/'docs/GD9_QA_RESULTS.json'
-        check('F_RECEIPT','Manager đã xác nhận snapshot đối soát',bool(receipt),json.loads(receipt['payload']).get('actor') if receipt else 'Chưa có biên bản hiện hành.')
+            qa_path=self.root/'docs/V606_QA_RESULTS.json'
+        check('F_RECEIPT','Manager đã xác nhận snapshot đối soát',True if receipt else None,json.loads(receipt['payload']).get('actor') if receipt else 'Chưa có biên bản hiện hành.')
+        supply=[p.get('supply',{}) for p in s['plan']]
+        feasible=all(p.get('capacity_feasible',False) for p in supply) and all(p.get('approved',p['prepared'])>=p.get('supply',{}).get('required',float('inf')) for p in s['plan'])
+        check('S_CAPACITY','Kế hoạch đủ công suất theo kịch bản đã khai báo',feasible,supply)
+        observed=bool(s['products']) and all('stock_at_2130' in p for p in s['products'].values())
+        service=all(p.get('stock_at_2130',0)>0 and p.get('first_stockout_minute',1320)>=1290 for p in s['products'].values())
+        early_out=any(p.get('first_stockout_minute',1320)<1290 for p in s['products'].values())
+        check('S_2130','Từng SKU còn hàng đến 21:30',False if early_out else service if observed else None,{sku:{'stock_at_2130':p.get('stock_at_2130'),'first_stockout_minute':p.get('first_stockout_minute')} for sku,p in s['products'].items()})
         incidents=[i for i in self.workflow.safety.incidents(sid) if i['status']!='resolved']
         incidents=list({i['id']:i for i in incidents}.values())
         check('E_INCIDENT','Không có sự cố mở ở ca/hệ thống',not incidents,[{'id':i['id'],'kind':i['kind'],'status':i['status']} for i in incidents])
@@ -73,4 +80,4 @@ class Readiness:
             qa_ok=qa.get('release_id')==expected and bool(expected) and qa.get('failed')==0 and qa.get('pytest_exit_code')==0 and qa.get('passed',0)>0 and qa.get('e2e',{}).get('passed') is True
         except (OSError,ValueError):qa={};qa_ok=False
         check('G06_QA','Bằng chứng QA đúng release',qa_ok,{k:qa.get(k) for k in ['release_id','passed','failed','created']})
-        return {'scope':'LOCAL_PROTOTYPE_DEMO','decision':'GO' if all(c['status']=='PASS' for c in conditions) else 'NO_GO','production_decision':'NOT_ASSESSED','checked_at':datetime.now(timezone.utc).isoformat(),'session_id':sid,'conditions':conditions,'release_id':(r['manifest'] or {}).get('release_id'),'notes':['GO chỉ áp dụng demo local của ca đang chọn, không phải cho phép triển khai AEON/Internet.','GitHub workflow được bàn giao; chưa có bằng chứng job chạy trên repository của bạn.','BigQuery adapter chưa tích hợp: cần quyền truy cập, project và hợp đồng dữ liệu thực.','Backup/restore là công cụ offline; cần dừng server và diễn tập trên bản sao trước phục hồi.','Release manifest là checksum phát hiện thay đổi, không phải chữ ký số hay bằng chứng chống kẻ có quyền sửa toàn bộ project.']}
+        return {'scope':'LOCAL_PROTOTYPE_DEMO','decision':'NO_GO' if any(c['status']=='FAIL' for c in conditions) else 'PENDING' if any(c['status']=='PENDING' for c in conditions) else 'GO','production_decision':'NOT_ASSESSED','checked_at':datetime.now(timezone.utc).isoformat(),'session_id':sid,'conditions':conditions,'release_id':(r['manifest'] or {}).get('release_id'),'notes':['GO chỉ áp dụng demo local của ca đang chọn, không phải cho phép triển khai AEON/Internet.','GitHub workflow được bàn giao; chưa có bằng chứng job chạy trên repository của bạn.','BigQuery adapter chưa tích hợp: cần quyền truy cập, project và hợp đồng dữ liệu thực.','Backup/restore là công cụ offline; cần dừng server và diễn tập trên bản sao trước phục hồi.','Release manifest là checksum phát hiện thay đổi, không phải chữ ký số hay bằng chứng chống kẻ có quyền sửa toàn bộ project.']}

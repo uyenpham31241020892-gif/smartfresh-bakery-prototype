@@ -1,0 +1,35 @@
+{
+  "source_days": 233,
+  "fit_days": 111,
+  "validation_days": 60,
+  "test_days": 62,
+  "exploration_rows": 15540,
+  "exploration_early_nonhold": 4015,
+  "baseline_development": [
+    {
+      "split": "fit",
+      "sku_days": 777,
+      "prepared": 11544,
+      "sold": 8594,
+      "waste": 2950,
+      "censored_days": 286,
+      "revenue_vnd": 229275600,
+      "wasted_production_cost_vnd_assumed": 34274364,
+      "disposal_cost_vnd_assumed": 442500,
+      "contribution_vnd_assumed": 93566868
+    },
+    {
+      "split": "validation",
+      "sku_days": 420,
+      "prepared": 5940,
+      "sold": 5170,
+      "waste": 770,
+      "censored_days": 218,
+      "revenue_vnd": 138055000,
+      "wasted_production_cost_vnd_assumed": 8702665,
+      "disposal_cost_vnd_assumed": 115500,
+      "contribution_vnd_assumed": 68389476
+    }
+  ],
+  "official_test_executed": false
+}

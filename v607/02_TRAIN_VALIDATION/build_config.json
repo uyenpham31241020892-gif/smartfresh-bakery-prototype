@@ -1,0 +1,35 @@
+{
+  "release": "V6.07",
+  "source_days": 233,
+  "sku_count": 7,
+  "no_model_training": true,
+  "official_test_not_executed": true,
+  "price_cap_pct": 50,
+  "price_quantum_vnd": 1,
+  "baseline_order_policy": "WEEKLY_COMMITTED_PRIOR28_SAME_WEEKDAY_MEAN_PLUS_HALF_SD_BATCH_ROUNDING",
+  "baseline_markdown": "SELECTIVE_SURVEY_REFERENCE_AT21_HOLD_UNTIL22",
+  "weekday_target_profile_assumed": [
+    1,
+    1,
+    1,
+    1.05,
+    1.1,
+    1.35,
+    1.4
+  ],
+  "weekday_normalization": "DEC2021_SHRUNK_SOURCE_PROFILE",
+  "after17_probability_assumed": 0.75,
+  "price_response_scenarios_assumed": {
+    "null": 0,
+    "weak": 0.25,
+    "central": 0.6,
+    "strong": 1
+  },
+  "browser_pool_per_base_intent_assumed": 1,
+  "default_price_response_strength": 0.6,
+  "early_markdown_evidence": "SIMULATION_EXPLORATION_ONLY_NOT_AEON_CAUSAL_DATA",
+  "cost_status": "BENCHMARK_INPUTS_ASSUMED_RECIPES_NOT_ACTUAL_AEON",
+  "holdout_status": "ISOLATED_SIMULATED_EVALUATION_NOT_NEW_UNSEEN_REAL_AEON_HOLDOUT",
+  "weather": "PRIOR_DAY_REANALYSIS_NOT_ISSUED_FORECAST",
+  "overnight": "SAME_DAY_EXPIRY_ASSUMED_UNVERIFIED_FOR_PACKAGED_SKUS"
+}

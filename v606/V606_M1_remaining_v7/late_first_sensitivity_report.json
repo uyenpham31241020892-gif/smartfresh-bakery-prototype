@@ -1,0 +1,92 @@
+{
+  "scope": "DEVELOPMENT_SENSITIVITY_NOT_CAUSAL_OR_OFFICIAL_TEST",
+  "calendar": "2022-05-01/2022-06-30",
+  "days": 60,
+  "seed": 607,
+  "intensity": "FIT Jan-Apr observed lower-bound means only, fixed 4x and 75% evening assumptions",
+  "model_assumes_response_coefficient": 2,
+  "automatic_approval": "OFFLINE_EVALUATION_ONLY; runtime requires manager",
+  "model_selection": "Forecast trees selected by validation loss; response coefficient is declared, not fitted",
+  "policy_development": "Validation reused for model selection and policy development, not an independent policy evaluation.",
+  "results": [
+    {
+      "actual_response_coefficient": 0,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 1040958080,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 413
+        }
+      },
+      "revenue_change": -13613920,
+      "revenue_change_pct": -1.290942676270563,
+      "closing_stock_change": 0
+    },
+    {
+      "actual_response_coefficient": 1,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 1052493890,
+          "sold": 40691,
+          "stock": 8989,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 408
+        }
+      },
+      "revenue_change": -2078110,
+      "revenue_change_pct": -0.1970571947671662,
+      "closing_stock_change": -502
+    },
+    {
+      "actual_response_coefficient": 2,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 1064608710,
+          "sold": 41212,
+          "stock": 8468,
+          "prepared": 49680,
+          "lost": 19,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 404
+        }
+      },
+      "revenue_change": 10036710,
+      "revenue_change_pct": 0.9517330253410863,
+      "closing_stock_change": -1023
+    }
+  ],
+  "pricing_policy_version": "v8"
+}

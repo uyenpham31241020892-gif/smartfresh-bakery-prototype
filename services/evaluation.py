@@ -5,10 +5,13 @@ import math
 from datetime import datetime, timezone
 from .identity import actor
 from .engine import LADDER
+from .costs import estimate, COST_POLICY_ID
 
 
 def fingerprint(s):
-    return hashlib.sha256(json.dumps({k:s.get(k) for k in ['id','day','phase','revision','model_version','products','ledger']},sort_keys=True,allow_nan=False).encode()).hexdigest()
+    content={k:s.get(k) for k in ['id','day','phase','revision','model_version','products','ledger']}
+    content['financial_policy']=COST_POLICY_ID
+    return hashlib.sha256(json.dumps(content,sort_keys=True,allow_nan=False).encode()).hexdigest()
 
 
 def reconcile(s):
@@ -29,8 +32,8 @@ def reconcile(s):
         rows.append({'sku':sku,'prepared':p['prepared'],'sold':p['sold'],'ending_stock':p['stock'],'waste':p['stock'] if s['phase']=='closed' else None,'ledger_sold':qty,'reported_revenue':p['revenue'],'ledger_revenue':paid,'passed':ok})
     closed=s['phase']=='closed';valid=not errors
     revenue=sum(r['ledger_revenue'] for r in rows)
-    cost=sum(round(p['prepared']*p['price']*.45) for p in s['products'].values())
-    return {'session_id':s['id'],'day':s['day'],'mode':s['mode'],'model_version':s['model_version'],'revision':s['revision'],'state_sha256':fingerprint(s),'checked_at':datetime.now(timezone.utc).isoformat(),'status':'MISMATCH' if errors else 'RECONCILED' if closed else 'PROVISIONAL','publishable':closed and valid,'errors':errors,'rows':rows,'kpis':{'revenue':revenue,'production_cost_assumed':cost,'contribution_before_overhead':revenue-cost,'waste':sum(r['ending_stock'] for r in rows),'stockout_sku_sessions':sum(p['stock']==0 for p in s['products'].values()),'lost_sales':sum(p.get('lost',0) for p in s['products'].values()) if s['mode']=='simulation' else None} if closed and valid else None,'notes':['Hàng dư cuối ca được quy ước là waste; chưa có chứng từ hủy vật lý.','Giá vốn giả định 45% giá tham chiếu × toàn bộ lượng chuẩn bị; contribution chưa trừ overhead, không phải lợi nhuận ròng.','Tồn cuối bằng 0 là proxy stockout SKU-ca; không đo thời lượng hết hàng.','Lost sales chỉ có trong simulator; dữ liệu live không suy ra nhu cầu bị mất từ doanh số.']}
+    financial=estimate(s['products']);cost=financial['preparation_cost']
+    return {'session_id':s['id'],'day':s['day'],'mode':s['mode'],'model_version':s['model_version'],'revision':s['revision'],'state_sha256':fingerprint(s),'checked_at':datetime.now(timezone.utc).isoformat(),'status':'MISMATCH' if errors else 'RECONCILED' if closed else 'PROVISIONAL','publishable':closed and valid,'errors':errors,'rows':rows,'financial_estimate':financial,'kpis':{'revenue':revenue,'production_cost_assumed':cost,'contribution_before_overhead':financial['contribution_before_overhead'],'waste':sum(r['ending_stock'] for r in rows),'stockout_sku_sessions':sum(p['stock']==0 for p in s['products'].values()),'lost_sales':sum(p.get('lost',0) for p in s['products'].values()) if s['mode']=='simulation' else None} if closed and valid else None,'notes':['ASSUMED cost: 45% of list price times all confirmed preparation, including unsold stock. Disposal and operating fees remain unknown; contribution is not net profit.','Ending inventory is not confirmed physical disposal.','Unserved requests are simulator-only counts, not real customer footfall.']}
 
 
 class Evaluation:

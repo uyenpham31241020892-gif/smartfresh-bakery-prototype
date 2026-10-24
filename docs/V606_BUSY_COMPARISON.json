@@ -1,0 +1,49 @@
+{
+  "day": "2022-07-01",
+  "seed": 42,
+  "scenario": "V606_busy4-evening75-service2130-v3",
+  "potential_purchases": 823,
+  "scope": "CUSTOM_SYNTHETIC_BUSY_SCENARIO_NOT_OFFICIAL_MARKET_TEST",
+  "branches": [
+    {
+      "branch": "BASELINE",
+      "prepared": 976,
+      "sold": 823,
+      "stock": 153,
+      "revenue": 21075500,
+      "lost": 0,
+      "delta_revenue": 0,
+      "delta_percent": 0.0
+    },
+    {
+      "branch": "M1_ONLY",
+      "prepared": 976,
+      "sold": 823,
+      "stock": 153,
+      "revenue": 21075500,
+      "lost": 0,
+      "delta_revenue": 0,
+      "delta_percent": 0.0
+    },
+    {
+      "branch": "M2_ONLY",
+      "prepared": 980,
+      "sold": 823,
+      "stock": 157,
+      "revenue": 21075500,
+      "lost": 0,
+      "delta_revenue": 0,
+      "delta_percent": 0.0
+    },
+    {
+      "branch": "JOINT_M1_M2",
+      "prepared": 980,
+      "sold": 823,
+      "stock": 157,
+      "revenue": 21075500,
+      "lost": 0,
+      "delta_revenue": 0,
+      "delta_percent": 0.0
+    }
+  ]
+}

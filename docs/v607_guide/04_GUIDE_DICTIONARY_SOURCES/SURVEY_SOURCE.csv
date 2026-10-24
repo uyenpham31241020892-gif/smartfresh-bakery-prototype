@@ -1,0 +1,2 @@
+﻿source_id,source_type,source_location,store,survey_date,reported_on,scope,not_supported,public_url,independently_verified
+USER_FIELD_SURVEY_001,USER_REPORTED_FIELD_SURVEY,Tin nhắn người dùng trong cuộc trò chuyện hiện tại,AEON Tân Phú,,2026-10-23,Tên 7 món; 7 giá niêm yết; 5 giá giảm có điều kiện; 1 nhận xét đắt khách,"Không có timestamp POS, số bán, chi phí, độ co giãn giá, ngày khảo sát, barcode hoặc lịch sử giảm giá",,False

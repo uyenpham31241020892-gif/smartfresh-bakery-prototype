@@ -1,0 +1,9 @@
+{
+  "rows": 5142,
+  "complete_supply_rows": 3226,
+  "earliest_complete_supply_date": "2022-07-05",
+  "negative_values_present": true,
+  "unit_balance_valid": false,
+  "decision": "REJECT_RATIO_CALIBRATION",
+  "sha256": "1038b1f20317e83b29cc9f9e847ba9cbdf4146d463ceefd1623ed41041d99efc"
+}

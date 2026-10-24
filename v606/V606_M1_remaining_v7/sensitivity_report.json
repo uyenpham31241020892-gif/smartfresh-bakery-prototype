@@ -1,0 +1,91 @@
+{
+  "scope": "DEVELOPMENT_SENSITIVITY_NOT_CAUSAL_OR_OFFICIAL_TEST",
+  "calendar": "2022-05-01/2022-06-30",
+  "days": 60,
+  "seed": 607,
+  "intensity": "FIT Jan-Apr observed lower-bound means only, fixed 4x and 75% evening assumptions",
+  "model_assumes_response_coefficient": 2,
+  "automatic_approval": "OFFLINE_EVALUATION_ONLY; runtime requires manager",
+  "model_selection": "Forecast trees selected by validation loss; response coefficient is declared, not fitted",
+  "results": [
+    {
+      "actual_response_coefficient": 0,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 976907520,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 803
+        }
+      },
+      "revenue_change": -77664480,
+      "revenue_change_pct": -7.364549788919106,
+      "closing_stock_change": 0
+    },
+    {
+      "actual_response_coefficient": 1,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 1036926550,
+          "sold": 43118,
+          "stock": 6562,
+          "prepared": 49680,
+          "lost": 32,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 765
+        }
+      },
+      "revenue_change": -17645450,
+      "revenue_change_pct": -1.673233311713188,
+      "closing_stock_change": -2929
+    },
+    {
+      "actual_response_coefficient": 2,
+      "branches": {
+        "HOLD": {
+          "revenue": 1054572000,
+          "sold": 40189,
+          "stock": 9491,
+          "prepared": 49680,
+          "lost": 16,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 0
+        },
+        "POLICY": {
+          "revenue": 1091319840,
+          "sold": 45644,
+          "stock": 4036,
+          "prepared": 49680,
+          "lost": 148,
+          "days_with_stockout_before_2130": 0,
+          "changed_sku_checkpoints": 702
+        }
+      },
+      "revenue_change": 36747840,
+      "revenue_change_pct": 3.4846212491892445,
+      "closing_stock_change": -5455
+    }
+  ],
+  "policy_development": "Service uncertainty guard added after development sensitivity exposed early stockouts. Validation reused; NOT an independent policy evaluation."
+}

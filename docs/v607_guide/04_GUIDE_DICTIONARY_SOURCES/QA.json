@@ -1,0 +1,12 @@
+{
+  "raw_source_unchanged": true,
+  "233_source_dates": true,
+  "fit_conservation_revenue_cap_no_early_baseline_no_hidden": true,
+  "validation_conservation_revenue_cap_no_early_baseline_no_hidden": true,
+  "exploration_keys_propensity_action_bounds_time_separation": true,
+  "development_weekend_mean_above_thu_fri": true,
+  "22_POS_mechanics_HTTP_isolation_tests": "PASS",
+  "official_test_execution": false,
+  "new_model_training": false,
+  "blind_real_AEON_holdout_claim": false
+}

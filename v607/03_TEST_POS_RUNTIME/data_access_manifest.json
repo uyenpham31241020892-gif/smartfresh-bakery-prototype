@@ -1,0 +1,17 @@
+{
+  "model_allowed": [
+    "sku_master.csv",
+    "feature_contract.json",
+    "build_config.json",
+    "calendar_test.csv",
+    "history_seed_through_20220630.csv",
+    "prior_weather_through_20220630.csv",
+    "HTTP own-branch as-of context"
+  ],
+  "forbidden": [
+    "01_ORIGINAL_BASELINE_PRIVATE/*",
+    "manager token",
+    "scorer outputs",
+    "raw public proxy/lineage for test dates"
+  ]
+}

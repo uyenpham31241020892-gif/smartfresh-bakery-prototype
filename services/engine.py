@@ -203,3 +203,10 @@ class Engine:
                 'schedule': sched[pick].tolist(), 'candidates': candidates,
                 'low_stock': stock <= max(3, round(sales60 / 2)),
                 'reason': 'OUT_OF_STOCK_MAINTAIN_PUBLIC_FLOOR' if stock == 0 else 'JOINT_FORECAST_REVENUE_PLANNING'}
+
+# Runtime migration: keep legacy helpers for archived tools only.
+from .v606 import Engine
+DATA = ROOT / "v606/03_TEST_POS_RUNTIME"
+FLOORS = [0]*5
+CAPS = [50]*5
+LADDER = sorted(set(LADDER + [5,10,15] + [round(100*(int(r["unit_price_vnd_reference"])-int(r["markdown_price_vnd_reference"]))/int(r["unit_price_vnd_reference"]),10) for r in __import__("model_adapter").MASTER.values() if r["markdown_price_vnd_reference"]]))

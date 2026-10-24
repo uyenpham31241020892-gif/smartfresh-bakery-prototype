@@ -1,0 +1,1051 @@
+{
+  "scope": "ZIP02_FIT_VALIDATION_DEVELOPMENT_ONLY",
+  "selection": "validation_not_independent_holdout",
+  "train_from": "2022-01-02",
+  "fit_through": "2022-04-30",
+  "validation_from": "2022-05-01",
+  "trained_until": "2022-06-30",
+  "fit_rows": 777,
+  "validation_rows": 420,
+  "features": [
+    "sku_code",
+    "days_since_last_observed",
+    "weekday_iso",
+    "month",
+    "is_public_holiday",
+    "is_tet_run_up",
+    "is_weekend",
+    "unit_price_vnd_reference",
+    "sold_calendar_lag1",
+    "sold_calendar_lag7",
+    "sold_last7_observed_mean",
+    "prepared_last_observed",
+    "censored_last_observed",
+    "prior_day_rain_mm",
+    "prior_day_temp_c",
+    "event_stratum",
+    "is_tet_official_leave",
+    "is_post_tet_window_assumed",
+    "days_to_tet",
+    "is_summer_season_proxy",
+    "calendar_year",
+    "sold_calendar_lag1_missing",
+    "sold_calendar_lag1_fallback_observed_sales",
+    "sold_calendar_lag7_missing",
+    "sold_calendar_lag7_fallback_observed_sales",
+    "event_prior_observed_days_same_sku",
+    "censored_last7_observed_rate",
+    "ood_flag"
+  ],
+  "input_sha256": {
+    "READ_ME_FIRST.md": "89aae4ca0c96be8ddc286ee8c1ba14ac0d86bb6790ece02483e40ade4d789b7d",
+    "build_config.json": "090bed1ede523eaac40ab772ecb6a022a0a1103b8ca9b6cbec16af81c03a90f3",
+    "censored_tools_DIAGNOSTIC_ONLY.py": "aa6190ba644672f4434c47b27ef4c51cf65917658d03bc107c0216c7e06cc645",
+    "feature_contract.json": "b4ad4f06ee9a5c8e79b8e2cebf7335cda560f96eaabf33e88aaad9b11e190906",
+    "fit/baseline_daily_OBSERVED.csv": "e81e156012d220b4b9b1782a27e2bc8124963933e151e47685fd35e7db63a5be",
+    "fit/m1_checkpoint_features.csv": "886ca592de17852c203c750596422fc7452936f4e5df4a43648e11ef7e51501a",
+    "fit/m1_logged_actions_TREATMENT_ONLY.csv": "f8d86af74ffd754aef95ca22b6dbe464c5aaca05b174d7f419b2f276a677fd98",
+    "fit/m1_outcomes_LABELS_ONLY.csv": "cdc5b966ff8943bfd33b24309e594446c52623e4918ef6a391a47a30040480a6",
+    "fit/m2_censor_aware_targets.csv": "5bb74f690ebc3ac79a161e47e2e30dbe2a5333c060d73edcaa46d3ecaa86fb81",
+    "fit/m2_morning_features.csv": "4348c3b9ef797c143b10c799bb507ec815a6428f1ba682dfd77e92c041268b3e",
+    "fit/observed_15min.csv": "ebd5a04caec323688773e639926cd6c427cae24df91ed443b5b2fdb5a1d5ac69",
+    "fit/simulated_POS.csv": "e87324161a4d3f231665a58a7e0ca7410bf0115ec6b20a56363c2548d46325a3",
+    "model_io_guard.py": "bc586def9f459a4bd14e049abe46b248eb41deda82a592bfab8540d05d3589d9",
+    "sku_master.csv": "a705d22cc9aef1f9337c89161d4a58458099b3b02179e8e406f2403649fd1211",
+    "validation/baseline_daily_OBSERVED.csv": "4b97215e8bc9f1f388050b2b449ec8dc6a3b4a551760a4d36d3d9ba2ee2e3c1f",
+    "validation/m1_checkpoint_features.csv": "fa01334e0e2f84382300827a5c38e43c86f5a55757d7fcc5ec7bc57e258bb9c5",
+    "validation/m1_logged_actions_TREATMENT_ONLY.csv": "a943bc1f92ea13fc452737f09602d29f40aac09c4aad830dca30c982dc998bde",
+    "validation/m1_outcomes_LABELS_ONLY.csv": "3372f3e65589f7e1145c7ba1158ac12dd840dc0e1509845e1f92667808d6ec04",
+    "validation/m2_censor_aware_targets.csv": "c7ca104593ebdd3da1a231015a94124b9ba014ec666b5fe25c624d3d30f7de7a",
+    "validation/m2_morning_features.csv": "18fc04d403a8c4662d7c0caf799b99ce5ba4c84028b90f3b96a64ebfb71847e5",
+    "validation/observed_15min.csv": "1e984de42738fc931275dbc104970674b49ed6804c2b940c43175e87320a09ad",
+    "validation/simulated_POS.csv": "cf04cfeefd2508cfed7a3f44ecb76aee64886246da0b77d94c7dde52f0ea64b1"
+  },
+  "max_candidates_per_horizon": 32,
+  "refit": "DEVELOPMENT_CANDIDATE_ONLY; deployment uses fit-only selected artifact",
+  "no_july_august_training": true,
+  "limitations": [
+    "Censored targets are lower bounds, not complete demand.",
+    "Weather is retrospective previous-day reanalysis, not an issued same-day forecast.",
+    "Busy-store scaling and service buffer are declared scenario policies, not learned AEON demand.",
+    "Past simulation days already inspected are development data, not a fresh blind holdout."
+  ],
+  "horizons": {
+    "day": {
+      "selected": {
+        "config": {
+          "depth": 2,
+          "eta": 0.03,
+          "rounds": 75
+        },
+        "metrics": {
+          "censor_aware_loss": 42.38551947847698,
+          "uncensored_mae": 5.645665278076654,
+          "censored_underforecast_rate": 0.8682634730538922,
+          "mean_prediction": 27.9273624420166
+        }
+      },
+      "original_reproduced": {
+        "censor_aware_loss": 44.80851238717345,
+        "uncensored_mae": 6.482022191224833,
+        "censored_underforecast_rate": 0.6646706586826348,
+        "mean_prediction": 29.81109619140625
+      },
+      "candidates": [
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 42.38551947847698,
+            "uncensored_mae": 5.645665278076654,
+            "censored_underforecast_rate": 0.8682634730538922,
+            "mean_prediction": 27.9273624420166
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 43.05390009673518,
+            "uncensored_mae": 6.191110060620214,
+            "censored_underforecast_rate": 0.688622754491018,
+            "mean_prediction": 29.284250259399414
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 43.090619656445305,
+            "uncensored_mae": 6.008908049391192,
+            "censored_underforecast_rate": 0.7245508982035929,
+            "mean_prediction": 28.739776611328125
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 44.545399644724334,
+            "uncensored_mae": 5.44598423350941,
+            "censored_underforecast_rate": 0.9580838323353293,
+            "mean_prediction": 27.120601654052734
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 44.80851238717345,
+            "uncensored_mae": 6.482022191224833,
+            "censored_underforecast_rate": 0.6646706586826348,
+            "mean_prediction": 29.81109619140625
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 48.970693825325355,
+            "uncensored_mae": 6.994600793589717,
+            "censored_underforecast_rate": 0.49101796407185627,
+            "mean_prediction": 31.101306915283203
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 49.75468730450305,
+            "uncensored_mae": 7.075464927160692,
+            "censored_underforecast_rate": 0.6047904191616766,
+            "mean_prediction": 30.469722747802734
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 49.882325813478104,
+            "uncensored_mae": 7.111366973092904,
+            "censored_underforecast_rate": 0.5808383233532934,
+            "mean_prediction": 30.524606704711914
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 51.643151372471756,
+            "uncensored_mae": 7.393259184162607,
+            "censored_underforecast_rate": 0.5029940119760479,
+            "mean_prediction": 31.591411590576172
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 52.66370766657204,
+            "uncensored_mae": 7.548782092309281,
+            "censored_underforecast_rate": 0.47904191616766467,
+            "mean_prediction": 31.530200958251953
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 55.531009774395194,
+            "uncensored_mae": 7.831136929659033,
+            "censored_underforecast_rate": 0.5029940119760479,
+            "mean_prediction": 31.55496597290039
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 57.34018253852343,
+            "uncensored_mae": 8.045834726024522,
+            "censored_underforecast_rate": 0.4491017964071856,
+            "mean_prediction": 32.1462287902832
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 60.890358300632094,
+            "uncensored_mae": 8.231538275013799,
+            "censored_underforecast_rate": 0.32335329341317365,
+            "mean_prediction": 32.75779342651367
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 62.34139361279669,
+            "uncensored_mae": 8.256658018813303,
+            "censored_underforecast_rate": 0.30538922155688625,
+            "mean_prediction": 32.848018646240234
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 63.06029571684638,
+            "uncensored_mae": 8.580085279442105,
+            "censored_underforecast_rate": 0.3712574850299401,
+            "mean_prediction": 32.89524459838867
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 64.5633466418352,
+            "uncensored_mae": 8.68049050885227,
+            "censored_underforecast_rate": 0.40718562874251496,
+            "mean_prediction": 32.840919494628906
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 64.84012684625675,
+            "uncensored_mae": 8.38085052429923,
+            "censored_underforecast_rate": 0.6107784431137725,
+            "mean_prediction": 31.345462799072266
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 69.76231446082404,
+            "uncensored_mae": 8.957655141476115,
+            "censored_underforecast_rate": 0.49700598802395207,
+            "mean_prediction": 32.313358306884766
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 70.45276144640441,
+            "uncensored_mae": 9.18199993028,
+            "censored_underforecast_rate": 0.3473053892215569,
+            "mean_prediction": 33.42047119140625
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 71.09957689289712,
+            "uncensored_mae": 9.288413451123143,
+            "censored_underforecast_rate": 0.2934131736526946,
+            "mean_prediction": 33.84330368041992
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 73.77522718054742,
+            "uncensored_mae": 9.37265289065395,
+            "censored_underforecast_rate": 0.38323353293413176,
+            "mean_prediction": 33.31653594970703
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 77.05262476019772,
+            "uncensored_mae": 9.630579145529525,
+            "censored_underforecast_rate": 0.41916167664670656,
+            "mean_prediction": 33.42389678955078
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 77.36062480637824,
+            "uncensored_mae": 9.8169099106619,
+            "censored_underforecast_rate": 0.25149700598802394,
+            "mean_prediction": 34.18701171875
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 80.84614955735925,
+            "uncensored_mae": 9.901508270987408,
+            "censored_underforecast_rate": 0.46107784431137727,
+            "mean_prediction": 33.353797912597656
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 94.4329572194029,
+            "uncensored_mae": 10.993574421396369,
+            "censored_underforecast_rate": 0.31736526946107785,
+            "mean_prediction": 34.76581954956055
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 95.36030126311994,
+            "uncensored_mae": 11.03455062534498,
+            "censored_underforecast_rate": 0.23353293413173654,
+            "mean_prediction": 35.1344108581543
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 96.12585695801134,
+            "uncensored_mae": 11.189352080756025,
+            "censored_underforecast_rate": 0.16167664670658682,
+            "mean_prediction": 36.11077117919922
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 96.97668674068342,
+            "uncensored_mae": 11.104570939135646,
+            "censored_underforecast_rate": 0.20359281437125748,
+            "mean_prediction": 35.40641403198242
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 109.808688722449,
+            "uncensored_mae": 12.065545010472475,
+            "censored_underforecast_rate": 0.20958083832335328,
+            "mean_prediction": 36.00971984863281
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 112.78106139760473,
+            "uncensored_mae": 12.211355337512352,
+            "censored_underforecast_rate": 0.18562874251497005,
+            "mean_prediction": 36.47417068481445
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 120.08974755251731,
+            "uncensored_mae": 12.741102030154744,
+            "censored_underforecast_rate": 0.16766467065868262,
+            "mean_prediction": 36.830413818359375
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 134.2346146169189,
+            "uncensored_mae": 13.583481106362324,
+            "censored_underforecast_rate": 0.11976047904191617,
+            "mean_prediction": 37.738826751708984
+          }
+        }
+      ],
+      "lowest_loss_unconstrained": {
+        "config": {
+          "depth": 2,
+          "eta": 0.03,
+          "rounds": 75
+        },
+        "metrics": {
+          "censor_aware_loss": 42.38551947847698,
+          "uncensored_mae": 5.645665278076654,
+          "censored_underforecast_rate": 0.8682634730538922,
+          "mean_prediction": 27.9273624420166
+        }
+      },
+      "promotion_eligible": false,
+      "promotion_gate": "Strictly lower validation censor-aware loss AND no higher censored underforecast rate AND no higher uncensored MAE",
+      "sensitivity": {
+        "weather": {
+          "permuted_metrics": {
+            "censor_aware_loss": 42.12467960251745,
+            "uncensored_mae": 5.641510590263035,
+            "censored_underforecast_rate": 0.8622754491017964,
+            "mean_prediction": 27.947158813476562
+          },
+          "mean_absolute_prediction_change": 0.12730763852596283
+        },
+        "history": {
+          "permuted_metrics": {
+            "censor_aware_loss": 44.096758670550656,
+            "uncensored_mae": 5.70325714231951,
+            "censored_underforecast_rate": 0.8323353293413174,
+            "mean_prediction": 27.922203063964844
+          },
+          "mean_absolute_prediction_change": 0.4317225515842438
+        }
+      },
+      "validation_uncensored_positive_error_q90": 4.077035903930664
+    },
+    "to_2130": {
+      "selected": {
+        "config": {
+          "depth": 2,
+          "eta": 0.03,
+          "rounds": 75
+        },
+        "metrics": {
+          "censor_aware_loss": 47.064886303460455,
+          "uncensored_mae": 6.173119375891719,
+          "censored_underforecast_rate": 0.7028985507246377,
+          "mean_prediction": 27.613300323486328
+        }
+      },
+      "original_reproduced": {
+        "censor_aware_loss": 53.940873350139675,
+        "uncensored_mae": 7.09964908437526,
+        "censored_underforecast_rate": 0.43478260869565216,
+        "mean_prediction": 29.760807037353516
+      },
+      "candidates": [
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 47.064886303460455,
+            "uncensored_mae": 6.173119375891719,
+            "censored_underforecast_rate": 0.7028985507246377,
+            "mean_prediction": 27.613300323486328
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 49.271078006056705,
+            "uncensored_mae": 6.055105067313986,
+            "censored_underforecast_rate": 0.9202898550724637,
+            "mean_prediction": 26.81070899963379
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 49.318593924166244,
+            "uncensored_mae": 6.552133174652749,
+            "censored_underforecast_rate": 0.6304347826086957,
+            "mean_prediction": 28.578062057495117
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 50.28867433820901,
+            "uncensored_mae": 6.664287641538796,
+            "censored_underforecast_rate": 0.644927536231884,
+            "mean_prediction": 28.690061569213867
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 51.93174187939348,
+            "uncensored_mae": 6.79105699146893,
+            "censored_underforecast_rate": 0.6666666666666666,
+            "mean_prediction": 28.650739669799805
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 53.940873350139675,
+            "uncensored_mae": 7.09964908437526,
+            "censored_underforecast_rate": 0.43478260869565216,
+            "mean_prediction": 29.760807037353516
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 55.145629682456224,
+            "uncensored_mae": 7.023179345097102,
+            "censored_underforecast_rate": 0.6376811594202898,
+            "mean_prediction": 28.779598236083984
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 59.88192402977825,
+            "uncensored_mae": 7.541078344304511,
+            "censored_underforecast_rate": 0.6231884057971014,
+            "mean_prediction": 29.43909454345703
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 61.322444969377244,
+            "uncensored_mae": 7.675063728440738,
+            "censored_underforecast_rate": 0.47101449275362317,
+            "mean_prediction": 30.25518035888672
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 63.46488836349854,
+            "uncensored_mae": 7.665136330516626,
+            "censored_underforecast_rate": 0.782608695652174,
+            "mean_prediction": 29.022518157958984
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 69.00206523560387,
+            "uncensored_mae": 8.315208719131794,
+            "censored_underforecast_rate": 0.4420289855072464,
+            "mean_prediction": 30.99224281311035
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 69.4526094460899,
+            "uncensored_mae": 8.515150361027278,
+            "censored_underforecast_rate": 0.34782608695652173,
+            "mean_prediction": 31.642309188842773
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 73.2338036495361,
+            "uncensored_mae": 8.6532043903432,
+            "censored_underforecast_rate": 0.5362318840579711,
+            "mean_prediction": 30.662565231323242
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 74.60706604173204,
+            "uncensored_mae": 8.886647630245127,
+            "censored_underforecast_rate": 0.3115942028985507,
+            "mean_prediction": 32.34260559082031
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 50
+          },
+          "metrics": {
+            "censor_aware_loss": 75.96317788030701,
+            "uncensored_mae": 8.901031088321767,
+            "censored_underforecast_rate": 0.5,
+            "mean_prediction": 31.06058692932129
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 78.30884549800359,
+            "uncensored_mae": 8.949824941919205,
+            "censored_underforecast_rate": 0.3333333333333333,
+            "mean_prediction": 32.03651809692383
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 80.96306694865187,
+            "uncensored_mae": 9.344298511532182,
+            "censored_underforecast_rate": 0.37681159420289856,
+            "mean_prediction": 32.2741813659668
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 83.70517313527415,
+            "uncensored_mae": 9.578141584464,
+            "censored_underforecast_rate": 0.26811594202898553,
+            "mean_prediction": 32.66387939453125
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.8
+          },
+          "metrics": {
+            "censor_aware_loss": 85.07760782077389,
+            "uncensored_mae": 9.671649493224232,
+            "censored_underforecast_rate": 0.3333333333333333,
+            "mean_prediction": 32.58024215698242
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 85.89985859856276,
+            "uncensored_mae": 9.65789563605126,
+            "censored_underforecast_rate": 0.41304347826086957,
+            "mean_prediction": 32.05320739746094
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75
+          },
+          "metrics": {
+            "censor_aware_loss": 87.4654563171603,
+            "uncensored_mae": 9.800919045793249,
+            "censored_underforecast_rate": 0.37681159420289856,
+            "mean_prediction": 32.31755065917969
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.7
+          },
+          "metrics": {
+            "censor_aware_loss": 89.47361998434783,
+            "uncensored_mae": 9.792558933826204,
+            "censored_underforecast_rate": 0.2536231884057971,
+            "mean_prediction": 32.834285736083984
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 120
+          },
+          "metrics": {
+            "censor_aware_loss": 94.83058987322788,
+            "uncensored_mae": 10.345601994940575,
+            "censored_underforecast_rate": 0.2536231884057971,
+            "mean_prediction": 33.241111755371094
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 99.2396925099402,
+            "uncensored_mae": 10.610085920239172,
+            "censored_underforecast_rate": 0.2463768115942029,
+            "mean_prediction": 33.404911041259766
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.03,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 99.35670977102505,
+            "uncensored_mae": 10.669175871720551,
+            "censored_underforecast_rate": 0.2318840579710145,
+            "mean_prediction": 34.34680938720703
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 101.80813779313497,
+            "uncensored_mae": 10.812241601605788,
+            "censored_underforecast_rate": 0.18840579710144928,
+            "mean_prediction": 34.759178161621094
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 75,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 102.53044368515538,
+            "uncensored_mae": 10.803765222535912,
+            "censored_underforecast_rate": 0.30434782608695654,
+            "mean_prediction": 33.27935791015625
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 200
+          },
+          "metrics": {
+            "censor_aware_loss": 109.31136407919534,
+            "uncensored_mae": 11.240024302868132,
+            "censored_underforecast_rate": 0.2028985507246377,
+            "mean_prediction": 34.28336715698242
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.03,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 119.44659340058601,
+            "uncensored_mae": 11.849499837726565,
+            "censored_underforecast_rate": 0.1956521739130435,
+            "mean_prediction": 34.85285949707031
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 160,
+            "underweight": 0.6
+          },
+          "metrics": {
+            "censor_aware_loss": 122.32834361411076,
+            "uncensored_mae": 11.980703489154788,
+            "censored_underforecast_rate": 0.1956521739130435,
+            "mean_prediction": 34.83860397338867
+          }
+        },
+        {
+          "config": {
+            "depth": 3,
+            "eta": 0.055,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 122.50605118816758,
+            "uncensored_mae": 12.044109500046318,
+            "censored_underforecast_rate": 0.14492753623188406,
+            "mean_prediction": 35.27006912231445
+          }
+        },
+        {
+          "config": {
+            "depth": 2,
+            "eta": 0.055,
+            "rounds": 320
+          },
+          "metrics": {
+            "censor_aware_loss": 128.47257724032903,
+            "uncensored_mae": 12.406948400727401,
+            "censored_underforecast_rate": 0.14492753623188406,
+            "mean_prediction": 36.549659729003906
+          }
+        }
+      ],
+      "lowest_loss_unconstrained": {
+        "config": {
+          "depth": 2,
+          "eta": 0.03,
+          "rounds": 75
+        },
+        "metrics": {
+          "censor_aware_loss": 47.064886303460455,
+          "uncensored_mae": 6.173119375891719,
+          "censored_underforecast_rate": 0.7028985507246377,
+          "mean_prediction": 27.613300323486328
+        }
+      },
+      "promotion_eligible": false,
+      "promotion_gate": "Strictly lower validation censor-aware loss AND no higher censored underforecast rate AND no higher uncensored MAE",
+      "sensitivity": {
+        "weather": {
+          "permuted_metrics": {
+            "censor_aware_loss": 47.064886303460455,
+            "uncensored_mae": 6.173119375891719,
+            "censored_underforecast_rate": 0.7028985507246377,
+            "mean_prediction": 27.613300323486328
+          },
+          "mean_absolute_prediction_change": 0.0
+        },
+        "history": {
+          "permuted_metrics": {
+            "censor_aware_loss": 48.37235578037741,
+            "uncensored_mae": 6.223749911531489,
+            "censored_underforecast_rate": 0.7463768115942029,
+            "mean_prediction": 27.558208465576172
+          },
+          "mean_absolute_prediction_change": 0.6723530888557434
+        }
+      },
+      "validation_uncensored_positive_error_q90": 3.884775161743164
+    }
+  },
+  "promoted": false,
+  "deployment": "NOT_PROMOTED; retained original frozen artifacts. Candidate refits below are development-only."
+}

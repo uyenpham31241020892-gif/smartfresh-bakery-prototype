@@ -47,7 +47,7 @@ def weather_check(day, weather, trusted_demo=False):
         if not trusted_demo:
             raise ValueError('Forecast nhập cần issued_at có múi giờ, không sau 06:00; tên JMA không thay thế timestamp.')
         return {'status': 'WARN', 'source': source, 'issued_at': None, 'age_hours': None,
-                'message': 'Demo V9 previous_day1: chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
+                'message': 'Demo V6.06 prior-day weather: chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
     issued = timestamp(issued)
     available = timestamp(weather.get('available_at') or issued.isoformat())
     if available < issued:
