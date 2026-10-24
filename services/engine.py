@@ -53,16 +53,20 @@ def schedules(start, previous):
 
 
 class Engine:
-    def __init__(self, model_dir=None):
+    def __init__(self, model_dir=None, allow_degraded=False):
         model_dir = Path(model_dir or ROOT / 'models')
         self.manifest = json.loads((model_dir / 'manifest.json').read_text(encoding='utf-8'))
-        for name, checksum in self.manifest['native_model_hashes'].items():
-            if hashlib.sha256((model_dir / name).read_bytes()).hexdigest() != checksum:
-                raise ValueError('Model checksum mismatch: ' + name)
-        self.m1 = lgb.Booster(model_file=str(model_dir / 'm1.txt'))
-        self.m2 = lgb.Booster(model_file=str(model_dir / 'm2.txt'))
-        if self.m1.feature_name() != self.manifest['MCOLS'] or self.m2.feature_name() != self.manifest['COLS']:
-            raise ValueError('Feature order does not match the frozen model bundle')
+        self.model_dir = model_dir
+        self.m1 = self.m2 = None
+        self.artifact_error = None
+        try:
+            self.require_integrity()
+            self.reload_if_needed()
+        except (ValueError, OSError, lgb.basic.LightGBMError) as exc:
+            if not allow_degraded:
+                raise
+            self.m1 = self.m2 = None
+            self.artifact_error = str(exc)
         self.skus = pd.read_csv(DATA / 'SKU_Master.csv').to_dict('records')
         self.master = {s['sku_code']: s for s in self.skus}
         self.means = self.manifest['means']
@@ -71,6 +75,23 @@ class Engine:
         self.organic = {tuple(r['key']): r['value'] for r in self.manifest['organic_fracs']}
         self.selection = self.manifest['selection']
         self.version = self.manifest['version']
+
+    def require_integrity(self):
+        for name, checksum in self.manifest['native_model_hashes'].items():
+            path = self.model_dir / name
+            if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != checksum:
+                raise ValueError('Model checksum mismatch: ' + name)
+        return True
+
+    def reload_if_needed(self):
+        self.require_integrity()
+        if self.m1 is None or self.m2 is None:
+            m1=lgb.Booster(model_file=str(self.model_dir / 'm1.txt'))
+            m2=lgb.Booster(model_file=str(self.model_dir / 'm2.txt'))
+            if m1.feature_name()!=self.manifest['MCOLS'] or m2.feature_name()!=self.manifest['COLS']:
+                raise ValueError('Feature order does not match the frozen model bundle')
+            self.m1,self.m2=m1,m2
+        self.artifact_error=None
 
     def features(self, day, sku, visible, weather, outcomes=None):
         d = pd.Timestamp(day)
@@ -107,6 +128,8 @@ class Engine:
         return max(4, int(4 * math.ceil(mean * 1.29 * (1.07 if d.weekday() >= 5 else 1) / 4)))
 
     def plan(self, day, visible, weather, outcomes=None):
+        self.require_integrity()
+        if self.m2 is None:raise ValueError("Model M2 chưa được phục hồi; cần Verify.")
         rows = [self.features(day, s, visible, weather,outcomes) for s in self.master]
         X = encode(rows, self.manifest['COLS'])
         predictions = np.maximum(0, self.m2.predict(X, num_threads=2))
@@ -128,6 +151,8 @@ class Engine:
         return plans
 
     def promo(self, sku, weather):
+        self.require_integrity()
+        if self.m1 is None:raise ValueError("Model M1 chưa được phục hồi; cần Verify.")
         entries = [{'slot': j, 'discount_pct': tier, 'weekday': weather['weekday_iso'],
                     'is_weekend': weather['is_weekend'], 'is_holiday': weather['is_public_holiday'],
                     'rain_jma': weather['forecast_rain_mm_previous_day1'],
@@ -178,3 +203,10 @@ class Engine:
                 'schedule': sched[pick].tolist(), 'candidates': candidates,
                 'low_stock': stock <= max(3, round(sales60 / 2)),
                 'reason': 'OUT_OF_STOCK_MAINTAIN_PUBLIC_FLOOR' if stock == 0 else 'JOINT_FORECAST_REVENUE_PLANNING'}
+
+# Runtime migration: keep legacy helpers for archived tools only.
+from .v606 import Engine
+DATA = ROOT / "v606/03_TEST_POS_RUNTIME"
+FLOORS = [0]*5
+CAPS = [50]*5
+LADDER = sorted(set(LADDER + [5,10,15] + [round(100*(int(r["unit_price_vnd_reference"])-int(r["markdown_price_vnd_reference"]))/int(r["unit_price_vnd_reference"]),10) for r in __import__("model_adapter").MASTER.values() if r["markdown_price_vnd_reference"]]))

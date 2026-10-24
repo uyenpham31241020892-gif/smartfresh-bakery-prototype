@@ -1,0 +1,38 @@
+{
+  "scope": "DEVELOPMENT_REPLAY_NOT_BLIND_HOLDOUT",
+  "seed": 42,
+  "days": [
+    {
+      "day": "2022-07-01",
+      "prepared": 1008,
+      "sold": 823,
+      "stock": 185,
+      "min_sku_stock_2130": 17,
+      "unserved_simulation_only": 0
+    },
+    {
+      "day": "2022-07-02",
+      "prepared": 1020,
+      "sold": 791,
+      "stock": 229,
+      "min_sku_stock_2130": 8,
+      "unserved_simulation_only": 0
+    },
+    {
+      "day": "2022-07-03",
+      "prepared": 1060,
+      "sold": 817,
+      "stock": 243,
+      "min_sku_stock_2130": 20,
+      "unserved_simulation_only": 0
+    },
+    {
+      "day": "2022-07-04",
+      "prepared": 1004,
+      "sold": 810,
+      "stock": 194,
+      "min_sku_stock_2130": 13,
+      "unserved_simulation_only": 0
+    }
+  ]
+}

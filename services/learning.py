@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from .engine import ROOT, Engine, encode, LADDER, CAPS, FLOORS, OUTCOME_FEATURES, outcome_features
 from .ingestion import tables, integer, MAX_BYTES
+from .identity import actor
 
 WEATHER = ['forecast_rain_mm_previous_day1', 'forecast_temperature_max_c_previous_day1',
            'is_public_holiday', 'is_festival_non_public', 'issued_at']
@@ -45,26 +46,31 @@ class Learning:
                     PRIMARY KEY(kind,origin,row_key));
                 CREATE TABLE IF NOT EXISTS learning_datasets(id TEXT PRIMARY KEY, report TEXT);
                 CREATE TABLE IF NOT EXISTS learning_runs(id TEXT PRIMARY KEY, report TEXT);
+                CREATE TABLE IF NOT EXISTS model_holdouts(id TEXT PRIMARY KEY,version TEXT,report TEXT);
                 CREATE TABLE IF NOT EXISTS model_active(id INTEGER PRIMARY KEY CHECK(id=1), version TEXT);
             ''')
 
     def resolve(self, version):
         if version not in self.cache:
+            from .v606 import LEGACY_VERSION,ADAPTIVE_M2_VERSION,CONTEXTUAL_PRICE_VERSION,BENEFIT_GUARD_VERSION,TRAINED_CLEARANCE_VERSION
+            if version in (LEGACY_VERSION,ADAPTIVE_M2_VERSION,CONTEXTUAL_PRICE_VERSION,BENEFIT_GUARD_VERSION,TRAINED_CLEARANCE_VERSION):
+                self.cache[version]=Engine(version=version)
+                return self.cache[version]
             if not version.startswith('learn-') or not version.removeprefix('learn-').isalnum():
                 raise ValueError('Phiên bản model không hợp lệ.')
             try:
-                self.cache[version] = Engine(self.root / version)
+                self.cache[version] = Engine(self.root / version, allow_degraded=True)
             except OSError:
                 raise ValueError('Không tìm thấy đầy đủ artifact của phiên bản model.') from None
         return self.cache[version]
 
     def active(self):
-        with self.store.connect() as db:
+        with self.store.read() as db:
             row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
         return self.resolve(row['version']) if row else self.frozen
 
     def rows(self, kind, origin):
-        with self.store.connect() as db:
+        with self.store.read() as db:
             return [json.loads(r['payload']) for r in db.execute(
                 'SELECT payload FROM learning_rows WHERE kind=? AND origin=? ORDER BY row_key', (kind, origin))]
 
@@ -219,6 +225,8 @@ class Learning:
             if test_start <= parent.manifest.get('trained_until', '2022-08-15'):
                 raise ValueError('Holdout phải nằm sau dữ liệu model hiện tại đã học/đánh giá. Cần dữ liệu thực tế mới hơn.')
             previous_tests = [r['evaluated_until'] for r in prior if r['kind'] == kind and r['origin'] == origin]
+            with self.store.connect() as db:
+                previous_tests += [h['through'] for x in db.execute('SELECT report FROM model_holdouts') if (h:=json.loads(x['report'])).get('kind')==kind and h.get('origin')==origin]
             if previous_tests and test_start <= max(previous_tests):
                 raise ValueError('Cần 7 ngày kiểm tra mới chưa dùng trong lần đánh giá trước. Không lặp holdout để chọn model.')
             if kind == 'm2':
@@ -361,6 +369,7 @@ class Learning:
                       'training_rows': int(train_mask.sum()), 'excluded_rows': len(rows) - len(meta),
                       'current': old, 'candidate': new, 'naive': baseline, 'validation': validation, 'gates': gates,
                       'passed': all(gates.values()), 'status': 'awaiting_confirmation' if all(gates.values()) and origin == 'real' else 'demo_only' if origin == 'demo' else 'rejected',
+                      'actor':actor.get(),'created':datetime.now(timezone.utc).isoformat(),
                       'limitation': 'Offline errors on observed outcomes; not proof of profit or counterfactual policy improvement.'}
             (directory / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
             with self.store.connect() as db:
@@ -378,6 +387,8 @@ class Learning:
                 raise ValueError('Chỉ được áp dụng phiên bản ứng viên đã đánh giá.')
             self.resolve(version)  # validate the version name before constructing a filesystem path
             candidate = Engine(self.root / version)  # recheck hashes even if a preview was cached
+            compatibility=self.compatible(candidate,self.active())
+            if not all(compatibility.values()):raise ValueError('Ứng viên không tương thích SKU, policy hoặc feature schema.')
             snapshot = self.root / version / 'training_data.json'
             if not snapshot.exists() or hashlib.sha256(snapshot.read_bytes()).hexdigest() != candidate.manifest.get('training_data_sha256'):
                 raise ValueError('Checksum dữ liệu huấn luyện không khớp.')
@@ -392,10 +403,12 @@ class Learning:
                     raise ValueError('Model đang dùng đã thay đổi; cần đánh giá lại trên parent mới.')
                 if report['origin'] != 'real' or not report['passed'] or report['status'] != 'awaiting_confirmation':
                     raise ValueError('Model demo, không đạt hoặc đã xử lý không được đưa vào dùng thật.')
+                checks=[json.loads(r['report']) for r in db.execute('SELECT report FROM model_holdouts WHERE version=? ORDER BY rowid',(version,))]
+                if checks and not checks[-1]['passed']:raise ValueError('Fresh holdout mới nhất không đạt; không cho promotion.')
                 report['status'] = 'promoted'
                 db.execute('UPDATE learning_runs SET report=? WHERE id=?', (json.dumps(report), version))
                 db.execute('INSERT INTO model_active VALUES (1,?) ON CONFLICT(id) DO UPDATE SET version=excluded.version', (candidate.version,))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_PROMOTE', json.dumps({'from': active, 'to': version, 'reason': reason})))
+                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_PROMOTE', json.dumps({'from': active, 'to': version, 'reason': reason,'actor':actor.get(),'compatibility':compatibility})))
                 self.cache[version] = candidate
         return self.status()
 
@@ -404,17 +417,108 @@ class Learning:
         if not reason.strip():
             raise ValueError('Cần lý do quay về model trước.')
         with self.lock:
-            active = self.active()
-            if active.version != expected_active or active.version == self.frozen.version:
+            with self.store.connect() as db:
+                active_row=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
+                run=db.execute('SELECT report FROM learning_runs WHERE id=?',(expected_active,)).fetchone()
+            if not active_row or active_row['version']!=expected_active or expected_active==self.frozen.version:
                 raise ValueError('Model đã thay đổi hoặc đang ở bản gốc.')
-            previous = self.resolve(active.manifest['parent'])
+            if not run:raise ValueError('Thiếu lịch sử parent; không thể rollback an toàn.')
+            previous = self.resolve(json.loads(run['report'])['parent'])
+            previous.require_integrity()
+            previous.reload_if_needed()
             with self.store.connect() as db:
                 row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
                 if not row or row['version'] != expected_active:
                     raise ValueError('Model đang dùng đã thay đổi.')
                 db.execute('UPDATE model_active SET version=? WHERE id=1', (previous.version,))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_ROLLBACK', json.dumps({'from': active.version, 'to': previous.version, 'reason': reason})))
+                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_ROLLBACK', json.dumps({'from': expected_active, 'to': previous.version, 'reason': reason,'actor':actor.get(),'verified_hashes':previous.manifest.get('native_model_hashes')})))
         return self.status()
+
+    @staticmethod
+    def compatible(candidate,parent):
+        from .engine import OUTCOME_FEATURES
+        kind=candidate.manifest.get('learning_kind')
+        allowed=set(parent.manifest['COLS'])|set(OUTCOME_FEATURES)
+        return {'same_skus':set(candidate.master)==set(parent.master),
+                'same_policy':candidate.selection==parent.selection,
+                'm1_schema':candidate.manifest['MCOLS']==parent.manifest['MCOLS'],
+                'm2_schema':set(parent.manifest['COLS'])<=set(candidate.manifest['COLS'])<=allowed,
+                'kind_known':kind in ['m1','m2']}
+
+    def registry(self):
+        versions=[]
+        with self.store.connect() as db:
+            current=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
+            status={'active':current['version'] if current else self.frozen.version}
+            reports=[json.loads(r['report']) for r in db.execute('SELECT report FROM learning_runs ORDER BY rowid DESC')]
+            holdouts=[json.loads(r['report']) for r in db.execute('SELECT report FROM model_holdouts ORDER BY rowid DESC')]
+            events=[dict(r) for r in db.execute("SELECT * FROM audit WHERE action IN ('MODEL_PROMOTE','MODEL_ROLLBACK','MODEL_FRESH_HOLDOUT') ORDER BY id DESC LIMIT 100")]
+        for version,report in [(self.frozen.version,None)]+[(r['id'],r) for r in reports]:
+            try:
+                e=self.resolve(version);e.require_integrity()
+                manifest_hash=digest(e.manifest)
+                compatibility=self.compatible(e,self.resolve(report['parent'])) if report else {}
+                integrity=True;error=None
+            except Exception as exc:
+                e=None;manifest_hash=None;compatibility={};integrity=False;error=str(exc)
+            versions.append({'version':version,'active':version==status['active'],'frozen':version==self.frozen.version,'integrity':integrity,'error':error,'manifest_sha256':manifest_hash,'parent':report['parent'] if report else None,'origin':report['origin'] if report else 'frozen','status':report['status'] if report else 'frozen','report':report,'compatibility':compatibility,'holdouts':[h for h in holdouts if h['version']==version]})
+        return {'active':status['active'],'versions':versions,'events':events,'note':'Đổi model chỉ ảnh hưởng ca mới. Ca hiện tại ghim phiên bản; rollback quay về parent đã kiểm tra checksum.'}
+
+    def fresh_holdout(self,version):
+        with self.lock:
+            with self.store.connect() as db:
+                r=db.execute('SELECT report FROM learning_runs WHERE id=?',(version,)).fetchone()
+                prior=[json.loads(x['report']) for x in db.execute('SELECT report FROM model_holdouts WHERE version=?',(version,))]
+            if not r:raise ValueError('Chọn ứng viên có báo cáo huấn luyện.')
+            report=json.loads(r['report']);kind=report['kind'];origin=report['origin']
+            e=self.resolve(version);e.require_integrity();e.reload_if_needed()
+            parent=self.resolve(report['parent']);parent.require_integrity();parent.reload_if_needed()
+            if not all(self.compatible(e,parent).values()):raise ValueError('Model không tương thích.')
+            with self.store.connect() as db:
+                used=[json.loads(x['report']) for x in db.execute('SELECT report FROM model_holdouts')]
+                trained=[json.loads(x['report']) for x in db.execute('SELECT report FROM learning_runs')]
+            cutoff=max([report['evaluated_until']]+[h['through'] for h in used if h.get('kind')==kind and h.get('origin')==origin]+[r['evaluated_until'] for r in trained if r['kind']==kind and r['origin']==origin])
+            rows=self.rows(kind,origin);dates=sorted({r['date'] for r in rows if r['date']>cutoff})
+            if len(dates)<7:raise ValueError('Cần ít nhất 7 ngày holdout mới sau '+cutoff+' chưa dùng đánh giá ứng viên.')
+            days=dates[:7]
+            if any((date.fromisoformat(b)-date.fromisoformat(a)).days!=1 for a,b in zip(days,days[1:])):raise ValueError('Holdout phải có 7 ngày liên tục.')
+            if kind=='m2' and any({r['sku_code'] for r in rows if r['date']==d}!=set(e.master) for d in days):raise ValueError('Holdout M2 cần đủ SKU từng ngày.')
+            selected=[r for r in rows if r['date'] in days and r.get('eligible',True)]
+            if kind=='m1':
+                required={(sku,j,t) for sku in e.master for j in range(5) for t in LADDER if FLOORS[j]<=t<=CAPS[j]}
+                if not required<={(r['sku_code'],r['slot'],r['discount_pct']) for r in selected}:raise ValueError('Holdout M1 thiếu độ phủ SKU/slot/mức giảm.')
+            if any(sum(r['sku_code']==sku for r in selected)<5 for sku in e.master):raise ValueError('Holdout thiếu quan sát hợp lệ từng SKU; không dùng nhãn bị giới hạn tồn kho/giảm giá.')
+            pred={}
+            for model in [parent,e]:
+                values=[];response_cache={}
+                for row in selected:
+                    d,sku=row['date'],row['sku_code']
+                    if kind=='m2':
+                        history={(r['date'],r['sku_code']):r['sold_qty'] for r in rows if r['date']<d}
+                        outcomes={(r['date'],r['sku_code']):r for r in rows if r['date']<d}
+                        f=model.features(d,sku,history,weather(row),outcomes);f.update(outcome_features(d,sku,outcomes))
+                        if f['history_days']<35:raise ValueError('Thiếu lịch sử point-in-time cho holdout.')
+                        value=float(model.m2.predict(encode([f],model.manifest['COLS']),num_threads=2)[0])
+                    else:
+                        key=(d,sku)
+                        if key not in response_cache:response_cache[key]=model.promo(sku,weather(row))
+                        value=float(response_cache[key][row['slot'],LADDER.index(row['discount_pct'])])
+                    values.append(max(0,value))
+                pred[model.version]=values
+            actual=np.array([r['sold_qty'] if kind=='m2' else r['incremental_promo_qty'] for r in selected])
+            def metric(v):
+                err=np.array(v)-actual
+                return {'mae':float(np.abs(err).mean()),'wape_pct':float(np.abs(err).sum()/actual.sum()*100) if actual.sum() else None,'bias_pct':float(err.sum()/actual.sum()*100) if actual.sum() else None}
+            old,new=metric(pred[parent.version]),metric(pred[e.version])
+            passed=new['mae']<=old['mae']*1.1+.5
+            result={'id':uuid.uuid4().hex,'version':version,'parent':parent.version,'origin':origin,'kind':kind,'from':days[0],'through':days[-1],'rows':len(selected),'dataset_sha256':digest(selected),'candidate':new,'parent_metric':old,'passed':passed,'gate':'MAE ứng viên ≤ parent × 1.10 + 0.5; ngưỡng prototype, chưa phải SLA','actor':actor.get(),'created':datetime.now(timezone.utc).isoformat(),'protocol':'7 ngày mới, walk-forward một ngày; không fit/hiệu chỉnh trọng số, không tái dùng ngày đã đánh giá.'}
+            with self.store.connect() as db:
+                # Reserve new days atomically across server processes.
+                newest=[h for x in db.execute('SELECT report FROM model_holdouts') if (h:=json.loads(x['report'])).get('kind')==kind and h.get('origin')==origin]
+                if any(h['through']>=days[0] for h in newest):raise ValueError('Holdout đã được sử dụng; tải lại.')
+                db.execute('INSERT INTO model_holdouts VALUES (?,?,?)',(result['id'],version,json.dumps(result)))
+                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)',('MODEL_FRESH_HOLDOUT',json.dumps(result)))
+            return result
 
 
 def demo_data(kind, skus):

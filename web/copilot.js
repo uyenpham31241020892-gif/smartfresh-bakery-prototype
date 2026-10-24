@@ -45,7 +45,7 @@ function copilotBody(lines){
 }
 function copilotChatMessage(message){
   if(message.user)return '<div class="chat-message user-message">'+esc(message.text)+'</div>';
-  if(message.error)return '<div class="copilot-error">'+icon('info')+'<p>'+esc(message.text)+'</p></div>';
+  if(message.error)return '<div class="copilot-error">'+icon('info')+'<div><p>'+esc(message.text)+'</p><button type="button" class="small" data-retry-chat="1">Hỏi lại câu vừa rồi</button></div></div>';
   return copilotResponse(message.result||{answer:message.text},true);
 }
 function copilotPrompt(question){

@@ -13,3 +13,7 @@ data/source_archives/
 reference/drive_v9/models/
 .pytest_cache/
 .DS_Store
+
+.venv-v606/
+v606/local_config.json
+v606/*submission*.json

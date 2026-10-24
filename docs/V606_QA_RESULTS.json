@@ -1,0 +1,104 @@
+{
+  "release_id": "0de234c0343036878fd77b37927dd8062dc4992dfb1f0dd7704e23074ad0f5f5",
+  "created": "2026-10-23T17:37:40.859468+00:00",
+  "passed": 84,
+  "failed": 0,
+  "pytest_exit_code": 0,
+  "runner": "unittest direct scripts; V606 scoped validation, not entire V9 suite",
+  "e2e": {
+    "passed": true
+  },
+  "checks": [
+    {
+      "command": "tests/test_costs.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_empty_preparation_cost_is_genuinely_zero (__main__.Costs.test_empty_preparation_cost_is_genuinely_zero) ... ok\ntest_unit_rounding_to_vnd_is_half_up (__main__.Costs.test_unit_rounding_to_vnd_is_half_up) ... ok\ntest_unsold_stock_is_included_once_and_discounts_do_not_reduce_cost (__main__.Costs.test_unsold_stock_is_included_once_and_discounts_do_not_reduce_cost) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_business_reports.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_exact_day_week_month_and_percent (__main__.Reports.test_exact_day_week_month_and_percent) ... ok\ntest_gaps_are_unknown_not_zero_and_running_day_has_no_percent (__main__.Reports.test_gaps_are_unknown_not_zero_and_running_day_has_no_percent) ... ok\ntest_history_not_limited_to_session_menu_30_entries (__main__.Reports.test_history_not_limited_to_session_menu_30_entries) ... ok\ntest_invalid_latest_day_excluded_and_no_fallback_to_old_rerun (__main__.Reports.test_invalid_latest_day_excluded_and_no_fallback_to_old_rerun) ... ok\ntest_report_does_not_mutate_sales_or_feature_inputs (__main__.Reports.test_report_does_not_mutate_sales_or_feature_inputs) ... ok\ntest_reruns_not_summed_selected_session_is_respected_and_scopes_isolated (__main__.Reports.test_reruns_not_summed_selected_session_is_respected_and_scopes_isolated) ... ok\ntest_same_weights_and_market_keep_history_across_policy_change (__main__.Reports.test_same_weights_and_market_keep_history_across_policy_change) ... ok\ntest_zero_baseline_and_negative_contribution (__main__.Reports.test_zero_baseline_and_negative_contribution) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.368s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_business_insights.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_ai_cannot_write_its_own_numeric_facts_or_unverified_causal_claim (__main__.Insights.test_ai_cannot_write_its_own_numeric_facts_or_unverified_causal_claim) ... ok\ntest_ai_must_read_report_tool_and_receives_only_observed_context (__main__.Insights.test_ai_must_read_report_tool_and_receives_only_observed_context) ... ok\ntest_no_sale_is_unknown_average_price_not_zero (__main__.Insights.test_no_sale_is_unknown_average_price_not_zero) ... ok\ntest_price_volume_bridge_is_exact_identity (__main__.Insights.test_price_volume_bridge_is_exact_identity) ... ok\ntest_sku_scoped_ai_does_not_read_other_product_totals_or_hidden_demand (__main__.Insights.test_sku_scoped_ai_does_not_read_other_product_totals_or_hidden_demand) ... ok\ntest_weighted_prices_discounts_and_cost_include_unsold_once (__main__.Insights.test_weighted_prices_discounts_and_cost_include_unsold_once) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.104s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_price_benefit.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_break_even_uses_sunk_preparation_cost_and_holds_without_evidence (__main__.Benefit.test_break_even_uses_sunk_preparation_cost_and_holds_without_evidence) ... ok\ntest_existing_approved_price_is_not_raised (__main__.Benefit.test_existing_approved_price_is_not_raised) ... ok\ntest_pending_old_discount_is_superseded_without_changing_receipts_or_inventory (__main__.Benefit.test_pending_old_discount_is_superseded_without_changing_receipts_or_inventory) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.735s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_trained_clearance.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_actual_trained_quote_requires_approval_and_changes_only_future_receipts (__main__.Clearance.test_actual_trained_quote_requires_approval_and_changes_only_future_receipts) ... ok\ntest_assumed_benefit_cannot_unlock_live_or_old_market_or_unscored_override (__main__.Clearance.test_assumed_benefit_cannot_unlock_live_or_old_market_or_unscored_override) ... ok\ntest_not_early_not_forced_and_service_can_hold (__main__.Clearance.test_not_early_not_forced_and_service_can_hold) ... ok\ntest_old_stream_and_active_day_survive_new_simulator (__main__.Clearance.test_old_stream_and_active_day_survive_new_simulator) ... ok\ntest_tiers_depend_on_inventory_and_late_clearance_does_not_need_fake_profit (__main__.Clearance.test_tiers_depend_on_inventory_and_late_clearance_does_not_need_fake_profit) ... ok\ntest_training_and_hashes_are_bound_and_forecast_beats_pace_on_validation (__main__.Clearance.test_training_and_hashes_are_bound_and_forecast_beats_pace_on_validation) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.994s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_late_first_explanations.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_budget_counts_past_concessions_and_does_not_compound_or_force_deep_cut (__main__.LateFirst.test_budget_counts_past_concessions_and_does_not_compound_or_force_deep_cut) ... ok\ntest_closed_parent_history_is_available_inside_the_tick_transaction (__main__.LateFirst.test_closed_parent_history_is_available_inside_the_tick_transaction) ... ok\ntest_history_changes_projections_and_future_baseline_is_not_reported (__main__.LateFirst.test_history_changes_projections_and_future_baseline_is_not_reported) ... ok\ntest_no_routine_early_cuts_but_exception_can_offer_small_cut (__main__.LateFirst.test_no_routine_early_cuts_but_exception_can_offer_small_cut) ... ok\ntest_server_prefetch_produces_immutable_explanation_before_model_or_approval (__main__.LateFirst.test_server_prefetch_produces_immutable_explanation_before_model_or_approval) ... ok\ntest_upgrade_cancels_unapplied_old_quote_without_changing_receipts_or_market (__main__.LateFirst.test_upgrade_cancels_unapplied_old_quote_without_changing_receipts_or_market) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 1.599s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_adaptive_planning.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "4-day development preparation: [1008, 1032, 1064, 1020]\ntest_busy_local_history_normalizes_once_seed_stays_unchanged (__main__.Planning.test_busy_local_history_normalizes_once_seed_stays_unchanged) ... ok\ntest_censored_sales_are_lower_bounds_and_capacity_can_fail (__main__.Planning.test_censored_sales_are_lower_bounds_and_capacity_can_fail) ... ok\ntest_four_day_loop_updates_features_preparation_and_2130_measurements (__main__.Planning.test_four_day_loop_updates_features_preparation_and_2130_measurements) ... ok\ntest_future_rejected_and_hidden_values_do_not_affect_plan (__main__.Planning.test_future_rejected_and_hidden_values_do_not_affect_plan) ... ok\ntest_legacy_plan_and_market_are_preserved (__main__.Planning.test_legacy_plan_and_market_are_preserved) ... ok\ntest_observed_sales_and_model_change_supply_without_clip (__main__.Planning.test_observed_sales_and_model_change_supply_without_clip) ... ok\ntest_ood_is_a_real_observed_fallback_not_just_a_label (__main__.Planning.test_ood_is_a_real_observed_fallback_not_just_a_label) ... ok\ntest_training_review_retains_original_when_challenger_undershoots (__main__.Planning.test_training_review_retains_original_when_challenger_undershoots) ... ok\ntest_weather_only_exact_previous_date_and_missing_not_zero (__main__.Planning.test_weather_only_exact_previous_date_and_missing_not_zero) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 3.868s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_contextual_pricing.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_1930_can_mark_down_even_when_logged_classifier_holds (__main__.Pricing.test_1930_can_mark_down_even_when_logged_classifier_holds) ... ok\ntest_before_1930_cannot_mark_down (__main__.Pricing.test_before_1930_cannot_mark_down) ... ok\ntest_customer_stream_changes_by_day_and_stays_reproducible (__main__.Pricing.test_customer_stream_changes_by_day_and_stays_reproducible) ... ok\ntest_fast_selling_and_stock_for_2130_keep_price (__main__.Pricing.test_fast_selling_and_stock_for_2130_keep_price) ... ok\ntest_frozen_models_used_and_v4_remains_pinned_to_old_price_rule (__main__.Pricing.test_frozen_models_used_and_v4_remains_pinned_to_old_price_rule) ... ok\ntest_invalid_prediction_rejected (__main__.Pricing.test_invalid_prediction_rejected) ... ok\ntest_known_reference_cash_floor_and_unknown_sku_can_participate (__main__.Pricing.test_known_reference_cash_floor_and_unknown_sku_can_participate) ... ok\ntest_no_price_increase_or_repeated_discount_compounding (__main__.Pricing.test_no_price_increase_or_repeated_discount_compounding) ... ok\ntest_same_clock_different_stock_and_pace_give_different_actions (__main__.Pricing.test_same_clock_different_stock_and_pace_give_different_actions) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.340s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_v606_adapter.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_future_or_other_sku_history_rejected (__main__.AdapterSafety.test_future_or_other_sku_history_rejected) ... ok\ntest_hidden_and_label_columns_never_enter_X (__main__.AdapterSafety.test_hidden_and_label_columns_never_enter_X) ... ok\ntest_m1_hold_and_never_raise_existing_price (__main__.AdapterSafety.test_m1_hold_and_never_raise_existing_price) ... ok\ntest_ood_uses_declared_fallback (__main__.AdapterSafety.test_ood_uses_declared_fallback) ... ok\ntest_real_frozen_model_inference_and_capacity (__main__.AdapterSafety.test_real_frozen_model_inference_and_capacity) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.343s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_v606_prototype.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_model_workflow_and_background_sales (__main__.Prototype.test_model_workflow_and_background_sales) ... ok\ntest_same_stream_comparison_and_no_future_history (__main__.Prototype.test_same_stream_comparison_and_no_future_history) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 1.195s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_v606_service.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_clock_emits_incremental_transactions (__main__.Service.test_clock_emits_incremental_transactions) ... ok\ntest_copilot_reads_real_sales_and_model_but_not_hidden_lost_demand (__main__.Service.test_copilot_reads_real_sales_and_model_but_not_hidden_lost_demand) ... ok\ntest_stock_remaining_at_2130_and_reconciled_for_multiple_seeds (__main__.Service.test_stock_remaining_at_2130_and_reconciled_for_multiple_seeds) ... ok\ntest_supply_policy_never_reads_seeded_future (__main__.Service.test_supply_policy_never_reads_seeded_future) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 2.711s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_v606_decisions.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_cost_assumed_and_reduced_stock_on_same_customer_stream (__main__.Decisions.test_cost_assumed_and_reduced_stock_on_same_customer_stream) ... ok\ntest_hold_logs_without_stopping_or_approving (__main__.Decisions.test_hold_logs_without_stopping_or_approving) ... ok\ntest_only_changed_sku_requires_approval_and_price_does_not_apply_early (__main__.Decisions.test_only_changed_sku_requires_approval_and_price_does_not_apply_early) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.859s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_explanations.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_single_job_immutable_snapshot_and_evidence (__main__.ExplanationTests.test_single_job_immutable_snapshot_and_evidence) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n"
+    },
+    {
+      "command": "tests/test_v606_browser.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_live_sku_sales_refresh_and_pending_readiness (__main__.Browser.test_live_sku_sales_refresh_and_pending_readiness) ... D:\\ai project\\smartfresh-bakery-prototype\\.tools\\python312\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\nok\n\n----------------------------------------------------------------------\nRan 1 test in 11.754s\n\nOK\n"
+    },
+    {
+      "command": "v606/03_TEST_POS_RUNTIME/code/test_pos.py",
+      "exit_code": 0,
+      "passed": true,
+      "output": "test_17_token_isolation_and_2000_POS (__main__.HTTPGate.test_17_token_isolation_and_2000_POS) ... ok\ntest_01_all_money_whole1000_and_bound (__main__.Mechanics.test_01_all_money_whole1000_and_bound) ... ok\ntest_02_pending_does_not_change_price (__main__.Mechanics.test_02_pending_does_not_change_price) ... ok\ntest_03_2000_approval_updates_display_and_future_receipts (__main__.Mechanics.test_03_2000_approval_updates_display_and_future_receipts) ... ok\ntest_04_rejection_keeps_price (__main__.Mechanics.test_04_rejection_keeps_price) ... ok\ntest_05_scheduled_price_no_early_activation (__main__.Mechanics.test_05_scheduled_price_no_early_activation) ... ok\ntest_06_stale_approval_rejected (__main__.Mechanics.test_06_stale_approval_rejected) ... ok\ntest_07_baseline_fast_seller_keeps_zero (__main__.Mechanics.test_07_baseline_fast_seller_keeps_zero) ... ok\ntest_08_sold_out_no_sticker (__main__.Mechanics.test_08_sold_out_no_sticker) ... ok\ntest_09_actual_floor_and_monotonic_cash (__main__.Mechanics.test_09_actual_floor_and_monotonic_cash) ... ok\ntest_10_closed_loop_own_branch_history (__main__.Mechanics.test_10_closed_loop_own_branch_history) ... ok\ntest_11_inventory_and_revenue (__main__.Mechanics.test_11_inventory_and_revenue) ... ok\ntest_12_frozen_requires_M2 (__main__.Mechanics.test_12_frozen_requires_M2) ... ok\ntest_13_no_hidden_or_future_context (__main__.Mechanics.test_13_no_hidden_or_future_context) ... ok\ntest_14_quantity_capacity_and_leadtime (__main__.Mechanics.test_14_quantity_capacity_and_leadtime) ... ok\ntest_15_other_branch_price_unchanged (__main__.Mechanics.test_15_other_branch_price_unchanged) ... ok\ntest_16_own_last30_60 (__main__.Mechanics.test_16_own_last30_60) ... ok\ntest_18_ready_batch_visible_before_pricing (__main__.Mechanics.test_18_ready_batch_visible_before_pricing) ... ok\n\n----------------------------------------------------------------------\nRan 18 tests in 0.796s\n\nOK\n"
+    }
+  ],
+  "scope": "MODEL_FEATURE_GUARDS_WORKFLOW_LIVE_UI_SERVICE2130_PUBLIC_ONLY"
+}

@@ -1,6 +1,7 @@
 """Native Gemini/Ollama transports; domain tools remain read-only in Assistant."""
 import json
 import uuid
+import time
 import httpx
 
 
@@ -68,7 +69,7 @@ def list_gemini_models(owner):
             'note': 'Google chấp nhận key để liệt kê model. Chưa xác minh quota gọi, function calling hoặc phí model.'}
 
 
-def request(owner, payload):
+def request(owner, payload,timeout_override=None):
     gemini = owner.provider == 'Gemini'
     if gemini and not owner.key:
         raise ValueError('Chưa có Gemini API key. Tạo key trong Google AI Studio và nhập ở Cài đặt AI.')
@@ -119,25 +120,43 @@ def request(owner, payload):
         url = 'http://127.0.0.1:11434/api/chat'
         body = {'model': owner.model, 'stream': False, 'think': False,
                 'messages': [{'role': 'system', 'content': payload.get('instructions', '')}] + messages,
-                'options': {'temperature': 0.1, 'num_ctx': 8192, 'num_predict': 2400}}
+                'options': {'temperature': 0.1, 'num_ctx': 16384 if any(f['name']=='get_business_report' for f in functions) or payload.get('text',{}).get('format',{}).get('name') in ('report_insights','proposal_insights') else 8192, 'num_predict': payload.get('max_output_tokens',2400)}}
         if functions:
             body['tools'] = [{'type': 'function', 'function': f} for f in functions]
         if schema:
             body['format'] = schema
         headers = {}
-    try:
-        with httpx.Client(timeout=180, trust_env=gemini) as client:
-            response = client.post(url, headers=headers, json=body)
-    except httpx.RequestError:
-        raise ValueError('Không kết nối được ' + owner.provider + ('. Chạy Ollama và tải model trước khi kết nối.' if not gemini else '. Kiểm tra mạng rồi thử lại.')) from None
+    # Gemini 502/503/504 are temporary service failures. Domain tools are read-only;
+    # retrying this transport cannot repeat a managerial approval or mutation.
+    # Do not retry quota (429), permission (403), malformed requests (400), or Ollama.
+    response = None
+    attempts = 2 if gemini else 1
+    for attempt in range(attempts):
+        try:
+            with httpx.Client(timeout=timeout_override or (90 if gemini else 180), trust_env=gemini) as client:
+                response = client.post(url, headers=headers, json=body)
+        except (httpx.TimeoutException, httpx.ConnectError) as exc:
+            if gemini and attempt + 1 < attempts:
+                time.sleep(1.5)
+                continue
+            owner.last_error = {'code': 'NETWORK_TIMEOUT' if isinstance(exc, httpx.TimeoutException) else 'NETWORK_ERROR',
+                                'message': 'Gemini phản hồi quá chậm hoặc mất kết nối. Hãy đợi một chút rồi thử lại.'} if gemini else None
+            raise ValueError(owner.last_error['message'] if gemini else 'Không kết nối được Ollama. Kiểm tra tiến trình Ollama và tài nguyên máy.') from None
+        except httpx.RequestError:
+            raise ValueError('Không kết nối được ' + owner.provider + '. Kiểm tra mạng hoặc dịch vụ rồi thử lại.') from None
+        if gemini and response.status_code in (502, 503, 504) and attempt + 1 < attempts:
+            # Short bounded backoff, no retry storm.
+            time.sleep(1.5)
+            continue
+        break
     if response.status_code >= 400:
         if gemini:
             owner.last_error = gemini_error(response)
+            if response.status_code in (502, 503, 504):
+                owner.last_error['message'] += ' Đã thử lại tự động một lần. Bạn có thể dùng M1/M2 trong lúc chờ dịch vụ.'
             raise ValueError(owner.last_error['message'])
-        hints = {429: 'Đã chạm quota/rate limit API; kiểm tra project Google AI Studio. Gói Gemini Pro không bảo đảm quota API.',
-                 400: 'Kiểm tra API key, tên model và tính năng model hỗ trợ.',
-                 403: 'API key/project chưa có quyền hoặc không hỗ trợ khu vực hiện tại.',
-                 404: 'Không tìm thấy model. Với Ollama, chạy ollama pull theo đúng tên model.'}
+        hints = {429: 'Đã chạm quota/rate limit.', 400: 'Kiểm tra model và tham số.',
+                 403: 'Không có quyền gọi API.', 404: 'Không tìm thấy model.'}
         message = f'{owner.provider} HTTP {response.status_code}: ' + hints.get(response.status_code, 'Dịch vụ chưa xử lý được yêu cầu.')
         owner.last_error = {'status': response.status_code, 'message': message}
         raise ValueError(message)

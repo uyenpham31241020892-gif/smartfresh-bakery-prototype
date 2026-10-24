@@ -1,0 +1,1 @@
+Build scripts resolve workspace root from work/v607. Requires immutable deliverable/SmartFresh_V606 plus work/v607/donor_train.csv. Run build.py then finish.py then qa.py. No model training or official test evaluation. SHA256SUMS authenticates packaged files; earlier release must be retained. The source table and build script expose all scenario assumptions.

@@ -1,0 +1,329 @@
+{
+  "source": "Open-Meteo historical reanalysis best_match",
+  "url": "https://archive-api.open-meteo.com/v1/archive?latitude=10.8016&longitude=106.6174&start_date=2022-06-30&end_date=2022-08-30&daily=temperature_2m_mean,rain_sum&timezone=Asia%2FHo_Chi_Minh",
+  "documentation": "https://open-meteo.com/en/docs/historical-weather-api",
+  "retrieved_at": "2026-10-23T12:42:35.483307+00:00",
+  "qualification": "RETROSPECTIVE_DEVELOPMENT_SIMULATION_ONLY; not an issued forecast; vintage and availability at 06:00 not verified.",
+  "coordinates": {
+    "latitude": 10.8016,
+    "longitude": 106.6174,
+    "source": "V606_GUIDE_BUILD_METHOD"
+  },
+  "returned_grid": {
+    "latitude": 10.790861,
+    "longitude": 106.6313
+  },
+  "timezone": "Asia/Ho_Chi_Minh",
+  "rows": [
+    {
+      "date": "2022-06-30",
+      "rain_mm": 17.8,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-07-01",
+      "rain_mm": 5.8,
+      "temp_c": 26.7
+    },
+    {
+      "date": "2022-07-02",
+      "rain_mm": 10.7,
+      "temp_c": 26.9
+    },
+    {
+      "date": "2022-07-03",
+      "rain_mm": 4.6,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-07-04",
+      "rain_mm": 6.7,
+      "temp_c": 27.4
+    },
+    {
+      "date": "2022-07-05",
+      "rain_mm": 9.8,
+      "temp_c": 27.2
+    },
+    {
+      "date": "2022-07-06",
+      "rain_mm": 15.2,
+      "temp_c": 27.2
+    },
+    {
+      "date": "2022-07-07",
+      "rain_mm": 3.0,
+      "temp_c": 27.3
+    },
+    {
+      "date": "2022-07-08",
+      "rain_mm": 16.7,
+      "temp_c": 26.5
+    },
+    {
+      "date": "2022-07-09",
+      "rain_mm": 13.9,
+      "temp_c": 26.4
+    },
+    {
+      "date": "2022-07-10",
+      "rain_mm": 27.0,
+      "temp_c": 26.2
+    },
+    {
+      "date": "2022-07-11",
+      "rain_mm": 34.9,
+      "temp_c": 26.3
+    },
+    {
+      "date": "2022-07-12",
+      "rain_mm": 21.2,
+      "temp_c": 25.8
+    },
+    {
+      "date": "2022-07-13",
+      "rain_mm": 4.4,
+      "temp_c": 26.1
+    },
+    {
+      "date": "2022-07-14",
+      "rain_mm": 9.3,
+      "temp_c": 26.8
+    },
+    {
+      "date": "2022-07-15",
+      "rain_mm": 13.2,
+      "temp_c": 26.4
+    },
+    {
+      "date": "2022-07-16",
+      "rain_mm": 8.8,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-07-17",
+      "rain_mm": 10.4,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-07-18",
+      "rain_mm": 6.8,
+      "temp_c": 27.2
+    },
+    {
+      "date": "2022-07-19",
+      "rain_mm": 3.9,
+      "temp_c": 27.0
+    },
+    {
+      "date": "2022-07-20",
+      "rain_mm": 14.4,
+      "temp_c": 26.2
+    },
+    {
+      "date": "2022-07-21",
+      "rain_mm": 8.6,
+      "temp_c": 25.9
+    },
+    {
+      "date": "2022-07-22",
+      "rain_mm": 0.0,
+      "temp_c": 27.7
+    },
+    {
+      "date": "2022-07-23",
+      "rain_mm": 7.9,
+      "temp_c": 27.3
+    },
+    {
+      "date": "2022-07-24",
+      "rain_mm": 0.4,
+      "temp_c": 28.0
+    },
+    {
+      "date": "2022-07-25",
+      "rain_mm": 14.5,
+      "temp_c": 27.0
+    },
+    {
+      "date": "2022-07-26",
+      "rain_mm": 9.4,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-07-27",
+      "rain_mm": 7.0,
+      "temp_c": 26.9
+    },
+    {
+      "date": "2022-07-28",
+      "rain_mm": 2.6,
+      "temp_c": 27.3
+    },
+    {
+      "date": "2022-07-29",
+      "rain_mm": 1.3,
+      "temp_c": 28.0
+    },
+    {
+      "date": "2022-07-30",
+      "rain_mm": 3.8,
+      "temp_c": 27.7
+    },
+    {
+      "date": "2022-07-31",
+      "rain_mm": 15.7,
+      "temp_c": 27.4
+    },
+    {
+      "date": "2022-08-01",
+      "rain_mm": 22.1,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-08-02",
+      "rain_mm": 9.7,
+      "temp_c": 27.2
+    },
+    {
+      "date": "2022-08-03",
+      "rain_mm": 8.1,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-08-04",
+      "rain_mm": 11.1,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-08-05",
+      "rain_mm": 13.2,
+      "temp_c": 26.8
+    },
+    {
+      "date": "2022-08-06",
+      "rain_mm": 14.9,
+      "temp_c": 25.6
+    },
+    {
+      "date": "2022-08-07",
+      "rain_mm": 12.9,
+      "temp_c": 26.1
+    },
+    {
+      "date": "2022-08-08",
+      "rain_mm": 18.1,
+      "temp_c": 25.5
+    },
+    {
+      "date": "2022-08-09",
+      "rain_mm": 11.9,
+      "temp_c": 25.9
+    },
+    {
+      "date": "2022-08-10",
+      "rain_mm": 9.1,
+      "temp_c": 26.3
+    },
+    {
+      "date": "2022-08-11",
+      "rain_mm": 12.2,
+      "temp_c": 26.1
+    },
+    {
+      "date": "2022-08-12",
+      "rain_mm": 8.5,
+      "temp_c": 26.8
+    },
+    {
+      "date": "2022-08-13",
+      "rain_mm": 0.1,
+      "temp_c": 28.1
+    },
+    {
+      "date": "2022-08-14",
+      "rain_mm": 9.4,
+      "temp_c": 27.4
+    },
+    {
+      "date": "2022-08-15",
+      "rain_mm": 4.6,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-08-16",
+      "rain_mm": 7.9,
+      "temp_c": 26.3
+    },
+    {
+      "date": "2022-08-17",
+      "rain_mm": 2.7,
+      "temp_c": 27.0
+    },
+    {
+      "date": "2022-08-18",
+      "rain_mm": 13.0,
+      "temp_c": 27.3
+    },
+    {
+      "date": "2022-08-19",
+      "rain_mm": 2.4,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-08-20",
+      "rain_mm": 12.5,
+      "temp_c": 26.9
+    },
+    {
+      "date": "2022-08-21",
+      "rain_mm": 8.0,
+      "temp_c": 26.9
+    },
+    {
+      "date": "2022-08-22",
+      "rain_mm": 4.0,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-08-23",
+      "rain_mm": 15.5,
+      "temp_c": 26.7
+    },
+    {
+      "date": "2022-08-24",
+      "rain_mm": 5.9,
+      "temp_c": 27.3
+    },
+    {
+      "date": "2022-08-25",
+      "rain_mm": 13.1,
+      "temp_c": 26.5
+    },
+    {
+      "date": "2022-08-26",
+      "rain_mm": 15.0,
+      "temp_c": 26.0
+    },
+    {
+      "date": "2022-08-27",
+      "rain_mm": 18.5,
+      "temp_c": 26.8
+    },
+    {
+      "date": "2022-08-28",
+      "rain_mm": 6.4,
+      "temp_c": 26.6
+    },
+    {
+      "date": "2022-08-29",
+      "rain_mm": 8.8,
+      "temp_c": 27.1
+    },
+    {
+      "date": "2022-08-30",
+      "rain_mm": 14.3,
+      "temp_c": 27.3
+    }
+  ]
+}

@@ -32,7 +32,7 @@ function icons(root=document){root.querySelectorAll('[data-icon]').forEach(el=>{
 const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n ?? 0);
 const units = n => new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0}).format(Math.round(n??0));
-const money = n => new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0}).format(n ?? 0)+' ₫';
+const money = n => n===null||n===undefined||!Number.isFinite(Number(n))?'Ch\u01b0a c\u00f3 d\u1eef li\u1ec7u':new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0}).format(n)+' \u20ab';
 const hour = n => String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
 const dateVN = d => d.split('-').reverse().join('/');
 const phases = {plan_pending:'Chờ duyệt sản lượng',plan_approved:'Chờ xác nhận chuẩn bị',plan_rejected:'Kế hoạch đã từ chối',running:'Đang vận hành',price_pending:'Chờ duyệt giá',price_approved:'Chờ áp dụng giá',close_pending:'Chờ chốt ngày',closed:'Đã chốt ngày'};
@@ -43,15 +43,20 @@ const views = {
   ledger:['Giao dịch & theo dõi','Theo dõi tồn kho và doanh thu theo giá có hiệu lực tại từng giao dịch.'],
   reports:['Báo cáo hiệu quả','Đọc đồng thời doanh thu, hàng dư và nguy cơ thiếu hàng.'],
   data:['Dữ liệu đầu vào','Tải tệp, kiểm tra và xác nhận. AI tự tạo kế hoạch từ dữ liệu hợp lệ.'],
+  readiness:['GO / NO-GO','Bằng chứng nghiệm thu demo local, sức khỏe và truy vết API.'],
+  registry:['Model Registry','Phiên bản, holdout, phê duyệt và rollback có bằng chứng.'],
   learning:['Học từ dữ liệu','Kết quả thực tế → huấn luyện → đánh giá → xác nhận phiên bản mới.'],
   audit:['Nhật ký quyết định','Mỗi đề xuất, xác nhận và lần áp dụng đều có dấu vết.'],
+  monitoring:['Giám sát hệ thống','Dữ liệu, sai số, drift, vận hành và cảnh báo có bằng chứng.'],
+  safety:['An toàn & sự cố','Kiểm soát quyền duyệt, phương án thủ công và quy trình phục hồi.'],
   settings:['Cài đặt AI','Quản lý Ollama, Gemini, OpenAI và nguồn dữ liệu.']
 };
-let state=null, meta=null, history=[], currentView='overview', working=false, fetchCount=0, timer=null, preview=null, uploadDay='', reportTab='current', reference=null, auditRows=[], query='', chatMessages=[], chatSession=null;
-const ladder=[0,20,25,30,35,40,45,50];
+let state=null, meta=null, history=[], currentView='overview', working=false, fetchCount=0, timer=null, preview=null, uploadDay='', auditRows=[], query='', chatMessages=[], chatSession=null;
+const ladder=[0,5,10,15,20,25,30,35,40,45,50];
 let toastTimer;
 let quantityDraft={}, discountDraft={};
 let connectionResult=null;
+let lastChatQuestion='';
 let learningState=null;
 let geminiModels=[];
 function toast(message,error=false){$('toast').textContent=message;$('toast').classList.toggle('error',error);$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,error?10000:4500)}
@@ -68,7 +73,7 @@ async function api(path,body,method){
   }finally{fetchCount--;if(!fetchCount)$('loading').hidden=true}
 }
 function stop(){clearInterval(timer);timer=null;}
-function storeState(value){state=value;quantityDraft={};discountDraft={};localStorage.setItem('smartfresh-session',state.id);if(state.phase!=='running')stop();render();refreshDayHistory();}
+function storeState(value){if(state&&(state.id!==value.id||state.revision!==value.revision)){evaluationState=null;}if(state&&state.id!==value.id){safetyData=null;monitoringState=null;monitoringSequence++;}state=value;quantityDraft={};discountDraft={};localStorage.setItem('smartfresh-session',state.id);if(state.phase!=='running')stop();render();refreshDayHistory();}
 async function act(name,payload={}){
   if(working)return;working=true;
   document.querySelectorAll('[data-act],[data-approve],[data-advance]').forEach(b=>b.disabled=true);
@@ -82,14 +87,20 @@ async function act(name,payload={}){
   finally{working=false;render()}
 }
 function badge(text,color=''){return '<span class="badge '+color+'">'+esc(text)+'</span>'}
-function kpi(label,value,unit,detail,ic){return '<article class="card kpi"><div class="kpi-top">'+label+'<span class="kpi-icon">'+icon(ic)+'</span></div><div class="value">'+value+(unit?'<small>'+unit+'</small>':'')+'</div><div class="kpi-foot">'+detail+'</div></article>'}
+// GĐ2: Giải thích theo nhu cầu (hover, keyboard focus, tap); không thêm chú giải dài dưới KPI.
+function helpTip(text){return '<span class="metric-tip" tabindex="0" role="note" aria-label="'+esc(text)+'" data-tip="'+esc(text)+'">'+icon('info')+'</span>'}
+function kpi(label,value,unit,detail,ic,help=''){return '<article class="card kpi"><div class="kpi-top"><span>'+label+(help?' '+helpTip(help):'')+'</span><span class="kpi-icon">'+icon(ic)+'</span></div><div class="value">'+value+(unit?'<small>'+unit+'</small>':'')+'</div><div class="kpi-foot">'+detail+'</div></article>'}
+function kpiStamp(){return 'Ca '+dateVN(state.day)+' · thời điểm '+hour(state.minute)+'. '}
+
 function kpis(){
-  const t=state.totals, started=Object.keys(state.products).length>0;
+  if(state.reconciliation?.errors?.length)return '<div class="notice">Đối soát lỗi — KPI bị chặn. Mở Kết quả để xem chi tiết sai lệch.</div>';
+  const t=state.totals, started=Object.keys(state.products).length>0, stamp=kpiStamp();
+  const saleSource=state.mode==='simulation'?'các lượt bán do bộ mô phỏng tạo':'giao dịch đã nhập/xác nhận';
   return '<section class="kpis" aria-label="Chỉ số ca vận hành">'+
-    kpi(started?'Đã chuẩn bị':'Sản lượng đề xuất',fmt(started?t.prepared:t.proposed_prepared),'bánh',started?'Đã xác nhận chuẩn bị':'Dự kiến · Chờ xác nhận', 'bread')+
-    kpi('Bán đã ghi nhận',started&&!state.sales_feed?.missing?fmt(t.sold):'—','bánh',state.sales_feed?.missing?'Chưa có nguồn giao dịch':started?'<em>'+fmt(t.sell_through_pct)+'%</em> sản lượng đã bán':'Chưa bắt đầu ca bán','box')+
-    kpi(state.phase==='closed'?'Hàng dư cuối ngày':'Tồn hiện tại',started?fmt(t.stock):'—','bánh',state.phase==='closed'?'Đã chốt · Cần xử lý hàng dư':started?'Đối soát từ sổ giao dịch':'Ghi nhận sau khi chuẩn bị','database')+
-    kpi('Doanh thu đã ghi nhận',started?money(t.revenue):'—','',started?fmt(state.ledger.length)+' dòng giao dịch':'Chưa phát sinh giao dịch','coin')+'</section>';
+    kpi(started?'Đã chuẩn bị':'Sản lượng đề xuất',fmt(started?t.prepared:t.proposed_prepared),'bánh',started?'Đã xác nhận chuẩn bị':'Dự kiến · Chờ xác nhận','bread',stamp+(started?'Tổng số lượng đã xác nhận chuẩn bị của từng SKU.':'Tổng sản lượng M2 đề xuất sau khi áp dụng chính sách buffer, mẻ 4 và sàn. Chưa phải hàng đã chuẩn bị.'))+
+    kpi('Bán đã ghi nhận',started&&!state.sales_feed?.missing?fmt(t.sold):'—','bánh',state.sales_feed?.missing?'Chưa có nguồn giao dịch':started?'<em>'+fmt(t.sell_through_pct)+'%</em> sản lượng đã bán':'Chưa bắt đầu ca bán','box',stamp+'Tổng số lượng bán từ '+saleSource+'. Tỷ lệ bán = đã bán / đã chuẩn bị × 100%.')+
+    kpi(state.phase==='closed'?'Hàng dư cuối ngày':'Tồn hiện tại',started?fmt(t.stock):'—','bánh',state.phase==='closed'?'Đã chốt · Cần xử lý hàng dư':started?'Đối soát từ sổ giao dịch':'Ghi nhận sau khi chuẩn bị','database',stamp+'Tồn = số bánh đã chuẩn bị − số bánh đã bán. Chỉ gọi là hàng dư cuối ngày sau khi chốt ca.')+
+    kpi('Doanh thu đã ghi nhận',started?money(t.revenue):'—','',started?fmt(state.ledger.length)+' dòng giao dịch':'Chưa phát sinh giao dịch','coin',stamp+'Tổng thành tiền (paid) trong sổ giao dịch của ca, theo đơn giá và mức giảm thực sự có hiệu lực lúc bán. Không phải doanh thu dự kiến từ optimizer M1.')+'</section>';
 }
 function clockbar(){
   const active=state.phase==='running';
@@ -123,6 +134,28 @@ function pendingContent(){
   const action=['prepared','price_apply','close'].includes(text[3])?'data-act="'+text[3]+'"':text[3]==='new'?'data-new':'data-go="'+text[3]+'"';
   return '<h4>'+text[0]+'</h4><p>'+text[1]+'</p><div class="status-line">'+(p.includes('pending')?'● Cần xác nhận của quản lý':p==='running'?'● Đang vận hành':'● Đã ghi nhận')+'</div><button '+action+' class="'+(p.includes('pending')?'primary':'')+'">'+text[2]+icon('arrow')+'</button>';
 }
+// Phase 1 UX: hướng dẫn demo dựa trên trạng thái hiện có; không tự thay đổi workflow.
+function demoJourney(){
+  const phase=state.phase;
+  const steps=[
+    ['Dữ liệu đầu vào','data'],['M2 đề xuất','m2'],['Duyệt sản lượng','m2'],
+    ['Xác nhận chuẩn bị','m2'],['Ghi nhận bán hàng','ledger'],
+    ['M1 đề xuất giá','m1'],['Duyệt & áp dụng giá','m1'],['Chốt ca & KPI','reports']
+  ];
+  const current={plan_pending:2,plan_approved:3,plan_rejected:2,running:4,
+    price_pending:6,price_approved:6,close_pending:7,closed:8}[phase] ?? 1;
+  return '<section class="demo-journey" aria-label="Hành trình demo SmartFresh">'+
+    '<div class="demo-journey-head"><div><span class="eyebrow">HƯỚNG DẪN DEMO V1</span><h2>8 bước từ dữ liệu đến quyết định</h2></div>'+badge(state.mode==='simulation'?'Dữ liệu mô phỏng':'Dữ liệu nhập',state.mode==='simulation'?'pink':'blue')+'</div>'+
+    '<div class="demo-journey-steps">'+steps.map((s,i)=>{
+      const done=i<current,active=i===current;
+      return '<button type="button" data-go="'+s[1]+'" class="journey-step '+(done?'done':active?'current':'upcoming')+'" aria-label="Bước '+(i+1)+': '+s[0]+'" title="Mở '+s[0]+'"><span class="journey-index">'+(done?'✓':i+1)+'</span><span>'+s[0]+'</span></button>';
+    }).join('')+'</div><p class="journey-hint">Các bước là đường dẫn xem thông tin. Duyệt, áp dụng và chốt ca vẫn cần xác nhận riêng của quản lý.</p></section>';
+}
+function overviewNextAction(){
+  return '<section class="overview-next panel" aria-label="Trạng thái và hành động tiếp theo">'+
+    '<div class="overview-next-status"><span class="eyebrow">TRẠNG THÁI CA · '+esc(dateVN(state.day))+'</span><h2>'+esc(phases[state.phase])+'</h2><p>'+esc(state.mode==='simulation'?'Đang xem kịch bản mô phỏng, không phải doanh số POS thực tế.':'Đang xem ca nhập dữ liệu.')+'</p></div>'+
+    '<div class="overview-next-action">'+pendingContent()+'</div></section>';
+}
 function product(p){
   return '<div class="product-cell"><span class="product-icon">'+icon('bread')+'</span><div><strong>'+esc(p.name)+'</strong><small>'+esc(p.sku)+'</small></div></div>';
 }
@@ -139,27 +172,37 @@ function historyChart(){
 }
 function overview(){
   const plan=stage()===0;
-  return '<section class="hero-grid"><article class="hero"><div class="eyebrow">SMARTFRESH AI · '+(plan?'KẾ HOẠCH SẴN SÀNG':'ĐỒNG HÀNH CÙNG CA LÀM')+'</div><h2>'+(plan?'Sẵn sàng cho một ngày<br>tươi mới, vừa đủ.':'Đúng lượng hàng.<br>Đúng thời điểm. Đúng giá.')+'</h2><p>'+(plan?'AI đã phân tích lịch sử và thời tiết để đề xuất sản lượng cho từng loại bánh.':'M1 và M2 kết nối kế hoạch sản lượng với diễn biến bán hàng trong ngày.')+'</p><div class="hero-bottom"><button data-go="'+(plan?'m2':'m1')+'">'+(plan?'Xem kế hoạch AI':'Xem đề xuất giá')+icon('arrow')+'</button><span class="hero-meta">'+state.plan.length+' SKU · '+fmt(state.totals.proposed_prepared)+' bánh đề xuất</span></div><span class="spark">✧</span></article>'+progress()+'</section>'+
-    kpis()+clockbar()+'<section class="cols"><div class="col-stack"><article class="panel"><div class="panel-head"><div><h2>Lịch sử bán gần đây</h2><p>7 ngày trước '+dateVN(state.day)+' · Lịch sử của ca đã chọn</p></div><span class="chart-legend"><i></i>Đã bán · bánh</span></div><div class="panel-body">'+historyChart()+'</div></article>'+
+  return overviewNextAction()+demoJourney()+kpis()+clockbar()+'<section class="hero-grid"><article class="hero"><div class="eyebrow">SMARTFRESH AI · '+(plan?'KẾ HOẠCH SẴN SÀNG':'ĐỒNG HÀNH CÙNG CA LÀM')+'</div><h2>'+(plan?'Sẵn sàng cho một ngày<br>tươi mới, vừa đủ.':'Đúng lượng hàng.<br>Đúng thời điểm. Đúng giá.')+'</h2><p>'+(plan?'AI đã phân tích lịch sử và thời tiết để đề xuất sản lượng cho từng loại bánh.':'M1 và M2 kết nối kế hoạch sản lượng với diễn biến bán hàng trong ngày.')+'</p><div class="hero-bottom"><button data-go="'+(plan?'m2':'m1')+'">'+(plan?'Xem kế hoạch AI':'Xem đề xuất giá')+icon('arrow')+'</button><span class="hero-meta">'+state.plan.length+' SKU · '+fmt(state.totals.proposed_prepared)+' bánh đề xuất</span></div><span class="spark">✧</span></article>'+progress()+'</section>'+
+    '<section class="cols"><div class="col-stack"><article class="panel"><div class="panel-head"><div><h2>Lịch sử bán gần đây</h2><p>7 ngày trước '+dateVN(state.day)+' · Lịch sử của ca đã chọn</p></div><span class="chart-legend"><i></i>Đã bán · bánh</span></div><div class="panel-body">'+historyChart()+'</div></article>'+
     '<article class="panel"><div class="panel-head"><div><h2>Kế hoạch theo sản phẩm</h2><p>Đầu ra suy luận mới từ mô hình M2 đã khóa</p></div><button class="ghost small" data-go="m2">Xem tất cả '+icon('arrow')+'</button></div><div class="table-scroll"><table><thead><tr><th>Sản phẩm</th><th>Dự báo</th><th>Đề xuất</th><th>Trạng thái</th><th></th></tr></thead><tbody>'+
     state.plan.map(p=>'<tr><td>'+product(p)+'</td><td>'+units(p.forecast)+'</td><td class="num-accent">'+p.prepared+' bánh</td><td>'+badge(p.approved?'Đã duyệt':state.phase==='plan_rejected'?'Từ chối':'Chờ duyệt',p.approved?'green':'amber')+'</td><td>'+explainButton(p.sku)+'</td></tr>').join('')+'</tbody></table></div><div class="table-foot"><span>'+state.plan.length+' sản phẩm · Mẻ 4 bánh</span><span>Tổng đề xuất <strong>'+fmt(state.totals.proposed_prepared)+' bánh</strong></span></div></article></div>'+
-    '<div class="col-stack right-column"><article class="panel attention"><h3>'+icon('check')+'Việc cần xác nhận</h3>'+pendingContent()+'</article><article class="copilot-card"><h3>'+icon('spark')+'SmartFresh Copilot</h3><p>Hiểu vì sao AI đề xuất, từ dữ liệu và kết quả mô hình của chính ca này.</p><button data-chat>Trao đổi với Copilot '+icon('arrow')+'</button></article><article class="card"><div class="eyebrow muted">CONTEXT NGÀY VẬN HÀNH</div><div class="setting-line"><span>Ngày mục tiêu</span><strong>'+dateVN(state.day)+'</strong></div><div class="setting-line"><span>Mưa dự báo</span><strong>'+fmt(state.weather.forecast_rain_mm_previous_day1)+' mm</strong></div><div class="setting-line"><span>Nhiệt độ dự báo</span><strong>'+fmt(state.weather.forecast_temperature_max_c_previous_day1)+'°C</strong></div><div class="setting-line"><span>Ngày lễ</span><strong>'+(state.weather.is_public_holiday?'Có':'Không')+'</strong></div><small class="muted" style="font-size:9px;line-height:1.7;display:block;margin-top:13px">Forecast V9 theo previous_day1; thời điểm phát hành từng giờ chưa được xác minh.</small></article></div></section>';
+    '<div class="col-stack right-column"><article class="copilot-card"><h3>'+icon('spark')+'SmartFresh Copilot</h3><p>Hiểu vì sao AI đề xuất, từ dữ liệu và kết quả mô hình của chính ca này.</p><button data-chat>Trao đổi với Copilot '+icon('arrow')+'</button></article><article class="card"><div class="eyebrow muted">CONTEXT NGÀY VẬN HÀNH</div><div class="setting-line"><span>Ngày mục tiêu</span><strong>'+dateVN(state.day)+'</strong></div><div class="setting-line"><span>Mưa dự báo</span><strong>'+fmt(state.weather.forecast_rain_mm_previous_day1)+' mm</strong></div><div class="setting-line"><span>Nhiệt độ dự báo</span><strong>'+fmt(state.weather.forecast_temperature_max_c_previous_day1)+'°C</strong></div><div class="setting-line"><span>Ngày lễ</span><strong>'+(state.weather.is_public_holiday?'Có':'Không')+'</strong></div><small class="muted" style="font-size:9px;line-height:1.7;display:block;margin-top:13px">Forecast V9 theo previous_day1; thời điểm phát hành từng giờ chưa được xác minh.</small></article></div></section>';
 }
+function m2Steps(p){
+  // Khớp services/engine.py: prepared=max(4, ceil((forecast+buffer)/4)*4, floor).
+  const predicted=Number(p.forecast), buffer=Number(p.buffer), rounded=4*Math.ceil((predicted+buffer)/4);
+  const final=Math.max(4,rounded,Number(p.floor));
+  return {predicted,buffer,rounded,final};
+}
+function m2Chain(p){const s=p.supply;return '<div class="notice"><b>Dự báo gốc M2: '+fmt(p.forecast)+' chiếc.</b><p>'+(s?'Lớp cung ứng kịch bản đông khách: ×4 theo giả định, '+fmt(s.scenario_forecast)+' chiếc; cộng buffer biến động và dự trữ '+s.service_reserve+' chiếc/SKU, làm tròn mẻ 4 → <b>'+p.prepared+' chiếc</b>. Công suất khai báo '+s.capacity+' chiếc/SKU/ngày cho kịch bản này, chưa phải công suất được khảo sát.':'Kế hoạch cũ chưa có lớp cung ứng theo kịch bản.')+'</p><p>Mục tiêu còn hàng đến 21:30; cần theo dõi tồn và tốc độ bán. Đây không phải bảo đảm phục vụ, không retrain model và chưa tính SHAP.</p></div>';}
+function m1Stage(status){return status==='applied'?'Đã áp dụng':status==='approved'?'Đã duyệt':status==='rejected'?'Đã từ chối':status==='expired'?'Hết hiệu lực':'Đề xuất · Chờ duyệt'}
+function m1Expected(r){const selected=(r.candidates||[]).find(c=>Number(c.discount)===Number(r.discount));return selected?money(selected.expected_revenue):'—'}
+function productionApprovalNotice(){const a=state.production_approval;if(!a)return '';return '<div class="notice"><b>Quyết định sản lượng của '+esc(a.actor.username)+'</b><p>'+esc(a.reason||'Giữ nguyên đề xuất')+'</p><p>'+a.rows.filter(r=>r.approved_quantity!==r.recommended_quantity||r.below_recommended_floor).map(r=>esc(r.sku)+': đề xuất '+r.recommended_quantity+' → duyệt '+r.approved_quantity+(r.below_recommended_floor?' (dưới khuyến nghị '+r.recommended_floor+')':'')).join(' · ')+'</p></div>';}
 function m2(){
   const editable=state.phase==='plan_pending';
-  return clockbar()+'<div class="notice pink">'+icon('spark')+' Nhu cầu dự báo và sản lượng chuẩn bị là hai giá trị khác nhau. M2 cộng đệm theo SKU, làm tròn mẻ 4 và bảo vệ sàn 90% baseline.</div><div class="toolbar"><div class="toolbar-left">'+badge('M2 · LightGBM','pink')+badge('Quantile 0,85')+'</div>'+searchBox()+'</div><article class="panel"><div class="panel-head"><div><h2>Kế hoạch cho '+dateVN(state.day)+'</h2><p>'+esc(state.source)+' · '+state.plan.length+' SKU</p></div>'+badge(phases[state.phase],editable?'amber':'green')+'</div><div class="table-scroll"><table><thead><tr><th>Sản phẩm</th><th>Baseline</th><th>Nhu cầu dự báo</th><th>Đệm &amp; quy đổi mẻ</th><th>Sàn</th><th>AI đề xuất</th><th>Số duyệt</th><th></th></tr></thead><tbody>'+
-    filtered().map(p=>'<tr><td>'+product(p)+'</td><td>'+p.baseline+'</td><td>'+units(p.forecast)+'</td><td>+'+units(Math.max(0,Math.ceil((p.forecast+p.buffer)/4)*4-Math.round(p.forecast)))+'</td><td>'+p.floor+'</td><td class="num-accent">'+p.prepared+'</td><td>'+(editable?'<input class="quantity" aria-label="Sản lượng duyệt '+p.sku+'" data-qty="'+p.sku+'" type="number" min="'+p.floor+'" step="4" max="100000" value="'+(quantityDraft[p.sku]??p.approved??p.prepared)+'">':p.approved??'—')+'</td><td>'+explainButton(p.sku)+'</td></tr>').join('')+'</tbody></table></div><div class="actionbar"><div class="summary"><strong>'+fmt(state.totals.proposed_prepared)+'</strong>bánh đề xuất · '+units(state.totals.forecast_units??state.totals.forecast)+' bánh nhu cầu dự báo</div>'+
-    (editable?'<button class="danger" data-reject="plan">Từ chối</button><button class="primary" data-approve="plan">'+icon('check')+'Duyệt kế hoạch</button>':state.phase==='plan_approved'?'<button class="primary" data-act="prepared">'+icon('check')+'Xác nhận đã chuẩn bị</button>':'<button data-new>Tạo ca mới</button>')+'</div></article><div class="notice" style="margin-top:20px">Quantile 0,85 dùng để tính đệm tồn kho; không phải cam kết dự báo chính xác 85%. Giá và số lượng theo SKU master V9.</div>';
+  return clockbar()+productionApprovalNotice()+'<div class="notice pink">'+icon('spark')+' Sàn V606 declared baseline fallback là khuyến nghị. Manager được duyệt thấp hơn với lý do; vẫn bắt buộc số dương và mẻ 4. Chưa cấu hình giới hạn sản xuất thật. M2 dự báo nhu cầu; Manager quyết định lượng duyệt. Nhấn biểu tượng ⓘ tại từng SKU để xem đủ 5 bước tính.</div><div class="toolbar"><div class="toolbar-left">'+badge(state.prediction_origin==='RULE_ROLLING7'?'M2 · Rolling-7 dự phòng':'M2 · V606 frozen','pink')+badge(state.prediction_origin==='RULE_ROLLING7'?'Quy tắc baseline · chờ duyệt':'V606 censored day target')+'</div>'+searchBox()+'</div><article class="panel"><div class="panel-head"><div><h2>Kế hoạch cho '+dateVN(state.day)+'</h2><p>'+esc(state.source)+' · '+state.plan.length+' SKU</p></div>'+badge(phases[state.phase],editable?'amber':'green')+'</div><div class="table-scroll"><table><thead><tr><th>Sản phẩm</th><th>Baseline</th><th>Dự báo M2</th><th>Sau đệm + mẻ</th><th>Sàn khuyến nghị ⓘ</th><th>Đề xuất cuối</th><th>Số duyệt</th><th></th></tr></thead><tbody>'+
+    filtered().map(p=>'<tr><td>'+product(p)+'</td><td>'+p.baseline+'</td><td>'+fmt(p.forecast)+'</td><td>'+units(m2Steps(p).rounded)+'</td><td>'+p.floor+'</td><td class="num-accent">'+p.prepared+'</td><td>'+(editable?'<input class="quantity" aria-label="Sản lượng duyệt '+p.sku+'" data-qty="'+p.sku+'" type="number" min="4" step="4" max="100000" value="'+(quantityDraft[p.sku]??p.approved??p.prepared)+'"><small data-floor-warning="'+p.sku+'" style="display:block;color:var(--magenta)">'+((quantityDraft[p.sku]??p.approved??p.prepared)<p.floor?'Dưới khuyến nghị '+p.floor+' · cần lý do':'')+'</small>':p.approved??'—')+'</td><td>'+explainButton(p.sku)+'</td></tr>').join('')+'</tbody></table></div><div class="actionbar"><div class="summary"><strong>'+fmt(state.totals.proposed_prepared)+'</strong>bánh đề xuất · '+units(state.totals.forecast_units??state.totals.forecast)+' bánh nhu cầu dự báo</div>'+
+    (editable?'<button class="danger" data-reject="plan">Từ chối</button><button class="primary" data-approve="plan">'+icon('check')+'Duyệt kế hoạch</button>':state.phase==='plan_approved'?'<button class="primary" data-act="prepared">'+icon('check')+'Xác nhận đã chuẩn bị</button>':'<button data-new>Tạo ca mới</button>')+'</div></article><div class="notice" style="margin-top:20px">'+(state.prediction_origin==='RULE_ROLLING7'?'Rolling-7 + quy tắc baseline, mẻ 4 và sàn khuyến nghị; không áp dụng quantile của AI hay SHAP.':'V606 censored day target dùng để tính đệm tồn kho; không phải cam kết dự báo chính xác 85%. Giá và số lượng theo SKU master V9.')+'</div>';
 }
 function m1(){
   const proposal=state.pending || state.decisions.at(-1);
   const rows=proposal?.rows || [], editable=state.phase==='price_pending';
-  if(proposal?.status==='missing_data')return clockbar()+'<article class="panel empty"><div class="empty-icon">'+icon('database')+'</div><h3>Thiếu dữ liệu bán hàng để đề xuất giá</h3><p>Ca này nhận giao dịch từ tệp; hiện chưa có giao dịch nào. 0/0 không chứng minh thực tế chưa bán.</p><div class="modal-actions"><button data-go="data">Nạp giao dịch</button><button class="primary" data-fork-simulation>Tạo bản mô phỏng riêng</button><button data-confirm-zero>Xác nhận thực tế chưa bán</button></div></article>';
+  if(proposal?.status==='missing_data')return clockbar()+'<article class="panel empty"><div class="empty-icon">'+icon('database')+'</div><h3>Thiếu dữ liệu bán hàng để đề xuất giá</h3><p>Nguồn giao dịch chưa có hoặc đã quá 30 phút theo đồng hồ ca. Cần dữ liệu mới trước khi gợi ý giá.</p><div class="modal-actions"><button data-go="data">Nạp giao dịch</button><button class="primary" data-fork-simulation>Tạo bản mô phỏng riêng</button><button data-confirm-zero>Xác nhận không có bán mới</button></div></article>';
   if(!rows.length)return clockbar()+'<article class="panel empty"><div class="empty-icon">'+icon('tag')+'</div><h3>Chờ khung giờ giảm giá</h3><p>M1 bắt đầu lúc 19:30, sử dụng tồn hiện tại, doanh số 30/60 phút và dự báo M2. Xác nhận chuẩn bị rồi chuyển đến mốc đầu tiên.</p><button class="primary" '+(state.phase==='running'?'data-advance="1170"':'data-go="m2"')+'>'+(state.phase==='running'?'Đến 19:30':'Mở kế hoạch sản lượng')+icon('arrow')+'</button></article>';
-  return clockbar()+'<div class="toolbar"><div class="toolbar-left">'+badge('M1 · Price response','pink')+badge('Chu kỳ '+hour(proposal.minute),'blue')+badge(proposal.status==='applied'?'Đã áp dụng':proposal.status==='approved'?'Đã duyệt':proposal.status==='rejected'?'Đã từ chối':'Chờ duyệt',proposal.status==='applied'?'green':'amber')+'</div>'+searchBox()+'</div>'+
-    '<div class="notice">Sàn '+rows[0].floor+'% · Trần '+rows[0].cap+'% · Mức giảm không đi ngược. Sàn 30% từ 21:00 là giả định V9, cần xác minh trước pilot thực.</div>'+
-    '<article class="panel"><div class="panel-head"><div><h2>Đề xuất giá · '+hour(proposal.minute)+'</h2><p>M1 so sánh doanh thu dự kiến của các lịch giá hợp lệ đến 22:00.</p></div>'+badge('8 SKU','pink')+'</div><div class="table-scroll"><table><thead><tr><th>Sản phẩm</th><th>Tồn</th><th>Bán 30 phút / 60 phút</th><th>Giá gốc</th><th>Giảm hiện tại</th><th>AI đề xuất</th><th>Giảm duyệt</th><th>Giá sau giảm</th><th></th></tr></thead><tbody>'+
-    rows.filter(r=>filtered().some(p=>p.sku===r.sku)).map(r=>{const p=state.plan.find(x=>x.sku===r.sku),v=discountDraft[r.sku]??r.approved??r.discount;return '<tr><td>'+product(p)+'</td><td>'+r.stock+(r.low_stock?' '+badge('Thấp','amber'):'')+'</td><td>'+r.sales30+' / '+r.sales60+'</td><td>'+money(r.price)+'</td><td>'+r.previous+'%</td><td class="num-accent">'+r.discount+'%</td><td>'+(editable?'<select class="discount-select" data-discount="'+r.sku+'" data-price="'+r.price+'" aria-label="Giảm giá duyệt '+r.sku+'">'+ladder.filter(t=>t>=Math.max(r.previous,r.floor)&&t<=r.cap).map(t=>'<option value="'+t+'" '+(v===t?'selected':'')+'>'+t+'%</option>').join('')+'</select>':v+'%')+'</td><td data-new-price="'+r.sku+'">'+money(Math.round(r.price*(1-v/100)))+'</td><td>'+explainButton(r.sku)+'</td></tr>'}).join('')+'</tbody></table></div><div class="actionbar"><div class="summary">Giá hiệu lực sau bước <b>Áp dụng</b></div>'+
+  return clockbar()+'<div class="m1-state-strip" aria-label="Trạng thái quyết định giá"><span class="'+(proposal.status==='pending'?'current':'')+'">1 · Đề xuất</span><span class="'+(proposal.status==='approved'?'current':proposal.status==='applied'?'complete':'')+'">2 · Đã duyệt</span><span class="'+(proposal.status==='applied'?'current':'')+'">3 · Đã áp dụng</span></div><div class="toolbar"><div class="toolbar-left">'+badge(proposal.origin==='MANUAL_RULE'?'M1 · Thủ công / quy tắc':'M1 · Price response','pink')+badge('Chu kỳ '+hour(proposal.minute),'blue')+badge(m1Stage(proposal.status),proposal.status==='applied'?'green':'amber')+'</div>'+searchBox()+'</div>'+
+    '<div class="notice">Sàn '+rows[0].floor+'% · Trần '+rows[0].cap+'% · Không giảm ngược · Từ 21:00 áp dụng sàn 30% theo chính sách V9. Giá chỉ có hiệu lực sau khi nhấn Áp dụng.</div>'+
+    '<article class="panel"><div class="panel-head"><div><h2>Đề xuất giá · '+hour(proposal.minute)+'</h2><p>M1 so sánh doanh thu dự kiến của các lịch giá hợp lệ đến 22:00.</p></div>'+badge(state.plan.length+' SKU','pink')+'</div><div class="table-scroll"><table><thead><tr><th>Sản phẩm</th><th>Tồn</th><th>Bán 30 phút / 60 phút</th><th>Giá gốc</th><th>Giảm hiện tại</th><th>'+((proposal?.origin==='MANUAL_RULE')?'Quy tắc giữ giá':'AI đề xuất')+'</th><th title="Doanh thu kỳ vọng từ lịch giá tối ưu do M1 tính từ thời điểm đề xuất đến 22:00. Không phải doanh thu đã ghi nhận; nếu quản lý đổi mức giảm, ước tính này chưa tính lại.">Doanh thu dự kiến ⓘ</th><th>Giảm duyệt</th><th>Giá sau giảm</th><th></th></tr></thead><tbody>'+
+    rows.filter(r=>filtered().some(p=>p.sku===r.sku)).map(r=>{const p=state.plan.find(x=>x.sku===r.sku),v=discountDraft[r.sku]??r.approved??r.discount;return '<tr><td>'+product(p)+'</td><td>'+r.stock+(r.low_stock?' '+badge('Thấp','amber'):'')+'</td><td>'+(r.sales30??'—')+' / '+(r.sales60??'—')+'</td><td>'+money(r.price)+'</td><td>'+r.previous+'%</td><td class="num-accent">'+r.discount+'%</td><td>'+m1Expected(r)+'</td><td>'+(editable?'<select class="discount-select" data-discount="'+r.sku+'" data-price="'+r.price+'" aria-label="Giảm giá duyệt '+r.sku+'">'+ladder.filter(t=>t>=Math.max(r.previous,r.floor)&&t<=r.cap).map(t=>'<option value="'+t+'" '+(v===t?'selected':'')+'>'+t+'%</option>').join('')+'</select>':v+'%')+'</td><td data-new-price="'+r.sku+'">'+money(Math.round(r.price*(1-v/100)))+'</td><td>'+explainButton(r.sku)+'</td></tr>'}).join('')+'</tbody></table></div><div class="actionbar"><div class="summary">Giá hiệu lực sau bước <b>Áp dụng</b></div>'+
     (editable?'<button class="danger" data-reject="price">Từ chối</button><button class="primary" data-approve="price">'+icon('check')+'Duyệt đề xuất giá</button>':state.phase==='price_approved'?'<button class="primary" data-act="price_apply">Áp dụng giá đã duyệt '+icon('arrow')+'</button>':'<span class="badge green">'+esc(proposal.status==='rejected'?'Giữ giá trước đó':'Đã ghi nhận quyết định')+'</span>')+'</div></article>';
 }
 function ledger(){
@@ -168,28 +211,17 @@ function ledger(){
     '<article class="panel"><div class="panel-head"><div><h2>Sổ giao dịch</h2><p>100 dòng gần nhất · Giá tại thời điểm bán được lưu cùng giao dịch</p></div>'+(state.mode==='live'?'<button class="small" data-go="data">Nhập giao dịch '+icon('plus')+'</button>':'')+'</div>'+
     (tx.length?'<div class="table-scroll"><table><thead><tr><th>Thời gian</th><th>SKU</th><th>Số lượng</th><th>Giảm giá</th><th>Đơn giá</th><th>Thành tiền</th><th>Nguồn</th></tr></thead><tbody>'+tx.map(t=>'<tr><td>'+hour(t.minute)+'</td><td>'+t.sku+'</td><td>'+t.qty+'</td><td>'+t.discount+'%</td><td>'+money(t.unit_price)+'</td><td class="num-accent">'+money(t.paid)+'</td><td>'+badge(t.origin==='SIMULATED'?'Mô phỏng':'Nhập tệp',t.origin==='SIMULATED'?'pink':'blue')+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty"><div class="empty-icon">'+icon('activity')+'</div><h3>Chưa có giao dịch</h3><p>Giao dịch sẽ xuất hiện khi đồng hồ mô phỏng đi qua lượt mua, hoặc khi bạn xác nhận tệp giao dịch ở chế độ nhập liệu.</p></div>')+'</article>';
 }
-function reportCurrent(){
-  const t=state.totals;
-  if(state.phase!=='closed')return '<div class="notice">Ca hiện tại chưa chốt. Các số đang hiển thị là số đã ghi nhận tới '+hour(state.minute)+', hàng tồn chưa được tính thành hàng dư cuối ngày.</div>'+kpis()+'<article class="panel attention"><h3>'+icon('clock')+'Bước tiếp theo</h3>'+pendingContent()+'</article>';
-  return kpis()+'<section class="report-summary"><article class="panel report-block"><span class="eyebrow muted">BIÊN ĐÓNG GÓP TRƯỚC OVERHEAD</span><div class="large">'+money(t.contribution_before_overhead)+'</div><p>Doanh thu '+money(t.revenue)+' − giá vốn sản xuất giả định '+money(t.cost_assumed)+'. Giá vốn bằng 45% giá tham chiếu, chưa trừ chi phí vận hành.</p></article><article class="panel report-block"><span class="eyebrow muted">CHẤT LƯỢNG PHỤC VỤ</span><div class="large">'+(t.lost_simulator_only===null?'Chưa có đo lường':fmt(t.lost_simulator_only)+' lượt')+'</div><p>'+(t.lost_simulator_only===null?'Dữ liệu bán thực không tự cung cấp số nhu cầu không được đáp ứng. Cần log tình trạng hết hàng.':'Nhu cầu đủ điều kiện nhưng không còn hàng trong kịch bản mô phỏng mới, seed '+state.seed+'.')+'</p></article></section><div class="notice green" style="margin-top:20px">Đã đối soát: '+t.prepared+' chuẩn bị = '+t.sold+' bán + '+t.stock+' tồn cuối. Doanh thu bằng tổng tiền của từng dòng giao dịch.</div>';
-}
-function reportReference(){
-  if(!reference)return '<article class="panel empty">Đang tải báo cáo đối chiếu V9…</article>';
-  const b=reference.systems[0],a=reference.systems[1],delta=100*(a.revenue_vnd/b.revenue_vnd-1),waste=100*(1-a.waste_qty/b.waste_qty);
-  const fields=[['Chuẩn bị','prepared_qty',false],['Đã bán','sold_qty',false],['Hàng dư cuối ngày','waste_qty',false],['Nhu cầu không đáp ứng','lost_sales_qty',false],['Doanh thu','revenue_vnd',true],['Giá vốn giả định','production_cost_assumed_vnd',true],['Biên đóng góp trước overhead','contribution_before_overhead_vnd',true]];
-  return '<div class="notice">Đối chiếu output lưu trữ tháng 09/2022 · Run d8b621a5. Đây là kết quả lịch sử; không phải kết quả của ca đang chạy. ZIP thiếu observations gốc nên chưa thể tái chạy toàn bộ thí nghiệm.</div>'+
-    '<section class="kpis">'+kpi('Doanh thu so baseline','+'+fmt(delta),'%','Tính lại từ daily outputs','coin')+kpi('Giảm lượng hàng dư',fmt(waste),'%','2.682 → 2.219 bánh','bread')+kpi('Nhu cầu không đáp ứng','+'+(a.lost_sales_qty-b.lost_sales_qty),'lượt','Đánh đổi chất lượng phục vụ','activity')+kpi('WAPE nhu cầu M2',Number(reference.metrics.wape_pct).toLocaleString('vi-VN',{maximumFractionDigits:4}),'%','Run hiện tại · 240 SKU-ngày','chart')+'</section>'+
-    '<article class="panel"><div class="panel-head"><div><h2>Baseline và M1 + M2</h2><p>Cùng kỳ 01–30/09/2022 · Dữ liệu nhu cầu và phản ứng giá mô phỏng</p></div>'+badge('ĐỐI CHIẾU NGUỒN','blue')+'</div><div class="table-scroll"><table><thead><tr><th>Chỉ tiêu</th><th>Baseline</th><th>M1 + M2</th><th>Chênh lệch</th></tr></thead><tbody>'+fields.map(([label,key,isMoney])=>'<tr><td>'+label+'</td><td>'+(isMoney?money(b[key]):fmt(b[key]))+'</td><td class="num-accent">'+(isMoney?money(a[key]):fmt(a[key]))+'</td><td>'+(a[key]>b[key]?'+':'')+(isMoney?money(a[key]-b[key]):fmt(a[key]-b[key]))+'</td></tr>').join('')+'</tbody></table></div></article><div class="notice pink" style="margin-top:20px">Workbook kỹ thuật có WAPE 12,0772% thuộc nguồn/hash khác. Dashboard dùng WAPE '+Number(reference.metrics.wape_pct).toLocaleString('vi-VN',{maximumFractionDigits:4})+'% của run d8b621a5, không ghép hai kết quả thành một.</div>';
-}
-function reports(){return '<div class="toolbar"><div class="tabs"><button data-report="current" class="'+(reportTab==='current'?'active':'')+'">Ca hiện tại</button><button data-report="reference" class="'+(reportTab==='reference'?'active':'')+'">Đối chiếu V9 · 09/2022</button></div><button class="small" data-sessions>'+icon('history')+'Lịch sử ca</button></div>'+(reportTab==='current'?reportCurrent():reportReference())}
+function reportCurrent(){return compactReport();}
+function reports(){return '<div class="toolbar"><button class="small" data-sessions>Lịch sử ca</button></div>'+evaluationPanel()+(evaluationState?.session_id===state.id&&evaluationState.errors.length?'':reportCurrent())}
 function dataView(){
-  return '<section class="cols"><div class="col-stack"><article class="panel"><div class="panel-head"><div><h2>Đưa dữ liệu vào SmartFresh</h2><p>CSV, Excel hoặc ZIP · Tối đa 20 MB</p></div>'+badge('TỰ ĐỘNG KIỂM TRA','pink')+'</div><div class="panel-body"><label class="field" style="margin-top:0">Ngày mục tiêu / ngày giao dịch<input id="upload-day" type="date" min="2022-08-16" value="'+esc(uploadDay||state.day)+'"></label><label class="upload-zone" id="dropzone">'+icon('upload')+'<strong>Kéo thả tệp vào đây</strong><p>hoặc <span style="color:var(--magenta)">chọn tệp từ máy tính</span></p><small>.csv, .xlsx, .zip · Dữ liệu chỉ được nhập sau xác nhận</small><input id="file-input" type="file" accept=".csv,.xlsx,.zip"></label><div class="template-list"><a href="/api/templates/history" download>↓ Lịch sử mẫu</a><a href="/api/templates/weather" download>↓ Thời tiết mẫu</a><a href="/api/templates/transactions" download>↓ Giao dịch mẫu</a></div></div></article>'+
+  return qualityPanel()+importHistoryPanel()+'<section style="margin-top:20px" class="cols"><div class="col-stack"><article class="panel"><div class="panel-head"><div><h2>Đưa dữ liệu vào SmartFresh</h2><p>CSV, Excel hoặc ZIP · Tối đa 20 MB</p></div>'+badge('TỰ ĐỘNG KIỂM TRA','pink')+'</div><div class="panel-body"><label class="field" style="margin-top:0">Ngày mục tiêu / ngày giao dịch<input id="upload-day" type="date" min="2022-07-01" value="'+esc(uploadDay||state.day)+'"></label><label class="field">Nguồn dữ liệu khai báo<input id="upload-source" maxlength="200" placeholder="Ví dụ: xuất POS quầy A; chưa xác thực"></label><label class="upload-zone" id="dropzone">'+icon('upload')+'<strong>Kéo thả tệp vào đây</strong><p>hoặc <span style="color:var(--magenta)">chọn tệp từ máy tính</span></p><small>.csv, .xlsx, .zip · Dữ liệu chỉ được nhập sau xác nhận</small><input id="file-input" type="file" accept=".csv,.xlsx,.zip"></label><div class="template-list"><a href="/api/templates/history" download>↓ Lịch sử mẫu</a><a href="/api/templates/weather" download>↓ Thời tiết mẫu</a><a href="/api/templates/transactions" download>↓ Giao dịch mẫu</a></div></div></article>'+
     (preview?previewHTML():'')+'</div><div class="col-stack"><article class="card"><h3>AI sẽ làm gì với dữ liệu?</h3><div class="steps" style="margin-top:23px">'+[['Kiểm tra cấu trúc','Ngày, SKU, số âm, dữ liệu trùng và tương lai.'],['Chạy mô hình đã huấn luyện','M2 dự báo mới; M1 tính giá từ trạng thái ca.'],['Chờ bạn xác nhận','Duyệt kế hoạch hoặc mức giá trước khi áp dụng.']].map((s,i)=>'<div class="step"><span class="step-number">'+(i+1)+'</span><div><strong>'+s[0]+'</strong><small>'+s[1]+'</small></div></div>').join('')+'</div></article><article class="notice pink" style="margin:0">Ngày mới ngoài bộ V9: dùng một Excel có hai sheet <b>history</b> và <b>weather</b>, hoặc ZIP chứa <b>history.csv</b> và <b>weather.csv</b>. Forecast cần <b>issued_at</b> có múi giờ, trước 06:00 ngày mục tiêu.</article><article class="card"><h3>Nhập giao dịch hiện tại</h3><p class="muted" style="font-size:11px;margin-top:12px">Chế độ dữ liệu nhập cần các cột sku_code, minute, quantity. Phút giao dịch phải khớp đồng hồ ca, hiện là <b>'+state.minute+' ('+hour(state.minute)+')</b>.</p><p class="muted" style="font-size:11px;margin-top:12px">Khi tồn thay đổi trong lúc chờ duyệt, đề xuất giá cũ sẽ hết hiệu lực và M1 tự tính lại.</p></article></div></section>';
 }
 function previewHTML(){
   let html='<article class="panel data-preview"><div class="panel-head"><div class="file-meta">'+icon('file')+'<div><strong>'+esc(preview.filename)+'</strong><small>SHA256 '+preview.sha256.slice(0,16)+'…</small></div></div>'+badge(preview.valid?'Dữ liệu hợp lệ':'Cần sửa dữ liệu',preview.valid?'green':'amber')+'</div><div class="panel-body">';
   if(preview.errors.length)html+='<div class="issue-list">'+preview.errors.slice(0,40).map(e=>'<div>Dòng '+e.row+': '+esc(e.message)+'</div>').join('')+(preview.errors.length>40?'<div>… '+(preview.errors.length-40)+' lỗi khác</div>':'')+'</div>';
   preview.warnings.forEach(w=>html+='<div class="notice">'+esc(w)+'</div>');
+  html+='<div class="notice pink"><b>'+(preview.transaction_rows?'Nhập giao dịch vào ca đang mở':'Tạo ca mới từ dữ liệu')+'</b> · '+(preview.transaction_rows?'Không tạo ca mới. Dữ liệu giao dịch được ghi vào ca '+esc(state.day)+'.':'Khi xác nhận, hệ thống tạo ca dữ liệu nhập mới, còn ca hiện tại vẫn được giữ trong lịch sử.')+'</div>';
   if(preview.ai_column_mapping)html+='<div class="notice pink">GPT đã đề nghị ánh xạ cột: '+esc(JSON.stringify(preview.ai_column_mapping))+'. Kiểm tra bản xem trước trước khi xác nhận.</div>';
   preview.tables.forEach(t=>{
     html+='<h3 style="margin:12px 0">'+esc(t.name)+' · '+t.rows+' dòng</h3><div class="table-scroll"><table><thead><tr>'+t.columns.slice(0,6).map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+t.sample.map(r=>'<tr>'+t.columns.slice(0,6).map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
@@ -205,7 +237,7 @@ function settings(){
     '<p><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">Tạo Gemini API key ↗</a> · <a href="https://ollama.com/download/windows" target="_blank" rel="noopener noreferrer">Cài Ollama ↗</a></p><p>Ollama: chạy <code>ollama pull qwen3.5:4b</code>, sau đó chọn Ollama và kết nối. Gemini: nhập key Google AI Studio. Google AI Pro không bảo đảm quota API; kiểm tra free tier/billing của project.</p>'+
     '<button type="submit" class="primary">Kết nối &amp; gọi thử AI</button><button type="button" data-disconnect class="ghost small">Ngắt kết nối</button>'+
     '<div class="notice" style="margin:20px 0 0">M1/M2 tính sản lượng và giá; Copilot đọc bằng chứng, không tự duyệt. Ollama chạy local, không phí API; model nhỏ có thể giải thích kém hơn. Gemini gửi ngữ cảnh ca lên Google; free tier có giới hạn và điều khoản sử dụng dữ liệu riêng. Không tự chuyển provider khi gặp lỗi.</div>'+aiVerificationPanel()+'</form></article>'+
-    '<div class="col-stack"><article class="panel"><div class="panel-head"><h2>Mô hình đang hoạt động</h2>'+badge('HASH ĐÃ XÁC MINH','green')+'</div><div class="setting-body"><div class="setting-line"><span>Phiên bản</span><strong>'+esc(state.model_version)+'</strong></div><div class="setting-line"><span>M2</span><strong>LightGBM · Nhu cầu cơ sở</strong></div><div class="setting-line"><span>M1</span><strong>LightGBM + tối ưu lịch giá</strong></div><div class="setting-line"><span>Khóa train</span><strong>15/08/2022 · 608 SKU-ngày</strong></div><div class="setting-line"><span>Chọn chính sách</span><strong>16–31/08/2022</strong></div><div class="setting-line"><span>Policy</span><strong>q = 0,85 · Sàn prep 90% · Mẻ 4</strong></div><div class="setting-line"><span>Giải thích M2</span><strong>TreeSHAP từ model thật</strong></div><div class="setting-line"><span>Giải thích M1</span><strong>So sánh lịch giá & mục tiêu</strong></div></div></article><article class="panel"><div class="panel-head"><h2>Nguồn dữ liệu</h2></div><div class="setting-body"><p style="margin-top:0">'+esc(meta.archive)+'</p><div class="setting-line"><span>SHA256</span><strong style="font-size:9px;max-width:220px">'+meta.archive_sha256+'</strong></div><p>Đã đọc 173 tệp. Nhu cầu, phản ứng giá và giá vốn là dữ liệu hoặc giả định mô phỏng. Observations gốc của thí nghiệm tháng 9 chưa có trong ZIP.</p><p>Kịch bản tương tác dùng bộ sinh lượt mua mới có seed; không thay thế kiểm chứng trên dữ liệu cửa hàng.</p></div></article></div></section>';
+    '<div class="col-stack"><article class="panel"><div class="panel-head"><h2>Mô hình đang hoạt động</h2>'+badge('XEM HASH Ở TRANG AN TOÀN',state.safety?.mode==='manual'?'amber':'')+'</div><div class="setting-body"><div class="setting-line"><span>Phiên bản</span><strong>'+esc(state.model_version)+'</strong></div><div class="setting-line"><span>M2</span><strong>XGBoost: censored day lower-bound</strong></div><div class="setting-line"><span>M1</span><strong>RandomForest: logged action imitation</strong></div><div class="setting-line"><span>Khóa train</span><strong>30/06/2022 · 608 SKU-ngày</strong></div><div class="setting-line"><span>Chọn chính sách</span><strong>01/05-30/06/2022</strong></div><div class="setting-line"><span>Policy</span><strong>Busy 4x + service reserve to 21:30; assumed capacity</strong></div><div class="setting-line"><span>Giải thích M2</span><strong>V606: no SHAP computed</strong></div><div class="setting-line"><span>Giải thích M1</span><strong>So sánh lịch giá & mục tiêu</strong></div></div></article><article class="panel"><div class="panel-head"><h2>Nguồn dữ liệu</h2></div><div class="setting-body"><p style="margin-top:0">'+esc(meta.archive)+'</p><div class="setting-line"><span>SHA256</span><strong style="font-size:9px;max-width:220px">'+meta.archive_sha256+'</strong></div><p>Đã đọc 173 tệp. Nhu cầu, phản ứng giá và giá vốn là dữ liệu hoặc giả định mô phỏng. Observations gốc của thí nghiệm tháng 9 chưa có trong ZIP.</p><p>Kịch bản tương tác dùng bộ sinh lượt mua mới có seed; không thay thế kiểm chứng trên dữ liệu cửa hàng.</p></div></article></div></section>';
 }
 function aiVerificationPanel(){
   let html=state.ai.configured?'<button type="button" class="small" data-verify-ai style="margin-top:18px">Kiểm tra kết nối hiện tại</button>':'';
@@ -216,17 +248,24 @@ const actionNames={M2_PROPOSED:'AI tạo kế hoạch M2',PLAN_APPROVE:'Quản l
 actionNames.OPENAI_CONNECTION_TEST='Kiểm tra kết nối AI thật';
 for(const provider of ['OLLAMA','GEMINI']){actionNames[provider+'_CONNECTION_TEST']='Kiểm tra kết nối '+provider;actionNames[provider+'_EXPLANATION']='Copilot '+provider+' giải thích từ công cụ';}
 function auditView(){
-  return '<div class="toolbar"><div>'+badge('CA '+state.id.slice(0,8),'pink')+' '+badge('Phiên bản dữ liệu '+state.revision)+'</div><button data-sessions class="small">'+icon('history')+'Lịch sử ca</button></div><article class="panel"><div class="panel-head"><div><h2>Nhật ký ca '+dateVN(state.day)+'</h2><p>Lưu trong SQLite local · Nhật ký hệ thống dùng UTC; thời gian dưới đây đổi sang giờ Việt Nam.</p></div><button class="ghost small" data-refresh-audit>'+icon('history')+'Tải lại</button></div><div class="panel-body">'+(auditRows.length?auditRows.map(r=>{let d={};try{d=JSON.parse(r.detail)}catch(_){};return '<div class="timeline-item"><span class="dot"></span><div><strong>'+esc(actionNames[r.action]||r.action)+'</strong><small>'+esc(d.payload?.reason||'Đã ghi nhận vào nhật ký')+(d.revision?' · revision '+d.revision:'')+'</small><small><code>'+esc(r.action)+'</code></small></div><time>'+new Date(r.created.replace(' ','T')+'Z').toLocaleTimeString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})+'</time></div>'}).join(''):'<div class="empty">Đang tải nhật ký…</div>')+'</div></article>';
+  return '<div class="toolbar"><div>'+badge('CA '+state.id.slice(0,8),'pink')+' '+badge('Phiên bản dữ liệu '+state.revision)+'</div><button data-sessions class="small">'+icon('history')+'Lịch sử ca</button></div><article class="panel"><div class="panel-head"><div><h2>Nhật ký ca '+dateVN(state.day)+'</h2><p>Lưu trong SQLite local · Nhật ký hệ thống dùng UTC; thời gian dưới đây đổi sang giờ Việt Nam.</p></div><button class="ghost small" data-refresh-audit>'+icon('history')+'Tải lại</button></div><div class="panel-body">'+(auditRows.length?auditRows.map(r=>{let d={};try{d=JSON.parse(r.detail)}catch(_){};return '<div class="timeline-item"><span class="dot"></span><div><strong>'+esc(actionNames[r.action]||r.action)+'</strong><small>'+esc((d.actor?.username?d.actor.username+' · ':'')+(d.payload?.reason||d.reason||'Đã ghi nhận vào nhật ký'))+(d.revision?' · revision '+d.revision:'')+'</small><small><code>'+esc(r.action)+'</code></small></div><time>'+new Date(r.created.replace(' ','T')+'Z').toLocaleTimeString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})+'</time></div>'}).join(''):'<div class="empty">Đang tải nhật ký…</div>')+'</div></article>';
 }
 function render(){
   if(!state)return;
   const titles=views[currentView];$('page-title').textContent=titles[0];$('page-subtitle').textContent=titles[1];$('breadcrumb-title').textContent=titles[0];document.title=titles[0]+' · SmartFresh';
   $('footer-model').textContent=state.model_version;
+  const modelStatus=document.querySelector('.model-status strong');if(modelStatus)modelStatus.textContent=state.safety?.mode==='manual'?'Manual · AI tạm dừng':state.safety?.mode==='shadow'?'Shadow · chỉ thử quyết định':'M1 + M2 · Assisted';
   $('plan-count').textContent=state.phase==='plan_pending'?state.plan.length:'✓';
   document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===currentView);b.setAttribute('aria-current',b.dataset.view===currentView?'page':'false')});
-  const fn={overview,m2,m1,ledger,reports,data:dataView,learning:learningView,audit:auditView,settings};
+  const fn={overview,m2,m1,ledger,reports,data:dataView,learning:learningView,audit:auditView,safety:safetyView,monitoring:monitoringView,registry:registryView,readiness:readinessView,settings};
   $('view').innerHTML=fn[currentView]();
-  if(['overview','m2','reports'].includes(currentView))$('view').insertAdjacentHTML('beforeend',dayChainPanel());
+  if(currentView==='readiness')bindReadiness();
+  if(currentView==='registry')bindRegistry();
+  if(currentView==='reports')bindEvaluation();
+  if(currentView==='safety')bindSafety();
+  if(currentView==='monitoring')bindMonitoring();
+  applyPermissions();
+
   if(currentView==='data')bindUpload();
   if(currentView==='learning')bindLearning();
   if(currentView==='settings'){
@@ -235,13 +274,19 @@ function render(){
     $('api-key').disabled=$('ai-provider').value==='Ollama';
     bindGeminiModels();
   }
+  applyPermissions();
   const search=$('table-search');if(search){search.oninput=()=>{const pos=search.selectionStart;query=search.value;render();$('table-search').focus();$('table-search').setSelectionRange(pos,pos)}}
 }
 async function go(view){
+  if(view==='readiness')loadReadiness();
+  if(view==='registry')loadRegistry();
+  if(view==='reports')loadEvaluation();
+  if(view==='data')refreshQuality();
+  if(view==='safety')loadSafety();
+  if(view==='monitoring')loadMonitoring();
   currentView=view;query='';$('sidebar').classList.remove('open');render();
   if(view==='audit')await loadAudit();
   if(view==='learning')await loadLearning();
-  if(view==='reports'&&reportTab==='reference')await loadReference();
 }
 function modal(title,html){$('modal-title').textContent=title;$('modal-content').innerHTML=html;if(!$('modal').open)$('modal').showModal();}
 function drawer(title,html){$('drawer-title').textContent=title;$('drawer-content').innerHTML=html;if(!$('drawer').open)$('drawer').showModal();}
@@ -262,7 +307,10 @@ function approve(kind){
   if(kind==='plan')state.plan.forEach(p=>{if(!(p.sku in quantities))quantities[p.sku]=quantityDraft[p.sku]??p.prepared});
   else state.pending.rows.forEach(p=>{if(!(p.sku in discounts))discounts[p.sku]=discountDraft[p.sku]??p.discount});
   const adjusted=kind==='plan'?state.plan.some(p=>quantities[p.sku]!==p.prepared):state.pending.rows.some(p=>discounts[p.sku]!==p.discount);
-  modal(kind==='plan'?'Duyệt kế hoạch sản lượng':'Duyệt đề xuất giảm giá','<p>'+(kind==='plan'?'Tổng sản lượng duyệt: <b>'+fmt(Object.values(quantities).reduce((a,b)=>a+b,0))+' bánh</b>. Bước tiếp theo là xác nhận đã chuẩn bị.':'Duyệt mức giảm cho '+state.pending.rows.length+' SKU tại '+hour(state.minute)+'. Bạn sẽ xác nhận áp dụng ở bước kế tiếp.')+'</p><label class="field">Lý do '+(adjusted?'điều chỉnh (bắt buộc)':'ghi chú (tùy chọn)')+'<textarea id="approval-reason" maxlength="500" placeholder="Ghi nhận bối cảnh vận hành…"></textarea></label><div class="modal-actions"><button data-close="modal">Quay lại</button><button class="primary" id="confirm-approval">Xác nhận duyệt '+icon('check')+'</button></div>');
+  if(kind==='plan'&&Object.values(quantities).some(q=>!Number.isInteger(q)||q<4||q%4||q>100000)){toast('Số duyệt phải là bội số 4, tối thiểu 4; ví dụ 48 hoặc 52 thay vì 50.',true);return;}
+  const below=kind==='plan'?state.plan.filter(p=>quantities[p.sku]<p.floor):[];
+  const warning=below.length?'<div class="notice" id="below-floor-confirmation"><b>Duyệt dưới sàn khuyến nghị</b><p>'+below.map(p=>esc(p.sku)+': đề xuất '+p.prepared+' · khuyến nghị '+p.floor+' → duyệt '+quantities[p.sku]).join('<br>')+'</p><p>Lượng thấp hơn có thể tăng nguy cơ hết hàng. Manager ghi lý do và chịu trách nhiệm xác nhận; hệ thống lưu nguyên đề xuất để đối chiếu.</p></div>':'';
+  modal(kind==='plan'?'Duyệt kế hoạch sản lượng':'Duyệt đề xuất giảm giá',warning+'<p>'+(kind==='plan'?'Tổng sản lượng duyệt: <b>'+fmt(Object.values(quantities).reduce((a,b)=>a+b,0))+' bánh</b>. Bước tiếp theo là xác nhận đã chuẩn bị.':'Duyệt mức giảm cho '+state.pending.rows.length+' SKU tại '+hour(state.minute)+'. Bạn sẽ xác nhận áp dụng ở bước kế tiếp.')+'</p><label class="field">Lý do '+(adjusted?'điều chỉnh (bắt buộc)':'ghi chú (tùy chọn)')+'<textarea id="approval-reason" maxlength="500" placeholder="Ghi nhận bối cảnh vận hành…"></textarea></label><div class="modal-actions"><button data-close="modal">Quay lại</button><button class="primary" id="confirm-approval">Xác nhận duyệt '+icon('check')+'</button></div>');
   $('confirm-approval').onclick=async()=>{
     const reason=$('approval-reason').value.trim();if(adjusted&&!reason){toast('Cần ghi lý do khi điều chỉnh đề xuất.',true);return;}
     $('modal').close();await act(kind==='plan'?'plan_approve':'price_approve',kind==='plan'?{quantities,reason}:{discounts,reason,proposal_id:state.pending.id});
@@ -273,21 +321,26 @@ function reject(kind){
   $('confirm-reject').onclick=async()=>{const reason=$('reject-reason').value.trim();if(!reason){toast('Cần lý do từ chối.',true);return;}$('modal').close();await act(kind==='plan'?'plan_reject':'price_reject',{reason,...(kind==='price'?{proposal_id:state.pending.id}:{})});};
 }
 function newSession(){
-  modal('Bắt đầu ca vận hành','<p>Tạo ca riêng và giữ nguyên lịch sử của những ca trước.</p><form id="new-form"><label class="field">Ngày vận hành<input id="new-day" type="date" min="2022-08-16" max="2022-09-30" value="'+state.day+'" required></label><div class="form-row"><label class="field">Chế độ<select id="new-mode"><option value="simulation">Mô phỏng lượt mua mới</option><option value="live">Nhận giao dịch từ tệp</option></select></label><label class="field">Seed mô phỏng<input id="new-seed" type="number" min="0" max="2147483647" value="'+state.seed+'" required></label></div><label class="simulation-check"><input id="new-auto" type="checkbox" checked>Tự bán sau xác nhận chuẩn bị (chỉ ca mô phỏng)</label><p>Chọn ngày trong 16/08–30/09/2022 để dùng forecast V9. Để chạy ngày mới, tải lịch sử và thời tiết qua mục Dữ liệu đầu vào.</p><div class="modal-actions"><button type="button" data-close="modal">Quay lại</button><button class="primary" type="submit">Tạo kế hoạch bằng AI '+icon('spark')+'</button></div></form>');
+  modal('Bắt đầu ca vận hành','<p>Tạo ca riêng và giữ nguyên lịch sử của những ca trước.</p><form id="new-form"><label class="field">Ngày vận hành<input id="new-day" type="date" min="2022-07-01" max="2022-08-31" value="'+state.day+'" required></label><div class="form-row"><label class="field">Chế độ<select id="new-mode"><option value="simulation">Mô phỏng lượt mua mới</option><option value="live">Nhận giao dịch từ tệp</option></select></label><label class="field">Seed mô phỏng<input id="new-seed" type="number" min="0" max="2147483647" value="'+state.seed+'" required></label></div><label class="simulation-check"><input id="new-auto" type="checkbox" checked>Tự bán sau xác nhận chuẩn bị (chỉ ca mô phỏng)</label><p>Chọn ngày trong 01/07-31/08/2022 để dùng V606 busy ASSUMED 4x. Để chạy ngày mới, tải lịch sử và thời tiết qua mục Dữ liệu đầu vào.</p><div class="modal-actions"><button type="button" data-close="modal">Quay lại</button><button class="primary" type="submit">Tạo kế hoạch bằng AI '+icon('spark')+'</button></div></form>');
   $('new-form').onsubmit=async e=>{e.preventDefault();if(working)return;working=true;try{const s=await api('/api/sessions',{day:$('new-day').value,seed:Number($('new-seed').value),mode:$('new-mode').value,auto_run:$('new-auto').checked});$('modal').close();currentView='m2';preview=null;storeState(s);toast('M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true)}finally{working=false}};
 }
 const featureNames={lag1_sales:'Bán ngày trước',lag7_sales:'Bán 7 ngày trước',rolling7_sales:'Trung bình bán 7 ngày',rolling14_sales:'Trung bình bán 14 ngày',rolling7_std:'Biến động bán 7 ngày',rain_forecast_proxy:'Lượng mưa dự báo',temp_forecast_jma:'Nhiệt độ dự báo',weekday:'Thứ trong tuần',is_weekend:'Ngày cuối tuần',is_holiday:'Ngày lễ',festival_nonpublic:'Sự kiện trong lịch',ref_mean_train_only:'Trung bình khóa từ train',history_days:'Số ngày lịch sử',dayofyear:'Ngày trong năm',month:'Tháng',weekday_sin:'Chu kỳ thứ (sin)',weekday_cos:'Chu kỳ thứ (cos)',calendar_month_trend:'Xu hướng theo tháng'};
 async function explain(sku){
+ if(state.model_version.startsWith('V606')){
+  const p=state.plan.find(p=>p.sku===sku);drawer('V606 model evidence',m2Chain(p)+'<p>Pre-action features only. M1 imitates logged actions; no causal uplift claim.</p><pre>'+esc(JSON.stringify(p.features,null,2))+'</pre>');return;
+ }
+
   drawer('Giải thích quyết định','<div class="empty">Đang lấy bằng chứng từ mô hình…</div>');
   try{
     const e=await api('/api/evidence/'+state.id+'/'+sku),p=e.m2;
-    let html=badge(sku,'pink')+' '+badge(e.model_version)+'<h3 style="font-size:19px;margin-top:15px">'+esc(p.name)+'</h3><div class="evidence-number"><div><small>Nhu cầu dự báo</small><div class="value">'+units(p.forecast)+'</div></div><div><small>Sản lượng đề xuất</small><div class="value">'+p.prepared+'</div></div><div><small>Baseline</small><div class="value">'+p.baseline+'</div></div></div><h3>Cơ chế lập sản lượng</h3><div class="formula">max(4, làm tròn mẻ(<strong>'+units(p.forecast)+' + '+units(Math.max(0,Math.ceil((p.forecast+p.buffer)/4)*4-Math.round(p.forecast)))+'</strong>), sàn <strong>'+p.floor+'</strong>) = <strong>'+p.prepared+'</strong></div><h3>Yếu tố ảnh hưởng nhu cầu · M2</h3><p class="muted" style="font-size:11px;line-height:1.8">6 đóng góp TreeSHAP có độ lớn cao nhất, tính trực tiếp từ LightGBM. Đơn vị: bánh. Dấu dương làm tăng dự báo; dấu âm làm giảm dự báo.</p>';
+    let html=badge(sku,'pink')+' '+badge(e.model_version)+'<h3 style="font-size:19px;margin-top:15px">'+esc(p.name)+'</h3><div class="evidence-number"><div><small>Nhu cầu dự báo</small><div class="value">'+units(p.forecast)+'</div></div><div><small>Sản lượng đề xuất</small><div class="value">'+p.prepared+'</div></div><div><small>Baseline</small><div class="value">'+p.baseline+'</div></div></div><h3>5 bước từ dự báo đến đề xuất</h3>'+m2Chain(p)+(p.prediction_origin==='RULE_ROLLING7'?'':'<h3>Yếu tố ảnh hưởng nhu cầu · M2</h3><p class="muted" style="font-size:11px;line-height:1.8">6 đóng góp V606: no SHAP computed</p>');
+    if(p.prediction_origin==='RULE_ROLLING7')html+='<div class="notice">Fallback Rolling-7 + quy tắc mẻ/sàn. Không có giải thích V606: no SHAP computed</div>';
     const max=Math.max(...p.contributions.map(x=>Math.abs(x.units)),1);
     html+=p.contributions.map(c=>'<div class="impact '+(c.units<0?'negative':'')+'"><span>'+esc(featureNames[c.feature]||(c.feature.startsWith('sku_code_')?'Đặc trưng '+c.feature.slice(9):c.feature))+'</span><span class="impact-track"><i class="impact-fill" style="display:block;width:'+Math.abs(c.units)/max*100+'%"></i></span><strong>'+(c.units>0?'+':'')+fmt(c.units)+'</strong></div>').join('');
-    html+='<p class="muted" style="font-size:10px;margin:16px 0">Giá trị nền M2: '+fmt(p.model_bias)+' bánh. Biểu đồ chỉ hiển thị các đóng góp lớn nhất, không phải toàn bộ tổng SHAP.</p>';
+    if(p.prediction_origin!=='RULE_ROLLING7')html+='<p class="muted" style="font-size:10px;margin:16px 0">Giá trị nền M2: '+fmt(p.model_bias)+' bánh. Biểu đồ chỉ hiển thị các đóng góp lớn nhất, không phải toàn bộ tổng SHAP.</p>';
     if(e.m1){
       const r=e.m1;
-      html+='<h3>Vì sao M1 chọn '+r.discount+'%?</h3><p class="muted" style="font-size:11px">Tồn '+r.stock+' bánh · Bán 60 phút: '+r.sales60+' · Sàn '+r.floor+'% / trần '+r.cap+'%. Mục tiêu = doanh thu dự kiến còn lại − 2,5% giá gốc × tồn dự kiến, kèm quy tắc phá hòa.</p><div class="table-scroll" style="margin-top:16px"><table><thead><tr><th>Giảm ngay</th><th>Doanh thu dự kiến</th><th>Tồn dự kiến</th></tr></thead><tbody>'+r.candidates.map(c=>'<tr><td>'+c.discount+'%'+(c.discount===r.discount?' ✓':'')+'</td><td>'+money(c.expected_revenue)+'</td><td>'+fmt(c.expected_leftover)+'</td></tr>').join('')+'</tbody></table></div><div class="notice pink" style="margin-top:17px">Mỗi dòng là lịch giá tốt nhất nếu bắt đầu ở mức đó. Đây là giá trị dự kiến của optimizer, không phải doanh thu đã ghi nhận hoặc SHAP quyết định giá.</div>';
+      html+='<h3>Vì sao M1 chọn '+r.discount+'%?</h3><p class="muted" style="font-size:11px">Tồn '+r.stock+' bánh · Bán 60 phút: '+r.sales60+' · Sàn '+r.floor+'% / trần '+r.cap+'%. Mục tiêu = doanh thu dự kiến còn lại − 2,5% giá gốc × tồn dự kiến, kèm quy tắc phá hòa.</p><div class="table-scroll" style="margin-top:16px"><table><thead><tr><th>Giảm ngay</th><th title="Doanh thu kỳ vọng từ lịch giá tối ưu do M1 tính từ thời điểm đề xuất đến 22:00. Không phải doanh thu đã ghi nhận; nếu quản lý đổi mức giảm, ước tính này chưa tính lại.">Doanh thu dự kiến ⓘ</th><th>Tồn dự kiến</th></tr></thead><tbody>'+r.candidates.map(c=>'<tr><td>'+c.discount+'%'+(c.discount===r.discount?' ✓':'')+'</td><td>'+money(c.expected_revenue)+'</td><td>'+fmt(c.expected_leftover)+'</td></tr>').join('')+'</tbody></table></div><div class="notice pink" style="margin-top:17px">Mỗi dòng là lịch giá tốt nhất nếu bắt đầu ở mức đó. Đây là giá trị dự kiến của optimizer, không phải doanh thu đã ghi nhận hoặc SHAP quyết định giá.</div>';
     }
     html+='<button class="primary" style="width:100%;margin-top:20px" data-ask-sku="'+sku+'">'+icon('spark')+'Nhờ Copilot giải thích</button><p class="muted" style="font-size:10px;margin:13px 0">Ca '+e.session_id.slice(0,8)+' · revision '+e.revision+' · '+p.features.history_days+' ngày lịch sử liên tục</p>';
     $('drawer-content').innerHTML=html;
@@ -297,7 +350,7 @@ function openChat(){
   if(chatSession!==state.id){chatMessages=[];chatSession=state.id;}
   let html='<div class="notice pink">'+icon('spark')+' Phân tích dữ liệu của ca hiện tại. Đề xuất chỉ được áp dụng sau khi bạn xác nhận.</div>';
   if(!state.ai.configured)html+='<div class="empty"><div class="empty-icon">'+icon('chat')+'</div><h3>Kết nối Copilot</h3><p>Chọn Ollama hoặc nhập Gemini/OpenAI API key để hỏi đáp và giải thích. Các mô hình M1/M2 vẫn đang chạy local.</p><button class="primary" data-open-settings>Mở cài đặt AI '+icon('arrow')+'</button></div>';
-  else html+='<div class="chat-feed" id="chat-feed">'+(chatMessages.length?chatMessages.map(copilotChatMessage).join(''):'<div class="suggested-questions"><button data-question="Giải thích kế hoạch sản lượng của BK-001, kèm số liệu.">Vì sao BK-001 có sản lượng này?</button><button data-question="Tóm tắt ca hiện tại và bước nào cần tôi xác nhận.">Tôi cần xử lý việc gì tiếp theo?</button><button data-question="Giải thích M1 và M2 phối hợp trong ca này.">M1 và M2 phối hợp thế nào?</button></div>')+'</div><form class="chat-form" id="chat-form"><input id="chat-input" maxlength="4000" autocomplete="off" placeholder="Hỏi về dữ liệu và quyết định…" aria-label="Câu hỏi cho Copilot"><button class="primary" type="submit" aria-label="Gửi câu hỏi">'+icon('arrow')+'</button></form>';
+  else html+='<div class="chat-feed" id="chat-feed">'+(chatMessages.length?chatMessages.map(copilotChatMessage).join(''):'<div class="suggested-questions">'+(currentView==='m1'?'<button data-question="Giải thích đề xuất giảm giá M1 của ca hiện tại dựa trên dữ liệu và chính sách.">Vì sao M1 đề xuất mức giảm này?</button>':currentView==='m2'?'<button data-question="Giải thích rõ dự báo, buffer, làm tròn mẻ và mức sàn cho TP-DN-001.">M2 tính sản lượng TP-DN-001 thế nào?</button>':currentView==='reports'?'<button data-question="Giải thích các chỉ số KPI có dữ liệu trong ca hiện tại.">Các KPI đang nói lên điều gì?</button>':'<button data-question="Tóm tắt ca hiện tại và bước nào cần tôi xác nhận.">Tôi cần xử lý việc gì tiếp theo?</button>')+'<button data-question="Giải thích M1 và M2 phối hợp trong ca này.">M1 và M2 phối hợp thế nào?</button></div>')+'</div><form class="chat-form" id="chat-form"><input id="chat-input" maxlength="4000" autocomplete="off" placeholder="Hỏi về dữ liệu và quyết định…" aria-label="Câu hỏi cho Copilot"><button class="primary" type="submit" aria-label="Gửi câu hỏi">'+icon('arrow')+'</button></form>';
   drawer('SmartFresh Copilot',html);
   if($('chat-form'))$('chat-form').onsubmit=e=>{e.preventDefault();askChat($('chat-input').value);};
 }
@@ -305,9 +358,9 @@ let chatting=false;
 async function askChat(message){
   if(!message.trim()||chatting)return;
   if(!state.ai.configured){openChat();return}
-  chatting=true;chatMessages.push({user:true,text:message});openChat();
+  chatting=true;lastChatQuestion=message;chatMessages.push({user:true,text:message});openChat();
   const feed=$('chat-feed'),pending=document.createElement('div');pending.className='copilot-thinking';pending.innerHTML=icon('spark')+'<span>Đang phân tích dữ liệu của ca…</span>';feed.append(pending);feed.scrollIntoView({block:'end',behavior:'smooth'});$('chat-input').disabled=true;
-  try{const result=await api('/api/chat',{session_id:state.id,message:copilotPrompt(message)});chatMessages.push({text:result.answer,result})}catch(e){chatMessages.push({text:e.message,error:true})}finally{chatting=false;if($('drawer').open&&$('drawer-title').textContent==='SmartFresh Copilot')openChat()}
+  try{const result=await api('/api/chat',{session_id:state.id,message:copilotPrompt(message),...(currentView==='reports'?{report_days:businessDays,report_section:businessTab,report_sku:businessTab==='products'?businessSku:'all'}:{})});chatMessages.push({text:result.answer,result})}catch(e){chatMessages.push({text:e.message,error:true})}finally{chatting=false;if($('drawer').open&&$('drawer-title').textContent==='SmartFresh Copilot')openChat()}
 }
 function bindUpload(){
   $('file-input').onchange=e=>{if(e.target.files[0])uploadFile(e.target.files[0])};
@@ -318,11 +371,14 @@ async function uploadFile(file){
   if(working)return;if(file.size>20*1024*1024){toast('Tệp tối đa 20 MB.',true);return}
   working=true;uploadDay=$('upload-day').value;
   const fd=new FormData();fd.append('file',file);fd.append('day',uploadDay);
-  try{preview=await api('/api/imports',fd);render();toast(preview.valid?'Đã kiểm tra dữ liệu. Xem bản nhập trước khi xác nhận.':'Có lỗi dữ liệu cần sửa.',!preview.valid)}catch(e){toast(e.message,true)}finally{working=false}
+  fd.append('source_name',$('upload-source')?.value.trim()||'Người dùng nhập; chưa xác thực');
+  try{preview=await api('/api/imports',fd);await refreshQuality();render();toast(preview.valid?'Đã kiểm tra dữ liệu. Xem bản nhập trước khi xác nhận.':'Có lỗi dữ liệu cần sửa.',!preview.valid)}catch(e){toast(e.message,true);if(currentView==='data')await refreshQuality()}finally{working=false}
 }
 async function confirmImport(){
-  if(working)return;working=true;
-  try{const s=await api('/api/imports/'+preview.import_id+'/confirm',{session_id:state.id,revision:state.revision,seed:state.seed});const isTx=preview.transaction_rows>0;preview=null;currentView=isTx?'ledger':'m2';storeState(s);toast(isTx?'Đã nhập giao dịch và cập nhật trạng thái.':'Đã nhập dữ liệu. M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true)}finally{working=false}
+  if(working || !preview || !preview.valid)return;
+  if(!window.confirm(preview.transaction_rows?'Xác nhận ghi giao dịch vào ca đang mở?':'Xác nhận tạo CA MỚI từ dữ liệu đã xem trước? Ca đang mở sẽ được giữ trong lịch sử.'))return;
+  working=true;
+  try{const s=await api('/api/imports/'+preview.import_id+'/confirm',{session_id:state.id,revision:state.revision,seed:state.seed});const isTx=preview.transaction_rows>0;preview=null;currentView=isTx?'ledger':'m2';storeState(s);refreshQuality();toast(isTx?'Đã nhập giao dịch và cập nhật trạng thái.':'Đã nhập dữ liệu. M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true);if(currentView==='data')await refreshQuality()}finally{working=false}
 }
 function bindGeminiModels(){
   if(!$('gemini-catalog'))$('ai-model').parentElement.insertAdjacentHTML('afterend','<div id="gemini-catalog"><button type="button" id="check-gemini-models" class="small">Kiểm tra key &amp; tải model</button><p class="muted">Kiểm tra quyền liệt kê model trước khi gọi AI. Danh sách không bảo đảm model miễn phí hoặc có quota sinh nội dung.</p><div id="gemini-model-options"></div><p id="gemini-diagnostic" role="status" style="white-space:pre-wrap"></p></div>');
@@ -344,7 +400,7 @@ async function saveSettings(e){
   working=true;button.disabled=true;button.textContent='Đang gọi AI và kiểm tra công cụ…';
   try{
     const result=await api('/api/ai/connect',{api_key:key,model,provider,session_id:state.id});
-    state.ai=result.ai;connectionResult=result.verification;$('api-key').value='';render();
+    state.ai=result.ai;connectionResult=result.verification;if(typeof explanationResults!=='undefined')explanationResults.clear();if(typeof reportAiResults!=='undefined')reportAiResults.clear();$('api-key').value='';render();
     toast('Đã nhận phản hồi AI thật và kiểm tra công cụ thành công.');
   }catch(e){toast(e.message,true);if($('gemini-diagnostic')&&provider==='Gemini')$('gemini-diagnostic').textContent=e.message;button.disabled=false;button.textContent='Kết nối & gọi thử AI'}
   finally{working=false}
@@ -354,12 +410,12 @@ async function verifyCurrentAI(){
   const button=document.querySelector('[data-verify-ai]');if(button){button.disabled=true;button.textContent='Đang gọi AI…';}
   try{
     const result=await api('/api/ai/verify',{session_id:state.id,message:'Kiểm tra kết nối'});
-    state.ai=result.ai;connectionResult=result.verification;render();
+    state.ai=result.ai;connectionResult=result.verification;if(typeof explanationResults!=='undefined')explanationResults.clear();if(typeof reportAiResults!=='undefined')reportAiResults.clear();render();
     toast('Copilot đã trả lời qua công cụ của ca hiện tại.');
   }catch(e){toast(e.message,true);if(button){button.disabled=false;button.textContent='Kiểm tra kết nối hiện tại';}}
   finally{working=false}
 }
-async function loadReference(){try{reference=await api('/api/reference');if(currentView==='reports')render()}catch(e){toast(e.message,true)}}
+
 async function loadAudit(){try{auditRows=await api('/api/audit/'+state.id);if(currentView==='audit')render()}catch(e){toast(e.message,true)}}
 async function showSessions(){
   try{
@@ -383,27 +439,28 @@ document.addEventListener('click',async e=>{
   if(b.hasAttribute('data-chat'))openChat();
   if(b.dataset.askSku){openChat();askChat('Giải thích quyết định cho '+b.dataset.askSku+' dựa trên bằng chứng M2 và M1 của ca hiện tại.')}
   if(b.dataset.question)askChat(b.dataset.question);
+  if(b.hasAttribute('data-retry-chat') && lastChatQuestion && !chatting)askChat(lastChatQuestion);
   if(b.hasAttribute('data-open-settings')){$('drawer').close();go('settings')}
   if(b.hasAttribute('data-confirm-import'))confirmImport();
   if(b.hasAttribute('data-clear-preview')){preview=null;render()}
-  if(b.dataset.report){reportTab=b.dataset.report;render();if(reportTab==='reference'&&!reference)loadReference()}
   if(b.hasAttribute('data-refresh-audit'))loadAudit();
   if(b.hasAttribute('data-sessions'))showSessions();
   if(b.dataset.loadSession){try{stop();storeState(await api('/api/state?session_id='+b.dataset.loadSession));$('modal').close();if(currentView==='audit')loadAudit()}catch(e){toast(e.message,true)}}
   if(b.hasAttribute('data-disconnect')){try{state.ai=await api('/api/ai/settings',{api_key:'',model:state.ai.model});connectionResult=null;render();toast('Đã ngắt Copilot trong phiên hiện tại.')}catch(e){toast(e.message,true)}}
   if(b.hasAttribute('data-verify-ai'))verifyCurrentAI();
 });
-document.addEventListener('change',e=>{const el=e.target;if(el.dataset.qty)quantityDraft[el.dataset.qty]=Number(el.value);if(el.dataset.discount){discountDraft[el.dataset.discount]=Number(el.value);const td=document.querySelector('[data-new-price="'+el.dataset.discount+'"]');if(td)td.textContent=money(Math.round(Number(el.dataset.price)*(1-Number(el.value)/100)))}})
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset.qty){quantityDraft[el.dataset.qty]=Number(el.value);const p=state.plan.find(p=>p.sku===el.dataset.qty),warning=document.querySelector('[data-floor-warning="'+el.dataset.qty+'"]');if(warning&&p)warning.textContent=Number(el.value)<p.floor?'Dưới khuyến nghị '+p.floor+' · cần lý do':'';}if(el.dataset.discount){discountDraft[el.dataset.discount]=Number(el.value);const td=document.querySelector('[data-new-price="'+el.dataset.discount+'"]');if(td)td.textContent=money(Math.round(Number(el.dataset.price)*(1-Number(el.value)/100)))}})
 $('new-session').onclick=newSession;$('upload-shortcut').onclick=()=>go('data');$('menu').onclick=()=>$('sidebar').classList.toggle('open');
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}}));
 async function init(){
   icons();
+  try{if(!await ensureLogin())return;}catch(e){$('view').textContent='Không kết nối được backend: '+e.message;return;}
   const requestedView=new URL(location.href).searchParams.get('view');
   if(views[requestedView])currentView=requestedView;
   try{
     const sid=localStorage.getItem('smartfresh-session');
     const result=await Promise.all([api('/api/state'+(sid?'?session_id='+sid:'')),api('/api/metadata'),api('/api/history')]);
-    state=result[0];meta=result[1];history=result[2];storeState(state);
+    state=result[0];meta=result[1];history=result[2];storeState(state);if(currentView==='data')refreshQuality();if(currentView==='safety')loadSafety();if(currentView==='monitoring')loadMonitoring();
   }catch(e){
     if(localStorage.getItem('smartfresh-session')){localStorage.removeItem('smartfresh-session');try{const r=await Promise.all([api('/api/state'),api('/api/metadata'),api('/api/history')]);state=r[0];meta=r[1];history=r[2];storeState(state);return}catch(_){}}
     $('view').innerHTML='<div class="notice">'+esc(e.message)+'</div><button onclick="location.reload()">Thử tải lại</button>';toast(e.message,true);

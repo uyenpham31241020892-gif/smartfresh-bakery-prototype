@@ -15,9 +15,9 @@ class Realtime:
     def status(self,sid):
         with self.store.connect() as db:
             row=db.execute('SELECT * FROM simulation_clocks WHERE sid=?',(sid,)).fetchone()
-        return dict(row) if row else {'enabled':False,'speed':5.,'pause_confirm':True,'error':None}
+        return dict(row) if row else {'enabled':False,'speed':30.,'pause_confirm':True,'error':None}
 
-    def configure(self,sid,enabled,speed=5.,pause_confirm=True):
+    def configure(self,sid,enabled,speed=30.,pause_confirm=True):
         s=self.store.get(sid)
         if s['mode']!='simulation':
             raise ValueError('Không chèn bán giả vào ca dữ liệu thật. Hãy tạo bản mô phỏng riêng.')

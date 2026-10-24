@@ -1,23 +1,15 @@
 @echo off
 chcp 65001 >nul
+set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start_ollama.ps1
-if exist ".tools\python312\python.exe" (
-  ".tools\python312\python.exe" app.py
-  goto done
-)
-if not exist ".venv\Scripts\python.exe" (
-  py -3.12 -m venv .venv
-  if errorlevel 1 (
-    echo Please install Python 3.12, then run Start.cmd again.
-    goto done
-  )
-)
-".venv\Scripts\python.exe" -c "import fastapi, lightgbm, pandas, httpx, openpyxl" >nul 2>nul
+set "SMARTFRESH_PYTHON=%CD%\.tools\python312\python.exe"
+if not exist "%SMARTFRESH_PYTHON%" set "SMARTFRESH_PYTHON=python"
+"%SMARTFRESH_PYTHON%" -c "import sklearn,xgboost,pandas,joblib; assert sklearn.__version__=='1.8.0'; assert xgboost.__version__=='3.1.3'" >nul 2>nul
 if errorlevel 1 (
-  ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+  "%SMARTFRESH_PYTHON%" -m pip install -r v606\requirements.txt
   if errorlevel 1 goto done
 )
-".venv\Scripts\python.exe" app.py
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\start_ollama.ps1
+"%SMARTFRESH_PYTHON%" app.py
 :done
 pause

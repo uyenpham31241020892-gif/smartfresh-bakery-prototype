@@ -1,0 +1,45 @@
+{
+  "regression": {
+    "passed": 140,
+    "failed": 0,
+    "log_summary": "140 passed, 1 warning in 75.18s (0:01:15)"
+  },
+  "javascript_syntax": "PASS",
+  "dom_rehearsal": {
+    "provisional": "PASS",
+    "closed_reconciliation": "PASS",
+    "manager_certificate": "PASS",
+    "sensitivity": "PASS",
+    "registry_real_demo_model": "PASS",
+    "demo_promotion_blocked": "PASS",
+    "missing_fresh_holdout": "PASS",
+    "f04_absent": "PASS",
+    "js_errors": []
+  },
+  "checks": [
+    "quantity and money reconciliation",
+    "line-level unit price arithmetic",
+    "stale receipt/hash rejection and idempotency",
+    "KPI/monitoring suppression on mismatch",
+    "M1/M2 fresh holdout, no refitting or repeated holdout",
+    "failed fresh evaluation blocks promotion",
+    "compatibility and checksum rejection",
+    "real candidate promotion/rollback and pinned sessions in temporary database",
+    "recovery when active artifact directory missing",
+    "schema upgrade preserves identity/login tokens/session JSON",
+    "manager-only mutations",
+    "F04 removed from UI"
+  ],
+  "synthetic_test_data_only": true,
+  "aeon_holdout_validated": false,
+  "windows_launcher_executed": false,
+  "graphical_browser_verified": false,
+  "new_dependencies": false,
+  "packaging": {
+    "all_gd7_source_paths_present": true,
+    "models_data_reference_unchanged": true,
+    "requirements_launchers_unchanged": true,
+    "patch_overlay_equals_full": true,
+    "environment_runtime_sentinels_preserved": true
+  }
+}

@@ -1,0 +1,18 @@
+SMARTFRESH GD5 - SUA LOI START-GEMINI
+
+Loi anh chup: ModuleNotFoundError: No module named fastapi.
+Nguyen nhan: launcher cu chay app.py ma chua cai dependencies tren thu muc moi.
+
+CACH VA BAN GD5 DANG CO:
+1. Dong cua so app loi.
+2. Giai nen SmartFresh_GD5_FIX_Start_Gemini.zip.
+3. Copy Start-Gemini.cmd, Start.cmd va thu muc scripts vao THU MUC CHUA app.py.
+   Cho phep thay the cac file trung ten. Giu nguyen cac file khac trong scripts.
+4. Chay lai Start-Gemini.cmd. Lan dau can Internet de tai thu vien.
+5. Khi hien SmartFresh: http://127.0.0.1:8000, mo dia chi do trong trinh duyet.
+
+Khong can API key Gemini de khoi dong dashboard/M1/M2. Cau hinh Copilot tren giao dien sau.
+Can Python 3.12 va Python Launcher (lenh py -3.12), hoac portable Python da co.
+Launcher kiem tra du dependencies, cai vao dung Python duoc chon, va dung lai neu cai that bai.
+Khong xoa hay thay database, model, du lieu, API key. Chi sua launcher va them bo kiem tra.
+Bo kiem tra da phat hien dung thu vien thieu trong moi truong Linux; chua chay CMD tren Windows thuc te.

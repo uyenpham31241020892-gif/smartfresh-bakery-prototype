@@ -1,0 +1,123 @@
+{
+  "scope": "ZIP02_FIT_VALIDATION_ONLY",
+  "fit_rows": 3885,
+  "validation_rows": 2100,
+  "trained_until": "2022-04-30",
+  "selected_on": "2022-05-01/2022-06-30",
+  "test_access": false,
+  "columns": [
+    "sku_code",
+    "time",
+    "prepared_qty",
+    "inventory_at_decision",
+    "sold_last_30min",
+    "sold_last_60min",
+    "shelf_inventory",
+    "backroom_inventory",
+    "previous_discount_pct",
+    "baseline_announced_2100_pct"
+  ],
+  "labels": "Future observed sales under historical logged actions; censored = lower bound",
+  "causal_price_response_learned": false,
+  "source_hashes": {
+    "READ_ME_FIRST.md": "89aae4ca0c96be8ddc286ee8c1ba14ac0d86bb6790ece02483e40ade4d789b7d",
+    "build_config.json": "090bed1ede523eaac40ab772ecb6a022a0a1103b8ca9b6cbec16af81c03a90f3",
+    "censored_tools_DIAGNOSTIC_ONLY.py": "aa6190ba644672f4434c47b27ef4c51cf65917658d03bc107c0216c7e06cc645",
+    "feature_contract.json": "b4ad4f06ee9a5c8e79b8e2cebf7335cda560f96eaabf33e88aaad9b11e190906",
+    "fit/baseline_daily_OBSERVED.csv": "e81e156012d220b4b9b1782a27e2bc8124963933e151e47685fd35e7db63a5be",
+    "fit/m1_checkpoint_features.csv": "886ca592de17852c203c750596422fc7452936f4e5df4a43648e11ef7e51501a",
+    "fit/m1_logged_actions_TREATMENT_ONLY.csv": "f8d86af74ffd754aef95ca22b6dbe464c5aaca05b174d7f419b2f276a677fd98",
+    "fit/m1_outcomes_LABELS_ONLY.csv": "cdc5b966ff8943bfd33b24309e594446c52623e4918ef6a391a47a30040480a6",
+    "fit/m2_censor_aware_targets.csv": "5bb74f690ebc3ac79a161e47e2e30dbe2a5333c060d73edcaa46d3ecaa86fb81",
+    "fit/m2_morning_features.csv": "4348c3b9ef797c143b10c799bb507ec815a6428f1ba682dfd77e92c041268b3e",
+    "fit/observed_15min.csv": "ebd5a04caec323688773e639926cd6c427cae24df91ed443b5b2fdb5a1d5ac69",
+    "fit/simulated_POS.csv": "e87324161a4d3f231665a58a7e0ca7410bf0115ec6b20a56363c2548d46325a3",
+    "model_io_guard.py": "bc586def9f459a4bd14e049abe46b248eb41deda82a592bfab8540d05d3589d9",
+    "sku_master.csv": "a705d22cc9aef1f9337c89161d4a58458099b3b02179e8e406f2403649fd1211",
+    "validation/baseline_daily_OBSERVED.csv": "4b97215e8bc9f1f388050b2b449ec8dc6a3b4a551760a4d36d3d9ba2ee2e3c1f",
+    "validation/m1_checkpoint_features.csv": "fa01334e0e2f84382300827a5c38e43c86f5a55757d7fcc5ec7bc57e258bb9c5",
+    "validation/m1_logged_actions_TREATMENT_ONLY.csv": "a943bc1f92ea13fc452737f09602d29f40aac09c4aad830dca30c982dc998bde",
+    "validation/m1_outcomes_LABELS_ONLY.csv": "3372f3e65589f7e1145c7ba1158ac12dd840dc0e1509845e1f92667808d6ec04",
+    "validation/m2_censor_aware_targets.csv": "c7ca104593ebdd3da1a231015a94124b9ba014ec666b5fe25c624d3d30f7de7a",
+    "validation/m2_morning_features.csv": "18fc04d403a8c4662d7c0caf799b99ce5ba4c84028b90f3b96a64ebfb71847e5",
+    "validation/observed_15min.csv": "1e984de42738fc931275dbc104970674b49ed6804c2b940c43175e87320a09ad",
+    "validation/simulated_POS.csv": "cf04cfeefd2508cfed7a3f44ecb76aee64886246da0b77d94c7dde52f0ea64b1"
+  },
+  "horizons": {
+    "close": {
+      "selected_depth": 3,
+      "selected_rounds": 60,
+      "validation_censored_loss": 6.511831654457951,
+      "validation_uncensored_mae": 2.4023475347300294,
+      "validation_exact_rows": 1265,
+      "candidates": [
+        {
+          "loss": 6.588504400136317,
+          "depth": 2,
+          "rounds": 60,
+          "uncensored_mae": 2.4024364062448735
+        },
+        {
+          "loss": 6.642225967067524,
+          "depth": 2,
+          "rounds": 120,
+          "uncensored_mae": 2.4507624159688537
+        },
+        {
+          "loss": 6.511831654457951,
+          "depth": 3,
+          "rounds": 60,
+          "uncensored_mae": 2.4023475347300294
+        },
+        {
+          "loss": 6.770105137153726,
+          "depth": 3,
+          "rounds": 120,
+          "uncensored_mae": 2.4899103491673826
+        }
+      ],
+      "pace_baseline_censored_loss": 25.71297619047619,
+      "pace_baseline_uncensored_mae": 4.4940711462450595
+    },
+    "to2130": {
+      "selected_depth": 3,
+      "selected_rounds": 60,
+      "validation_censored_loss": 4.18752023309477,
+      "validation_uncensored_mae": 1.6563661425766711,
+      "validation_exact_rows": 1548,
+      "candidates": [
+        {
+          "loss": 4.248597583104182,
+          "depth": 2,
+          "rounds": 60,
+          "uncensored_mae": 1.696501032509468
+        },
+        {
+          "loss": 4.214524546766348,
+          "depth": 2,
+          "rounds": 120,
+          "uncensored_mae": 1.6670001553352296
+        },
+        {
+          "loss": 4.18752023309477,
+          "depth": 3,
+          "rounds": 60,
+          "uncensored_mae": 1.6563661425766711
+        },
+        {
+          "loss": 4.279952962831451,
+          "depth": 3,
+          "rounds": 120,
+          "uncensored_mae": 1.654203596323198
+        }
+      ],
+      "pace_baseline_censored_loss": 18.81797619047619,
+      "pace_baseline_uncensored_mae": 2.9702842377260983
+    }
+  },
+  "artifact_hashes": {
+    "close.json": "cfef4b65275b9e63a574f82f45c9a1cfb348061d3daee4b4525fc55e04f9b3d2",
+    "preprocessor.joblib": "ca34ad5a66932a894e1f345eaab20cb7ce6470a463623915272d7368567b19d8",
+    "to2130.json": "f44ae0f8953bd009bf901029064be6eb07eacbc3211e16d06d67839651581760"
+  }
+}

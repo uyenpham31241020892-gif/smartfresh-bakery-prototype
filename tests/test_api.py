@@ -12,6 +12,8 @@ def client(monkeypatch,tmp_path,engine,simulator):
     import app as module
     store=Store(tmp_path/'api.sqlite3')
     monkeypatch.setattr(module,'store',store)
+    from services.identity import Identity
+    monkeypatch.setattr(module,'identity',Identity(store))
     monkeypatch.setattr(module,'workflow',Workflow(engine,simulator,store))
     from services.learning import Learning
     learner = Learning(store, engine, tmp_path/'artifacts')
@@ -21,7 +23,9 @@ def client(monkeypatch,tmp_path,engine,simulator):
     module.workflow.observed_outcomes = learner.outcomes_before
     from services.realtime import Realtime
     monkeypatch.setattr(module,'realtime',Realtime(module.workflow,store))
-    return TestClient(module.app)
+    c=TestClient(module.app)
+    assert c.post('/api/auth/setup',json={'username':'testmanager','password':'TestPass-GD6-123'}).status_code==200
+    return c
 
 
 def test_health_and_invalid_archive(client):

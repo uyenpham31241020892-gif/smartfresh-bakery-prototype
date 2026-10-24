@@ -1,0 +1,12 @@
+{
+  "scope": "VALIDATION_INTEGRATION_ONLY",
+  "mechanics_tests_passed": 18,
+  "adapter_tests_passed": 5,
+  "integration": "PASS: 7 SKUs, 4 branches, 6 decisions, closed 2022-06-15 22:00",
+  "official_test_executed": false,
+  "private_data_os_isolation": false,
+  "training_executed": false,
+  "old_datasets": "moved outside repository; originals ZIPs preserved",
+  "source_archive_checksum_verification": "01:43 entries PASS;03:23 entries PASS",
+  "source_checksum_note": "SOURCE_SHA256SUMS.json preserves upstream checksums; SHA256SUMS.json describes integrated runtime"
+}

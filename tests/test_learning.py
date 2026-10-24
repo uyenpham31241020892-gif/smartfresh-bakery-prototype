@@ -53,6 +53,8 @@ def test_m2_train_evaluate_confirm_persistence_pin_and_rollback(learner, engine,
         flow.create()
     new_day = '2024-03-04'
     w = weather({**df.iloc[-1].to_dict(), 'date': new_day})
+    # GD5: externally supplied forecasts require an explicit availability timestamp.
+    w['issued_at'] = '2024-03-03T18:00:00+07:00'
     history = {(r.date, r.sku_code): r.sold_qty for r in df.itertuples()}
     new = flow.create(day=new_day, mode='live', weather=w)
     assert new['model_version'] == r['id'] and new['plan'][0]['forecast'] == pytest.approx(80)

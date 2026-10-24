@@ -1,0 +1,2 @@
+date,forecast_rain_mm_previous_day1,forecast_temperature_max_c_previous_day1,is_public_holiday,is_festival_non_public,forecast_source,issued_at,available_at
+2022-08-16,5,30,0,0,SYNTHETIC_GD5_TEST_DECLARED,2022-08-16T07:00:00+07:00,2022-08-15T18:05:00+07:00

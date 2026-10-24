@@ -33,3 +33,6 @@
 .copilot-error p{margin:0}
 .copilot-thinking{display:flex;align-items:center;gap:10px;color:var(--muted);padding:16px 4px;font-size:12px}.copilot-thinking svg{color:var(--magenta)}
 @media(max-width:680px){.copilot-response{padding:13px}.copilot-section{gap:9px;padding:12px}.copilot-section-icon{width:27px;height:27px}.copilot-section-content p,.copilot-section-content li{font-size:12px}.copilot-technical dl{grid-template-columns:1fr;gap:3px}.copilot-technical dd{margin-bottom:5px}}
+
+/* Giai đoạn 3: lỗi có thể thử lại, nút rõ ràng và không tràn khung. */
+.copilot-error>div{min-width:0;flex:1}.copilot-error button{margin-top:10px;cursor:pointer}.suggested-questions button{white-space:normal;text-align:left}

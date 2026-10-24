@@ -1,0 +1,25 @@
+{
+  "qa_file": "docs/GD9_QA_RESULTS.json",
+  "e2e_file": "docs/GD9_E2E_RESULTS.json",
+  "regression_passed": 150,
+  "failed": 0,
+  "dom": {
+    "readiness_no_go_before_close": "PASS",
+    "readiness_go_after_certificate": "PASS",
+    "nine_live_conditions": "PASS",
+    "production_not_assessed": "PASS",
+    "trace_audit_and_transactions": "PASS",
+    "health": "PASS",
+    "js_errors": []
+  },
+  "all_gd8_source_paths_retained": true,
+  "model_data_reference_unchanged": true,
+  "requirements_launchers_unchanged": true,
+  "environment_runtime_not_in_patch": true,
+  "patch_overlay_equals_full": true,
+  "packaged_release_verification": "PASS",
+  "github_actions_run_on_user_repository": false,
+  "windows_launcher_manually_executed": false,
+  "production_aeon_acceptance": false,
+  "f04_in_ui": false
+}

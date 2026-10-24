@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "temporary_database": true,
+  "checks": [
+    "M2 error => rule fallback, pending Manager approval",
+    "acknowledge => clear => verify => resolve => explicit resume",
+    "Staff cannot approve even via direct API",
+    "M1 error => manual suggestion, effective prices unchanged",
+    "untrusted stock blocks all M1 suggestions",
+    "isolated rollback smoke drill leaves active model unchanged"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "version": "V6.06",
+  "scope": "TRAIN_VALIDATION_ONLY",
+  "no_test_access": true,
+  "m2_horizon": "day",
+  "model_selection": "validation",
+  "limitations": [
+    "Neither M1 nor M2 has causal discount uplift evidence",
+    "M2 objective is not a demand point-label regression; censored rows provide lower-bound constraints",
+    "Models are training artifacts; adapter/runtime integration not performed because runtime ZIP 03 was not provided",
+    "No formal TEST executed; no revenue/service/lost-sales claims",
+    "Validation selection is not independent test performance"
+  ],
+  "M2": {
+    "fit_rows": 777,
+    "validation_rows": 420,
+    "fit_censored": 289,
+    "validation_censored": 167,
+    "objective": "asymmetric_squared_error_right_censored_lower_bounds",
+    "selected_max_depth": 2,
+    "selected_rounds": 75,
+    "validation_censor_aware_loss": 44.8085,
+    "validation_uncensored_MAE": 6.482,
+    "alternatives": [
+      {
+        "max_depth": 2,
+        "rounds": 75,
+        "val_censored_loss": 44.8085
+      },
+      {
+        "max_depth": 2,
+        "rounds": 160,
+        "val_censored_loss": 65.8367
+      },
+      {
+        "max_depth": 4,
+        "rounds": 75,
+        "val_censored_loss": 77.5649
+      },
+      {
+        "max_depth": 4,
+        "rounds": 160,
+        "val_censored_loss": 87.4031
+      }
+    ]
+  },
+  "M1": {
+    "fit_checkpoints": 3885,
+    "validation_checkpoints": 2100,
+    "objective": "IMITATION_OF_LOGGED_BASELINE_ACTION_NOT_PRICE_OPTIMIZATION",
+    "selected_action_min_samples_leaf": 5,
+    "validation_logged_action_accuracy": 0.999,
+    "fit_logged_markdown_rows": 630,
+    "validation_logged_markdown_rows": 348,
+    "outcome_target": "sold_next30_observed_ONLY_UNDER_LOGGED_ACTION",
+    "validation_logged_outcome_MAE": 1.0554
+  }
+}

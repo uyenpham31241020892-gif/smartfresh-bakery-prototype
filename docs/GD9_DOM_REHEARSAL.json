@@ -1,0 +1,9 @@
+{
+  "readiness_no_go_before_close": "PASS",
+  "readiness_go_after_certificate": "PASS",
+  "nine_live_conditions": "PASS",
+  "production_not_assessed": "PASS",
+  "trace_audit_and_transactions": "PASS",
+  "health": "PASS",
+  "js_errors": []
+}

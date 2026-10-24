@@ -1,6 +1,101 @@
+Current M1 v8: [late-first prices, explanations before approval, and baseline history](docs/V606_LATE_FIRST_AND_EXPLANATIONS_V8.md). Prefer clearance after 21:00, allow only severe slow-selling exceptions earlier, and budget whole-day price concessions. Grounded explanations arrive with the proposal. The original Jan–Jun baseline has its own report tab.
+
+Previous M1 v7: [retrained remaining-sales forecasts and conditional clearance](docs/V606_TRAINED_CLEARANCE_V7.md). Its trained risk predictors are retained; v8 changes pricing policy and explanation delivery, not weights or the market stream. No causal uplift or official test claim.
+
+Reports: [richer reports with grounded Copilot](docs/V606_BENEFIT_REPORTS.md). Three report tabs cover revenue, realized prices, discounts and SKU performance with scoped AI analysis. The blanket v6 HOLD guard described there is superseded only for new v7 simulated markets.
+
+Previous pricing: [conditional proposals from 19:30](docs/V606_PRICING_FROM_1930.md). V6 adds the economic benefit guard above; old observed-surplus rules no longer automatically release unverified discounts.
+
+Current M2: [adaptive planning and 64-configuration training review](docs/V606_ADAPTIVE_M2_REVIEW.md). Fixed constant preparation, normalized busy-scenario history, and preserved original weights after challengers failed the service-oriented validation gate.
+
+Business reports: [daily charts and day/week/month comparison](docs/V606_BUSINESS_REPORTS.md), based on saved operating sessions, with missing days and provisional totals clearly marked.
+
+Current report cost assumption: [45% of list price on all confirmed preparation](docs/V606_COST_ASSUMPTION.md), user-authorized simulation assumption; not net profit.
+
+# Current: V606 compact workspace / policy v3
+
+See [current guide](docs/V606_COMPACT_WORKSPACE.md). http://127.0.0.1:8000. Earlier sections below describe previous iterations.
+
+# Current: V606 service2130 v2
+
+See [current guide](docs/V606_SERVICE2130.md). Original prototype at http://127.0.0.1:8000. Start a NEW session for the changed supply policy; older sessions are preserved. Sections below describe earlier iterations.
+
+# V606 prototype integration
+
+Start.cmd -> http://127.0.0.1:8000 (original prototype UI). Frozen V606 models, default test-scenario date 2022-07-01. Background POS: declared synthetic busy 4x public past observed mean, 30 virtual minutes/second. Model comparison is under the simulation source/report button. This is a stress scenario, not the original private market evaluation. No test retraining, no profit or SHAP claims. The separate port 8765 POS is superseded for the prototype workflow.
+
+# SmartFresh V6.06 ? POS v?i model ?? train
+
+Ch?y **Start.cmd**, m? **http://127.0.0.1:8765** v? nh?p manager token t? terminal. Xem [h??ng d?n POS V6.06](docs/V606_POS.md).
+
+Runtime hi?n d?ng 7 SKU V6.06, model ??ng b?ng v? feature allowlist; d? li?u/model/database V9 ?? ??a ra ngo?i repo. DEMO ki?m tra t?ch h?p ? validation 15/06/2022. Test th?ng 7?8 ch?nh th?c c?n t?ch t?i kho?n/container custodian v? model nh? h??ng d?n. Kh?ng retrain, kh?ng n?p nh?n test v?o model.
+
+C?c ph?n d??i ??y l? t?i li?u l?ch s? V9, kh?ng ?p d?ng cho lu?ng ch?y hi?n t?i.
+
+---
+
+## Bản cập nhật GD9.3
+
+Chế độ Assisted / Manual / Shadow dùng chung cho ca, đặt ở đầu Tổng quan, Kế hoạch sản lượng và Giảm giá cuối ngày. Đã xóa ô chuyển hướng thừa ở An toàn & sự cố và cập nhật hướng dẫn. Xem [hướng dẫn GD9.3](docs/GD9_3_SHARED_MODES.md).
+
+# GD9.2 — Sàn sản lượng khuyến nghị
+
+Manager được duyệt dưới sàn90%baseline khi ghi lý do và audit; giữ mẻ4 và số dương. Xem [hướng dẫn GD9.2](docs/GD9_2_SOFT_PRODUCTION_FLOOR.md). Bao gồm bản sửa giá GD9.1.
+
+# GD9.1 — Sửa Manager chỉnh giá
+
+Ba chế độ ở ngay trang M1; dropdown giữ lựa chọn khi polling; Manual tạo bảng mới; mở lại chỉnh giá cùng mốc. Xem [hướng dẫn và phân tích báo cáo](docs/GD9_1_MANAGER_PRICING_FIX.md). Model/data/policy giữ nguyên.
+
+# SmartFresh — Giai đoạn 9
+
+Final QA & Deployment Readiness: health 200/503, structured API errors, Request ID tracing, offline backup/restore, GitHub CI và GO/NO-GO có bằng chứng cho demo local. Chưa nghiệm thu production/AEON; BigQuery chưa tích hợp; F04 vẫn bỏ khỏi UI.
+
+Nâng cấp từ GD8 bằng patch, giữ environment/runtime và launcher cũ. Xem [hướng dẫn GD9](docs/GIAI_DOAN_9_HUONG_DAN.md) và [cách chép patch](docs/GD9_PATCH_GUIDE.md).
+
+QA: `python scripts/run_qa.py`. GitHub Actions: `.github/workflows/ci.yml` (Ubuntu/Windows; chưa chạy trên repository của bạn).
+
+# SmartFresh — Giai đoạn 8
+
+Đối soát cuối ca, model registry, fresh holdout, promotion và rollback. F04 baseline vs M1+M2 đã gỡ khỏi giao diện theo yêu cầu.
+
+Nâng cấp GD7: dùng patch, giữ environment/runtime và chạy launcher cũ. Xem [hướng dẫn GD8](docs/GIAI_DOAN_8_HUONG_DAN.md) và [cách chép patch](docs/GD8_PATCH_GUIDE.md).
+
+# SmartFresh — Giai đoạn 7: Monitoring & Drift Dashboard
+**Đang có GD6:** dùng ZIP PATCH, dừng server → chép đè vào thư mục có app.py → mở lại Start-Gemini.cmd cũ → Ctrl+F5. **Giữ nguyên .venv/runtime/.env/model/data**; không cần cài lại environment.
+
+**Source mới:** Start-Gemini.cmd hoặc Start.cmd như trước; tài khoản local theo GD6.
+Menu **Giám sát hệ thống** có 4 tab Dữ liệu/Mô hình/Vận hành/Cảnh báo. Nút **Tạo minh họa drift cô lập** giúp thử đầy đủ khi chưa có ca đã chốt.
+
+- [Cách dùng PATCH](docs/GD7_PATCH_GUIDE.md)
+- [Hướng dẫn GD7 đầy đủ](docs/GIAI_DOAN_7_HUONG_DAN.md)
+- `python scripts/demo_gd7_check.py`: diễn tập API trên database tạm.
+
+Full source bao gồm tất cả GD5/GD6 và bản sửa launcher; không đóng gói environment hay database phiên cũ.
+
+---
+
+# Bản bàn giao Giai đoạn 6 — Safety, Incident & Fallback
+Full source **GD5 + sửa Start-Gemini + GD6**. Chạy **Start-Gemini.cmd** (không khởi động Ollama) hoặc Start.cmd.
+Mở http://127.0.0.1:8000, lần đầu **tạo tài khoản Manager** bằng mật khẩu bạn tự chọn.
+Menu **An toàn & sự cố**: Manual/Assisted/Shadow, phân quyền, incident và diễn tập phục hồi.
+
+**Đọc:** [docs/GIAI_DOAN_6_HUONG_DAN.md](docs/GIAI_DOAN_6_HUONG_DAN.md).
+**Thử tự động:** `python scripts/demo_gd6_check.py` (database tạm, không đổi ca của bạn).
+Source gọn, không chứa .venv hoặc database phiên cũ. Hướng dẫn giữ runtime cũ nằm trong tài liệu trên.
+
+---
+
+# Bản bàn giao Giai đoạn 5 — Data Quality & Provenance
+Mở **Start.cmd** để chạy demo. Vào **Dữ liệu đầu vào** để xem kiểm tra mới.
+Hướng dẫn đầy đủ: [docs/GIAI_DOAN_5_HUONG_DAN.md](docs/GIAI_DOAN_5_HUONG_DAN.md).
+File thử: **examples/gd5/** (ngày mục tiêu 16/08/2022).
+Full source gọn, không kèm .venv/runtime của máy cũ. Giải nén vào thư mục mới.
+
+---
+
 # SmartFresh · Bakery Intelligence
 
-Dashboard chạy local, dùng **hai mô hình LightGBM V9 đã huấn luyện sẵn** suy luận từ đầu vào mới, có upload dữ liệu, xác nhận quyết định, sổ giao dịch và OpenAI Copilot.
+Dashboard chạy local, dùng **hai mô hình LightGBM V9 đã huấn luyện sẵn** suy luận từ đầu vào mới, có upload dữ liệu, xác nhận quyết định, sổ giao dịch và Copilot tùy chọn (Gemini / OpenAI / Ollama).
 
 Nguồn chính: **V9-20261020T063226Z-1-001.zip**, 173 tệp. Giao diện tham khảo Mockup draft 1.pdf, nền sáng và magenta theo hướng AEON Bakery PoC.
 
@@ -8,7 +103,7 @@ Nguồn chính: **V9-20261020T063226Z-1-001.zip**, 173 tệp. Giao diện tham k
 
 ## Chạy trên máy hiện tại
 
-Mở **Start.cmd**, sau đó truy cập **http://127.0.0.1:8000**.
+Nếu dùng Gemini trên máy RAM thấp, chạy **Start-Gemini.cmd** (không bật Ollama), sau đó truy cập **http://127.0.0.1:8000**. `Start.cmd` là lối khởi động cũ có tích hợp Ollama.
 
 Python 3.12 riêng được chuẩn bị trong .tools/python312, không thay Python hệ thống. PowerShell:
 
@@ -50,13 +145,13 @@ Ngày mới ngoài V9: Excel hai sheet history/weather, hoặc ZIP có history.c
 
 Model hỗ trợ đúng 8 SKU của SKU master. SKU mới cần bổ sung dữ liệu và đào tạo/kiểm chứng model.
 
-## GPT thật
+## Kết nối Copilot qua Gemini / OpenAI / Ollama
 
 Mở **Cài đặt AI**, nhập OpenAI API key và model có quyền truy cập. Key giữ trong bộ nhớ backend. Hoặc copy .env.example thành .env, điền key rồi khởi động lại.
 
 Copilot dùng **OpenAI Responses API** và công cụ chỉ đọc để giải thích số liệu ca, không tự duyệt hoặc áp dụng. GPT có thể đề nghị ánh xạ cột chưa nhận diện; vẫn cần validation và preview.
 
-Nút **Kết nối & gọi thử GPT** gọi Responses API cùng công cụ dữ liệu ca, rồi hiển thị phản hồi thật, model và Response ID. Chỉ báo đã xác minh sau khi cuộc gọi thành công. Có thể mở thẳng http://127.0.0.1:8000/?view=settings khi server hoạt động.
+Nút **Kết nối & gọi thử AI** gọi Responses API cùng công cụ dữ liệu ca, rồi hiển thị phản hồi thật, model và Response ID. Chỉ báo đã xác minh sau khi cuộc gọi thành công. Có thể mở thẳng http://127.0.0.1:8000/?view=settings khi server hoạt động.
 
 **Chưa kiểm thử gọi OpenAI thật vì chưa có API key.** Khi chưa cấu hình, ứng dụng báo chưa kết nối; không trả lời GPT giả.
 
@@ -94,3 +189,7 @@ Kiểm thử provider sử dụng HTTP giả lập để kiểm tra truyền b�
 
 
 Xem [c? ch? realtime, m? ph?ng v? chuy?n ng?y](docs/DAILY_REALTIME_LOOP.md).
+
+## Bàn giao và kịch bản demo V1
+
+Xem [Giai đoạn 4: QA Human Approval, ZIP và kịch bản demo](GIAI_DOAN_4_BAN_GIAO_VA_DEMO.md). Chạy `python -m pytest -q` và `python scripts/demo_gd4_check.py` để kiểm thử trên database tạm. Gói mã nguồn không chứa `.venv`, `.env` hoặc phiên SQLite.

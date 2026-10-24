@@ -1,0 +1,14 @@
+﻿source_id,url,actual_use,not_supported,accessed_on
+FRENCH_RAW,https://www.kaggle.com/datasets/matthieugimbert/french-bakery-daily-sales,234005 raw rows preserved; 233 open dates Jan-Aug2022; seven explicit source articles,Not AEON POS; historical sales are imperfect demand proxy,2026-10-23
+USER_SURVEY,USER_CONVERSATION,7 exact list prices and5 conditional markdown cash prices,Survey date/barcodes/receipts unknown; current prices applied to2022 scenario,2026-10-23
+AEON_IBM,https://jp.newsroom.ibm.com/2024-05-07-AEON-RETAIL-AI-Kakaku-and-AI-Order-developped-with-IBM-Japan,Design rationale joint ordering and markdown using sales/weather/footfall,Japanese retailer departments; NOT TanPhu costs or expected performance,2026-10-23
+GREEN_AI,https://github.com/Green-AI-Hub-Mittelstand/Reduce-Foodwaste-Dataset,Downloaded train.csv; audited5142rows; rejected quantitative waste-ratio calibration,Scaled negative values; sales+unsold !=ordered; no complete rows before2022,2026-10-23
+PURATOS,https://www.puratos.com.au/en/recipes/danish,Process benchmark:60-80min proof plus16min bake;120min scenario lead from prepared dough,Not AEON recipe; no validated physical capacity; from-scratch process longer,2026-10-23
+FLOUR,https://www.beemart.vn/bot-my-dia-cau-1kg,Retail quote23000VND/kg; ingredient anchor,Not AEON procurement price,2026-10-23
+BUTTER,https://www.beemart.vn/bo-sua,Retail quote1550000VND/5kg=>310000VND/kg,Not AEON procurement price,2026-10-23
+CHEESE,https://www.beemart.vn/pho-mai-kem-anchor-1kg,Retail quote249000VND/kg; ingredient anchor,Not AEON procurement price,2026-10-23
+WAGE,https://baochinhphu.vn/tang-luong-toi-thieu-vung-tu-1-1-2026-102251110175033018.htm,Published2026RegionI25500VND/hour used only low scenario anchor,Actual labor wage/load/productivity unknown; not2022 wage,2026-10-23
+EVN,https://www.evn.com.vn/d/vi-VN/news/Bieu-gia-ban-le-dien-theo-Quyet-dinh-so-1279QD-BCT-ngay-0952025-cua-Bo-Cong-Thuong-60-28-502668,2025business<6kV benchmark1918/3152/5422VND/kWh verified image,Not verified AEON contract/voltage/time mix; not2022 tariff,2026-10-23
+DISPOSAL_REJECTED,https://www.congbao.hochiminhcity.gov.vn/cong-bao/van-ban/quyet-dinh/so/67-2025-qd-ubnd/ngay/07-05-2025/noi-dung/47910/48000,Located decision but failed to retrieve primary contents; no rate imported,50/150/400VND per unit disposal are ASSUMED total handling/transport scenarios,2026-10-23
+WEATHER,https://open-meteo.com/en/docs/historical-weather-api,Inherited historical hourly weather; previous-day aggregates only in modelfeatures,No issued JMA forecast; observed rainfall used only by private simulator,2026-10-23
+BREAD_STUDY,https://research.slu.se/en/publications/quantification-and-economic-assessment-of-surplus-bread-in-italia/,Context only: empirical surplus varies; not used to force waste target,Bread samples inItaly not Vietnamese pastry waste benchmark,2026-10-23

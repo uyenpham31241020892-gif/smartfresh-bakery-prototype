@@ -1,0 +1,10 @@
+{
+  "feature_contract.json": "d20489e0a9190ae1dc70d6b48f813c48728792d713192cd0457fdacadd8c6730",
+  "M2_day.json": "7e609b845179e56769fb6190dea140b47e4d8567f53e4a60dbd62d2ed893e17d",
+  "M2_day_validated_fit.json": "9d3fe8cfc4c4b78a4839539fa3d4e174a8a73b72ccfed764ae6628c1aedfee94",
+  "M2_preprocessor.joblib": "76b81f1bb4dbb1011ead191885992eb6260b054b49fc48a4de65abe2a2b0d5db",
+  "M2_preprocessor_validated_fit.joblib": "fb090386e8dfe28940065e66aedc3ce30521d2832693478aa8ba3f54915d5f5e",
+  "M2_to_2130.json": "ad7c797c12515064cff7e66eefb38ceb3d7c6e3dddc3a9a12d4fb6748632ddab",
+  "M2_to_2130_validated_fit.json": "fba48de5e5d8e22e5b6f3531f298dc727d945a0e62bc2e39c9e47b8f73d3608e",
+  "training_report.json": "e054d874d17a33be951a03df4b26b974bcff71282d7a688135cff03bfe06ec09"
+}
