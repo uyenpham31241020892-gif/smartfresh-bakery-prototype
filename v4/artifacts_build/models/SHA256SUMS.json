@@ -1,0 +1,7 @@
+{
+  "artifacts_build/models/m2_forecast_bundle.joblib": "7de4a8c59229fd1ffe92e96c6b2a4725c9072487cb9562b5c57fb57f4b333e81",
+  "artifacts_build/models/m1_pricing_q_bundle.joblib": "df52041c29332619ab9664b6c92dbc7cfe50714bc7fdef3972fbf4b337139c99",
+  "artifacts_build/models/operational_lookup.json": "1c1a01a4e713ad18217c72917b72d21c5e873403f2f0761887fc6222bfc386b3",
+  "artifacts_build/models/policy_config.json": "c9dded864aa5c5ae9e116479a206a134c4e5dbbf6810e19f4c3ec2c675bcaded",
+  "smartfresh_adapter.py": "b231c50758378cc2d32a35e77220a1025a0ddddf6b4804722c4b7616e2ebebe0"
+}

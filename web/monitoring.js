@@ -44,7 +44,7 @@ function monitorDrift(d){
  return mcard('Dịch chuyển phân phối feature','Data drift · '+(ref.available?'TRAIN '+ref.from+' → '+ref.through:'Reference chưa sẵn có'),
  '<div class="notice">'+esc(ref.available?ref.source:ref.reason)+'</div>'+mtable(['Feature','Mẫu tham chiếu','Mẫu hiện tại / ngày','Mean tham chiếu','Mean hiện tại','PSI','KS statistic','Đánh giá'],drift.data.map(r=>[
  esc(featureNames[r.feature]||r.feature),mn(r.reference_n,0),mn(r.current_n,0)+' / '+r.current_days,mn(r.reference_mean),mn(r.current_mean),mn(r.psi,4),mn(r.ks_statistic,4),mstatus(r.status)]))+
- '<p class="monitor-note">'+esc(drift.note)+' Tối thiểu '+d.config.min_rows+' dòng và '+d.config.min_days+' ngày hiện tại để bật đánh giá; lặp 8 SKU trong một ngày không tạo 8 ngày độc lập.</p><details><summary>Phương pháp & reference hash</summary><p>PSI dùng bins theo reference, pseudocount 0,5. KS chỉ là statistic; không trả p-value hay kết luận nhân quả.</p><code class="monitor-code">'+esc(ref.sha256||'Chưa có')+'</code></details>');
+ '<p class="monitor-note">'+esc(drift.note)+' Tối thiểu '+d.config.min_rows+' dòng và '+d.config.min_days+' ngày hiện tại để bật đánh giá; lặp 7 SKU trong một ngày không tạo 8 ngày độc lập.</p><details><summary>Phương pháp & reference hash</summary><p>PSI dùng bins theo reference, pseudocount 0,5. KS chỉ là statistic; không trả p-value hay kết luận nhân quả.</p><code class="monitor-code">'+esc(ref.sha256||'Chưa có')+'</code></details>');
 }
 function selectedMetric(d){
  const key=g=>g.model_version+'|'+g.origin+'|'+g.target_kind;
@@ -123,5 +123,5 @@ document.addEventListener('change',e=>{
  if(e.target.hasAttribute('data-monitor-auto'))monitoringAuto=e.target.checked;
  if(e.target.hasAttribute('data-monitor-group')){monitoringGroup=e.target.value;render();}
 });
-setInterval(()=>{if(typeof currentView!=='undefined'&&currentView==='monitoring'&&monitoringAuto&&!monitoringBusy&&!working&&!$('modal').open&&!document.activeElement?.closest('#monitor-config-form'))loadMonitoring();},30000);
+setInterval(()=>{if(typeof currentView!=='undefined'&&currentView==='monitoring'&&monitoringAuto&&!monitoringBusy&&!working&&!$('modal').open&&!document.activeElement?.closest('#monitor-config-form'))loadMonitoring();},3000);
 function monitoringLink(){const known=monitoringState?.scope.session_id===state.id&&monitoringState.scope.source==='runtime';return '<div class="monitor-overview-link"><span>'+icon('activity')+'<b>Giám sát hệ thống</b> · '+(known?monitoringState.overview.active_alerts+' cảnh báo ở lần kiểm tra gần nhất':'Mở để kiểm tra dữ liệu, sai số và drift')+'</span><button class="small" data-go="monitoring">Xem giám sát '+icon('arrow')+'</button></div>';}

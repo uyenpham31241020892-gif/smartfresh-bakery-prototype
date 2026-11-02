@@ -1,0 +1,16 @@
+{
+  "release_id": "d45829471ea9f419a77a0a01080febd227dd7024dce8ed36155ff0ccc3f5e6a1",
+  "created": "2026-10-29T19:01:27.416066+00:00",
+  "passed": 27,
+  "failed": 0,
+  "pytest_exit_code": 0,
+  "e2e": {
+    "passed": true,
+    "scope": "API full shift, reconciliation, registry, data, safety, RBAC, model parity"
+  },
+  "browser": "See separately supplied browser QA evidence; not rerun by this command.",
+  "environment": "Linux / Python3.12 / sklearn1.9.1",
+  "windows_launcher_executed": false,
+  "real_llm_provider_called": false,
+  "real_pos_eink_connected": false
+}

@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install project and test dependencies
-        run: python -m pip install -r requirements.txt pytest
+        run: python -m pip install -r requirements-dev.txt
       - name: JavaScript syntax
         shell: bash
         run: for f in web/*.js; do node --check "$f" || exit 1; done
@@ -38,7 +38,7 @@ jobs:
         with:
           name: qa-${{ matrix.os }}
           path: |
-            docs/GD9_QA_RESULTS.json
-            docs/GD9_E2E_RESULTS.json
-            docs/GD9_pytest.xml
+            docs/V4_QA_RESULTS.json
+            docs/V4_BROWSER_QA.json
+            docs/V4_pytest.xml
             release_manifest.json

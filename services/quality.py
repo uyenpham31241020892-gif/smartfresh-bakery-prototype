@@ -47,7 +47,7 @@ def weather_check(day, weather, trusted_demo=False):
         if not trusted_demo:
             raise ValueError('Forecast nhập cần issued_at có múi giờ, không sau 06:00; tên JMA không thay thế timestamp.')
         return {'status': 'WARN', 'source': source, 'issued_at': None, 'age_hours': None,
-                'message': 'Demo V9 previous_day1: chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
+                'message': 'Demo V4 prior-day weather: chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
     issued = timestamp(issued)
     available = timestamp(weather.get('available_at') or issued.isoformat())
     if available < issued:
@@ -97,7 +97,7 @@ def build_snapshot(day, visible, weather, engine, plans, outcomes, lineage, trus
             'clock_basis': 'session_day_not_wall_clock', 'history': history, 'weather':weather_result,
             'lineage':lineage, 'policy':POLICY, 'feature_hash':digest(features),
             'model_hashes':content['model_hashes'], 'model_version':engine.version,
-            'message':'Kiểm tra local theo thời gian ca; PASS không xác thực nguồn POS/JMA hoặc chứng nhận production.'}
+            'message':'Kiểm tra local theo thời gian ca; PASS không xác thực nguồn POS/thời tiết hoặc chứng nhận production.'}
 
 
 def sales_quality(s):

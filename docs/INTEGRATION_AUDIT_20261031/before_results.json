@@ -1,0 +1,434 @@
+[
+  {
+    "day": "2022-05-02",
+    "prepared": 152,
+    "sold": 108,
+    "waste": 44,
+    "lost": 0,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 32,
+        "preparation_cost": 432960,
+        "unsold_cost_included": 54120
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 24,
+        "preparation_cost": 309552,
+        "unsold_cost_included": 90286
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 24,
+        "preparation_cost": 309552,
+        "unsold_cost_included": 141878
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 24,
+        "preparation_cost": 314616,
+        "unsold_cost_included": 196635
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 28,
+        "preparation_cost": 289380,
+        "unsold_cost_included": 10335
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 8,
+        "preparation_cost": 70744,
+        "unsold_cost_included": 8843
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 12,
+        "preparation_cost": 107640,
+        "unsold_cost_included": 44850
+      }
+    ],
+    "revenue": 2795350,
+    "preparation_cost": 1834444,
+    "contribution_before_overhead": 954306,
+    "unsold_cost_included": 546947,
+    "disposal_fee": 6600,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  },
+  {
+    "day": "2022-05-03",
+    "prepared": 124,
+    "sold": 73,
+    "waste": 51,
+    "lost": 12,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 28,
+        "preparation_cost": 378840,
+        "unsold_cost_included": 202950
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 20,
+        "preparation_cost": 257960,
+        "unsold_cost_included": 154776
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 20,
+        "preparation_cost": 257960,
+        "unsold_cost_included": 51592
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 20,
+        "preparation_cost": 262180,
+        "unsold_cost_included": 104872
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 24,
+        "preparation_cost": 248040,
+        "unsold_cost_included": 124020
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 4,
+        "preparation_cost": 35372,
+        "unsold_cost_included": 0
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 8,
+        "preparation_cost": 71760,
+        "unsold_cost_included": 0
+      }
+    ],
+    "revenue": 1718950,
+    "preparation_cost": 1512112,
+    "contribution_before_overhead": 199188,
+    "unsold_cost_included": 638210,
+    "disposal_fee": 7650,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  },
+  {
+    "day": "2022-05-15",
+    "prepared": 240,
+    "sold": 212,
+    "waste": 28,
+    "lost": 22,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 48,
+        "preparation_cost": 649440,
+        "unsold_cost_included": 0
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 36,
+        "preparation_cost": 464328,
+        "unsold_cost_included": 77388
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 40,
+        "preparation_cost": 515920,
+        "unsold_cost_included": 12898
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 36,
+        "preparation_cost": 471924,
+        "unsold_cost_included": 117981
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 48,
+        "preparation_cost": 496080,
+        "unsold_cost_included": 93015
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 16,
+        "preparation_cost": 141488,
+        "unsold_cost_included": 26529
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 16,
+        "preparation_cost": 143520,
+        "unsold_cost_included": 0
+      }
+    ],
+    "revenue": 5561300,
+    "preparation_cost": 2882700,
+    "contribution_before_overhead": 2674400,
+    "unsold_cost_included": 327811,
+    "disposal_fee": 4200,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  },
+  {
+    "day": "2022-06-02",
+    "prepared": 156,
+    "sold": 61,
+    "waste": 95,
+    "lost": 0,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 32,
+        "preparation_cost": 432960,
+        "unsold_cost_included": 257070
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 24,
+        "preparation_cost": 309552,
+        "unsold_cost_included": 193470
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 24,
+        "preparation_cost": 309552,
+        "unsold_cost_included": 128980
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 24,
+        "preparation_cost": 314616,
+        "unsold_cost_included": 183526
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 28,
+        "preparation_cost": 289380,
+        "unsold_cost_included": 196365
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 12,
+        "preparation_cost": 106116,
+        "unsold_cost_included": 106116
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 12,
+        "preparation_cost": 107640,
+        "unsold_cost_included": 53820
+      }
+    ],
+    "revenue": 1571590,
+    "preparation_cost": 1869816,
+    "contribution_before_overhead": -312476,
+    "unsold_cost_included": 1119347,
+    "disposal_fee": 14250,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  },
+  {
+    "day": "2022-06-15",
+    "prepared": 116,
+    "sold": 67,
+    "waste": 49,
+    "lost": 2,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 24,
+        "preparation_cost": 324720,
+        "unsold_cost_included": 27060
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 16,
+        "preparation_cost": 206368,
+        "unsold_cost_included": 116082
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 20,
+        "preparation_cost": 257960,
+        "unsold_cost_included": 193470
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 20,
+        "preparation_cost": 262180,
+        "unsold_cost_included": 52436
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 20,
+        "preparation_cost": 206700,
+        "unsold_cost_included": 124020
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 8,
+        "preparation_cost": 70744,
+        "unsold_cost_included": 17686
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 8,
+        "preparation_cost": 71760,
+        "unsold_cost_included": 44850
+      }
+    ],
+    "revenue": 1771900,
+    "preparation_cost": 1400432,
+    "contribution_before_overhead": 364118,
+    "unsold_cost_included": 575604,
+    "disposal_fee": 7350,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  },
+  {
+    "day": "2022-06-30",
+    "prepared": 132,
+    "sold": 100,
+    "waste": 32,
+    "lost": 13,
+    "policy_id": "V4_UNIT_COST_ALL_PREPARED_DISPOSAL_MARKDOWN_V1",
+    "status": "V4_ASSUMED_NOT_AEON_VERIFIED",
+    "rate": null,
+    "basis": "V4_UNIT_COST_TIMES_ALL_PREPARED",
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "unit_cost_assumed": 13530,
+        "prepared": 28,
+        "preparation_cost": 378840,
+        "unsold_cost_included": 94710
+      },
+      {
+        "sku": "TP-DN-002",
+        "unit_cost_assumed": 12898,
+        "prepared": 20,
+        "preparation_cost": 257960,
+        "unsold_cost_included": 0
+      },
+      {
+        "sku": "TP-DN-003",
+        "unit_cost_assumed": 12898,
+        "prepared": 16,
+        "preparation_cost": 206368,
+        "unsold_cost_included": 0
+      },
+      {
+        "sku": "TP-DN-004",
+        "unit_cost_assumed": 13109,
+        "prepared": 20,
+        "preparation_cost": 262180,
+        "unsold_cost_included": 104872
+      },
+      {
+        "sku": "TP-CR-001",
+        "unit_cost_assumed": 10335,
+        "prepared": 24,
+        "preparation_cost": 248040,
+        "unsold_cost_included": 41340
+      },
+      {
+        "sku": "TP-CP-001",
+        "unit_cost_assumed": 8843,
+        "prepared": 12,
+        "preparation_cost": 106116,
+        "unsold_cost_included": 106116
+      },
+      {
+        "sku": "TP-RV-001",
+        "unit_cost_assumed": 8970,
+        "prepared": 12,
+        "preparation_cost": 107640,
+        "unsold_cost_included": 8970
+      }
+    ],
+    "revenue": 2344000,
+    "preparation_cost": 1567144,
+    "contribution_before_overhead": 772056,
+    "unsold_cost_included": 356008,
+    "disposal_fee": 4800,
+    "disposal_pending": false,
+    "markdown_cost": 0,
+    "operating_expenses": null,
+    "net_profit": null,
+    "note": "L\u00e3i g\u00f3p m\u00f4 ph\u1ecfng = doanh thu \u2212 gi\u00e1 v\u1ed1n to\u00e0n b\u1ed9 b\u00e1nh \u0111\u00e3 l\u00e0m \u2212 ph\u00ed h\u1ee7y 150\u0111/b\u00e1nh cu\u1ed1i ca \u2212 chi ph\u00ed \u0111\u1ed5i gi\u00e1. E-ink 0\u0111/l\u1ea7n, tem 350\u0111/l\u1ea7n; \u0111\u00e2y l\u00e0 gi\u1ea3 \u0111\u1ecbnh v\u1eadn h\u00e0nh, kh\u00f4ng \u0111\u1ed5i chi ph\u00ed 350\u0111 trong quy\u1ebft \u0111\u1ecbnh V4 \u0111\u00e3 kh\u00f3a."
+  }
+]

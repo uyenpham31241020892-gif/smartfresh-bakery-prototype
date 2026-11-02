@@ -1,37 +1,36 @@
 <!doctype html>
 <html lang="vi">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#a50870"><meta name="description" content="SmartFresh Bakery — dashboard AI lập sản lượng và tối ưu giảm giá, chạy local."><title>SmartFresh · Bakery Intelligence</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23a50870'/%3E%3Cpath d='M21 7l-11 15h9l-2 12 13-17h-10z' fill='white'/%3E%3C/svg%3E"><link rel="stylesheet" href="/assets/styles.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#a50870"><meta name="description" content="SmartFresh Bakery — dashboard AI lập sản lượng và tối ưu giảm giá, chạy local."><title>SmartFresh · Bakery Intelligence</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23a50870'/%3E%3Cpath d='M21 7l-11 15h9l-2 12 13-17h-10z' fill='white'/%3E%3C/svg%3E"><link rel="stylesheet" href="/assets/styles.css"><link rel="stylesheet" href="/assets/professional.css?v=clean-3"></head>
 <body>
 <div id="loading" class="loading-bar" hidden></div>
 <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
   <div class="brand"><span class="brand-mark" data-icon="spark"></span><span class="brand-word">SmartFresh<span style="color:#b3278a">.</span></span></div><div class="brand-sub">BAKERY INTELLIGENCE</div>
   <div class="store-switch"><span class="store-icon" data-icon="store"></span><div><strong>Bakery · Tân Phú</strong><small>Không gian thử nghiệm local</small></div></div>
   <div class="nav-label">VẬN HÀNH</div><nav>
-    <button data-view="overview" class="active" title="Tổng quan"><i data-icon="dashboard"></i><span>Tổng quan</span></button>
-    <button data-view="m2" title="Kế hoạch sản lượng"><i data-icon="bread"></i><span>Kế hoạch sản lượng</span><b class="nav-count" id="plan-count">8</b></button>
-    <button data-view="m1" title="Giảm giá cuối ngày"><i data-icon="tag"></i><span>Giảm giá cuối ngày</span></button>
-    <button data-view="ledger" title="Giao dịch và theo dõi"><i data-icon="activity"></i><span>Giao dịch & theo dõi</span></button>
-    <button data-view="reports" title="Báo cáo hiệu quả"><i data-icon="chart"></i><span>Báo cáo hiệu quả</span></button>
-    <div class="nav-sep"></div><div class="nav-label">KHÔNG GIAN LÀM VIỆC</div>
-    <button data-view="data" title="Dữ liệu đầu vào"><i data-icon="database"></i><span>Dữ liệu đầu vào</span></button>
-    <button data-view="readiness"><i data-icon="check"></i><span>GO / NO-GO</span></button>
-    <button data-view="registry"><i data-icon="database"></i><span>Model Registry</span></button>
-    <button data-view="learning" title="Học từ dữ liệu"><i data-icon="activity"></i><span>Học từ dữ liệu</span></button>
-    <button data-view="monitoring" title="Giám sát hệ thống"><i data-icon="chart"></i><span>Giám sát hệ thống</span></button>
-    <button data-view="safety" title="An toàn và sự cố"><i data-icon="shield"></i><span>An toàn & sự cố</span></button>
-    <button data-view="audit" title="Nhật ký quyết định"><i data-icon="history"></i><span>Nhật ký quyết định</span></button>
-    <button data-view="settings" title="Cài đặt AI"><i data-icon="settings"></i><span>Cài đặt AI</span></button>
-  </nav>
-  <div class="sidebar-bottom"><div class="model-status"><span class="dot"></span><strong>Mô hình V9 sẵn sàng</strong><div class="muted" style="font-size:10px;margin:3px 0 0 12px">M1 + M2 · Suy luận trên máy</div></div><div class="user"><div class="avatar">QL</div><div><strong>Quản lý Bakery</strong><small>Phiên thử nghiệm</small></div><span style="margin-left:auto;color:#aaa" data-icon="chevron"></span></div></div>
+<button data-view="m2" title="Kế hoạch sản lượng"><i data-icon="bread"></i><span>Kế hoạch sản lượng</span><b class="nav-count" id="plan-count">7</b></button>
+<button data-view="m1" title="Giảm giá cuối ngày"><i data-icon="tag"></i><span>Giảm giá cuối ngày</span></button>
+<button data-view="ledger" title="Giao dịch và theo dõi"><i data-icon="activity"></i><span>Giao dịch & theo dõi</span></button>
+<button data-view="reports" title="Báo cáo hiệu quả"><i data-icon="chart"></i><span>Báo cáo hiệu quả</span></button>
+<button data-view="settings" title="Cài đặt AI"><i data-icon="settings"></i><span>Cài đặt AI</span></button>
+<details id="advanced-nav"><summary>Hệ thống &amp; dữ liệu</summary>
+<button data-view="data" title="Dữ liệu đầu vào"><i data-icon="database"></i><span>Dữ liệu đầu vào</span></button>
+<button data-view="readiness"><i data-icon="check"></i><span>GO / NO-GO</span></button>
+<button data-view="registry"><i data-icon="database"></i><span>Model Registry</span></button>
+<button data-view="learning" title="Học từ dữ liệu"><i data-icon="activity"></i><span>Học từ dữ liệu</span></button>
+<button data-view="monitoring" title="Giám sát hệ thống"><i data-icon="chart"></i><span>Giám sát hệ thống</span></button>
+<button data-view="safety" title="An toàn và sự cố"><i data-icon="shield"></i><span>An toàn & sự cố</span></button>
+<button data-view="audit" title="Nhật ký quyết định"><i data-icon="history"></i><span>Nhật ký quyết định</span></button></details>
+</nav>
+  <div class="sidebar-bottom"><div class="model-status"><span class="dot"></span><strong>Mô hình V4 sẵn sàng</strong><div class="muted" style="font-size:10px;margin:3px 0 0 12px">M1 + M2 · Suy luận trên máy</div></div><div class="user"><div class="avatar">QL</div><div><strong>Quản lý Bakery</strong><small>Phiên thử nghiệm</small></div><span style="margin-left:auto;color:#aaa" data-icon="chevron"></span></div></div>
 </aside>
 <div class="workspace"><header class="topbar"><div class="breadcrumb"><button class="mobile-menu ghost" id="menu" aria-label="Mở điều hướng" data-icon="menu"></button><span>Không gian làm việc</span><span> / </span><strong id="breadcrumb-title">Tổng quan</strong></div><div class="top-actions"><span class="local-badge"><span class="dot"></span>Local workspace</span><span class="divider"></span><span class="aeon">AEON</span><small class="muted">Bakery PoC</small></div></header>
-<main class="content" id="main"><div class="page-heading"><div><h1 id="page-title">Tổng quan vận hành</h1><p id="page-subtitle">Một ngày tươi mới, bắt đầu từ những quyết định tốt hơn.</p></div><div class="heading-actions"><button id="new-session"><i data-icon="plus"></i><span>Ca mới</span></button><button class="primary" id="upload-shortcut"><i data-icon="upload"></i><span>Tải dữ liệu</span></button></div></div><div id="view" aria-live="polite"><div class="empty">Đang khởi tạo mô hình và tải ca vận hành…</div></div><footer class="footer"><span><i data-icon="shield"></i>SmartFresh V9 · Prototype nghiên cứu · Chưa kết nối POS</span><span>Asia/Ho_Chi_Minh · <b id="footer-model">V9</b></span></footer></main></div>
+<main class="content" id="main"><div class="page-heading"><div><h1 id="page-title">Tổng quan vận hành</h1><p id="page-subtitle">Một ngày tươi mới, bắt đầu từ những quyết định tốt hơn.</p></div><div class="heading-actions"><button id="new-session"><i data-icon="plus"></i><span>Ca mới</span></button><button class="primary" id="upload-shortcut"><i data-icon="upload"></i><span>Tải dữ liệu</span></button></div></div><div id="view" aria-live="polite"><div class="empty">Đang khởi tạo mô hình và tải ca vận hành…</div></div><footer class="footer"><span><i data-icon="shield"></i>SmartFresh V4 · Prototype nghiên cứu · Chưa kết nối POS</span><span>Asia/Ho_Chi_Minh · <b id="footer-model">V4</b></span></footer></main></div>
 <dialog id="modal" aria-labelledby="modal-title"><div class="modal-head"><h2 id="modal-title"></h2><button class="ghost small" data-close="modal" aria-label="Đóng" data-icon="close"></button></div><div class="modal-body" id="modal-content"></div></dialog>
 <dialog id="drawer" class="drawer" aria-labelledby="drawer-title"><div class="modal-head"><h2 id="drawer-title">Giải thích quyết định</h2><button class="ghost small" data-close="drawer" aria-label="Đóng" data-icon="close"></button></div><div class="drawer-body" id="drawer-content"></div></dialog>
 <div id="toast" class="toast" role="status" hidden></div>
 <link rel="stylesheet" href="/assets/copilot.css">
 <link rel="stylesheet" href="/assets/simulation.css">
-<script src="/assets/copilot.js" defer></script>
+<script src="/assets/copilot.js?v=clean-3" defer></script>
 <script src="/assets/simulation.js" defer></script>
 <script src="/assets/learning.js" defer></script>
 <script src="/assets/quality.js"></script>
@@ -40,6 +39,6 @@
 <script src="/assets/safety.js" defer></script>
 <link rel="stylesheet" href="/assets/monitoring.css">
 <script src="/assets/monitoring.js" defer></script>
-<script src="/assets/evaluation.js" defer></script>
+<script src="/assets/evaluation.js?v=export-5" defer></script>
 <script src="/assets/readiness.js" defer></script>
-<script src="/assets/app.js" defer></script></body></html>
+<script src="/assets/product-photos.js" defer></script><script src="/assets/app.js?v=clean-3" defer></script><script src="/assets/v4.js"></script><link rel="stylesheet" href="/assets/workspace.css"><link rel="stylesheet" href="/assets/business-reports.css"><script src="/assets/business-reports.js" defer></script><link rel="stylesheet" href="/assets/business-insights.css"><script src="/assets/business-insights.js" defer></script><script src="/assets/workspace.js?v=checkpoint-4" defer></script><script src="/assets/v4-ui.js" defer></script><script src="/assets/ledger-download.js?v=ledger-6" defer></script></body></html>

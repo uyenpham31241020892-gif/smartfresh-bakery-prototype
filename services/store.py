@@ -19,18 +19,25 @@ class Store:
             ''')
 
     @contextmanager
-    def connect(self):
+    def connect(self, write=True):
         db = sqlite3.connect(self.path, timeout=30)
         db.row_factory = sqlite3.Row
+        db.execute('PRAGMA synchronous = NORMAL')
         try:
-            db.execute('BEGIN IMMEDIATE')
+            if write:
+                db.execute('BEGIN IMMEDIATE')
             yield db
-            db.commit()
+            if write:
+                db.commit()
         except BaseException:
-            db.rollback()
+            if write:
+                db.rollback()
             raise
         finally:
             db.close()
+
+    def read(self):
+        return self.connect(write=False)
 
     def save(self, db, state, action, detail=None):
         old=db.execute('SELECT state FROM sessions WHERE id=?',(state['id'],)).fetchone()
@@ -52,22 +59,22 @@ class Store:
                    (state['id'], action, json.dumps(detail or {}, ensure_ascii=False)))
 
     def get(self, session_id=None):
-        with self.connect() as db:
+        with self.read() as db:
             row = db.execute('SELECT state FROM sessions WHERE id=?', (session_id,)).fetchone() if session_id else db.execute('SELECT state FROM sessions ORDER BY rowid DESC LIMIT 1').fetchone()
             if not row:
                 raise ValueError('Không tìm thấy ca vận hành.')
             return json.loads(row['state'])
 
     def audit(self, sid):
-        with self.connect() as db:
+        with self.read() as db:
             return [dict(r) for r in db.execute('SELECT * FROM audit WHERE session_id=? ORDER BY id DESC LIMIT 100', (sid,))]
 
     def sessions(self):
-        with self.connect() as db:
+        with self.read() as db:
             return [json.loads(r['state']) for r in db.execute('SELECT state FROM sessions ORDER BY rowid DESC LIMIT 30')]
 
     def closed_before(self,day,mode,seed=None):
-        with self.connect() as db:
+        with self.read() as db:
             rows=db.execute("SELECT state FROM sessions WHERE json_extract(state,'$.phase')='closed' AND json_extract(state,'$.day')<? AND json_extract(state,'$.mode')=? ORDER BY rowid",(day,mode))
             result=[json.loads(r['state']) for r in rows]
         return [s for s in result if seed is None or s['seed']==seed]

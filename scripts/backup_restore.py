@@ -1,4 +1,4 @@
-"""Offline full SQLite + learned artifacts backup. Restore only to a new directory."""
+"""Offline full SQLite + V4 lifecycle artifacts backup. Restore only to a new directory."""
 import argparse,hashlib,json,os,sqlite3,sys,tempfile,zipfile
 from pathlib import Path
 from datetime import datetime,timezone
@@ -20,9 +20,9 @@ def backup(db,learning,output,server_stopped=False):
     if learning.exists():
         for f in learning.rglob('*'):
             if f.is_symlink():raise ValueError('Không backup symlink.')
-            if f.is_file() and f.suffix not in ['.txt','.json']:raise ValueError('Learning folder chứa file ngoài định dạng model hỗ trợ.')
+            if f.is_file() and f.suffix not in ['.txt','.json','.py','.joblib']:raise ValueError('Thư mục lifecycle V4 có file không được hỗ trợ.')
             if f.is_file():files['learning/'+f.relative_to(learning).as_posix()]=f.read_bytes()
-    manifest={'format':1,'created':datetime.now(timezone.utc).isoformat(),'files':{k:sha(v) for k,v in files.items()},'note':'Chứa tài khoản băm, lịch sử và model học; bảo quản như dữ liệu nội bộ. Không có .env hoặc API key.'}
+    manifest={'format':1,'created':datetime.now(timezone.utc).isoformat(),'files':{k:sha(v) for k,v in files.items()},'note':'Chứa tài khoản băm, lịch sử và snapshot V4; bảo quản như dữ liệu nội bộ. Không có .env hoặc API key.'}
     output.parent.mkdir(parents=True,exist_ok=True)
     try:
         with zipfile.ZipFile(output,'x',zipfile.ZIP_DEFLATED) as z:
@@ -58,16 +58,14 @@ def restore(archive,destination,server_stopped=False):
                 active=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
                 required={r[0] for r in db.execute("SELECT DISTINCT json_extract(state,'$.model_version') FROM sessions")}
                 if active:required.add(active[0])
-                for version in required:
-                    if not version or not version.startswith('learn-'):continue
-                    if not version.removeprefix('learn-').isalnum():raise ValueError('Phiên bản model backup không hợp lệ.')
-                    folder=stage/'learning'/version
-                    try:
-                        model_manifest=json.loads((folder/'manifest.json').read_text())
-                        for name in ['m1.txt','m2.txt']:
-                            if sha((folder/name).read_bytes())!=model_manifest['native_model_hashes'][name]:raise ValueError('Artifact model phục hồi không khớp.')
-                        if sha((folder/'training_data.json').read_bytes())!=model_manifest['training_data_sha256']:raise ValueError('Training snapshot phục hồi không khớp.')
-                    except (OSError,KeyError):raise ValueError('Backup thiếu artifact của model đang dùng hoặc ca đã ghim.') from None
+                if any(v!='SMARTFRESH_V4_LOCKED' for v in required):raise ValueError('Backup có model/data ngoài V4; không trộn workspace.')
+                if 'v4_checkpoints' in tables:
+                    for row in db.execute('SELECT payload FROM v4_checkpoints'):
+                        checkpoint=json.loads(row[0]);folder=stage/'learning'/checkpoint['id']
+                        if len(checkpoint['id'])!=32 or not all(c in '0123456789abcdef' for c in checkpoint['id']):raise ValueError('Snapshot ID không hợp lệ.')
+                        for rel,expected_hash in checkpoint['hashes'].items():
+                            if not rel.startswith('v4/') or '..' in Path(rel).parts:raise ValueError('Snapshot path không hợp lệ.')
+                            if sha((folder/rel).read_bytes())!=expected_hash:raise ValueError('Snapshot V4 trong backup thiếu/sai hash.')
                 # Invalidate old login sessions, stop clocks/jobs; retain users and business audit.
                 if 'login_sessions' in tables:db.execute('DELETE FROM login_sessions')
                 if 'simulation_clocks' in tables:db.execute('UPDATE simulation_clocks SET enabled=0')

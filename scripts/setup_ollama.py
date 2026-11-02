@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
+import sys
+sys.path.insert(0,str(ROOT))
 DEST = ROOT / '.tools' / 'ollama'
 MODEL = 'qwen3.5:4b'
 

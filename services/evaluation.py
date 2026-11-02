@@ -5,10 +5,13 @@ import math
 from datetime import datetime, timezone
 from .identity import actor
 from .engine import LADDER
+from .costs import estimate, COST_POLICY_ID
 
 
 def fingerprint(s):
-    return hashlib.sha256(json.dumps({k:s.get(k) for k in ['id','day','phase','revision','model_version','products','ledger']},sort_keys=True,allow_nan=False).encode()).hexdigest()
+    content={k:s.get(k) for k in ['id','day','phase','revision','model_version','products','ledger']}
+    content['financial_policy']=COST_POLICY_ID
+    return hashlib.sha256(json.dumps(content,sort_keys=True,allow_nan=False).encode()).hexdigest()
 
 
 def reconcile(s):
@@ -29,8 +32,8 @@ def reconcile(s):
         rows.append({'sku':sku,'prepared':p['prepared'],'sold':p['sold'],'ending_stock':p['stock'],'waste':p['stock'] if s['phase']=='closed' else None,'ledger_sold':qty,'reported_revenue':p['revenue'],'ledger_revenue':paid,'passed':ok})
     closed=s['phase']=='closed';valid=not errors
     revenue=sum(r['ledger_revenue'] for r in rows)
-    cost=sum(round(p['prepared']*p['price']*.45) for p in s['products'].values())
-    return {'session_id':s['id'],'day':s['day'],'mode':s['mode'],'model_version':s['model_version'],'revision':s['revision'],'state_sha256':fingerprint(s),'checked_at':datetime.now(timezone.utc).isoformat(),'status':'MISMATCH' if errors else 'RECONCILED' if closed else 'PROVISIONAL','publishable':closed and valid,'errors':errors,'rows':rows,'kpis':{'revenue':revenue,'production_cost_assumed':cost,'contribution_before_overhead':revenue-cost,'waste':sum(r['ending_stock'] for r in rows),'stockout_sku_sessions':sum(p['stock']==0 for p in s['products'].values()),'lost_sales':sum(p.get('lost',0) for p in s['products'].values()) if s['mode']=='simulation' else None} if closed and valid else None,'notes':['Hàng dư cuối ca được quy ước là waste; chưa có chứng từ hủy vật lý.','Giá vốn giả định 45% giá tham chiếu × toàn bộ lượng chuẩn bị; contribution chưa trừ overhead, không phải lợi nhuận ròng.','Tồn cuối bằng 0 là proxy stockout SKU-ca; không đo thời lượng hết hàng.','Lost sales chỉ có trong simulator; dữ liệu live không suy ra nhu cầu bị mất từ doanh số.']}
+    financial=estimate(s['products'],closed=closed);cost=financial['preparation_cost']
+    return {'session_id':s['id'],'day':s['day'],'mode':s['mode'],'model_version':s['model_version'],'revision':s['revision'],'state_sha256':fingerprint(s),'checked_at':datetime.now(timezone.utc).isoformat(),'status':'MISMATCH' if errors else 'RECONCILED' if closed else 'PROVISIONAL','publishable':closed and valid,'errors':errors,'rows':rows,'financial_estimate':financial,'kpis':{'revenue':revenue,'production_cost_assumed':cost,'contribution_before_overhead':financial['contribution_before_overhead'],'waste':sum(r['ending_stock'] for r in rows),'stockout_sku_sessions':sum(p['stock']==0 for p in s['products'].values()),'lost_sales':sum(p.get('lost',0) for p in s['products'].values()) if s['mode']=='simulation' else None} if closed and valid else None,'notes':['V4 unit cost × all actually prepared, including unsold stock; disposal 150 VND/unit at close; channel markdown costs included. No double counting of waste cost; contribution is not net profit.','Ending inventory is not confirmed physical disposal.','Unserved requests are simulator-only counts, not real customer footfall.']}
 
 
 class Evaluation:
@@ -64,20 +67,17 @@ class Evaluation:
         s=self.store.get(sid)
         if s['phase']!='closed':raise ValueError('Chốt ca trước khi phân tích giả định.')
         if not reconcile(s)['publishable']:raise ValueError('Đối soát lỗi; không công bố phân tích.')
-        # Fixed recorded policy and stock: measure sensitivity of incremental response ONLY.
-        e=self.learning.resolve(s['model_version']);e.require_integrity();e.reload_if_needed()
+        # Sensitivity uses V4 next-30min forecasts at recorded decisions, never a causal uplift.
         scenarios=[]
         for factor in [.5,1.,1.5]:
             units=revenue=0.;details=[]
             for d in s['decisions']:
                 if d.get('status')!='applied':continue
-                slot=([1170,1200,1230,1260,1290].index(d['minute']) if d.get('minute') in [1170,1200,1230,1260,1290] else None)
-                if slot is None:continue
-                for r in d['rows']:
-                    p=s['products'][r['sku']];discount=r['approved']
-                    response=float(e.promo(r['sku'],s['weather'])[slot,LADDER.index(discount)])
-                    qty=min(float(r['stock']),max(0,response*factor))
-                    units+=qty;revenue+=qty*round(p['price']*(1-discount/100))
-                    details.append({'sku':r['sku'],'slot':slot,'incremental_units':qty})
+                for r in d.get('rows',[]):
+                    selected=next((c for c in r.get('candidates',[]) if c['discount']==r['approved']),None)
+                    if selected is None:continue
+                    qty=min(float(r['stock']),max(0,float(selected['expected_sales_next30'])*factor))
+                    value=qty*round(r['price']*(1-r['approved']/100));units+=qty;revenue+=value
+                    details.append({'sku':r['sku'],'slot':d['minute'],'expected_next30':qty})
             scenarios.append({'response_factor':factor,'incremental_units_sum':units,'incremental_revenue_sum':revenue,'rows':details})
-        return {'session_id':sid,'model_version':e.version,'scenarios':scenarios,'note':'Stress test cục bộ mỗi quyết định đã áp dụng, giữ giá/tồn snapshot. Không cộng thành doanh thu cả ca vì snapshot có thể dùng chung tồn; không tái chạy policy, không so sánh baseline, không phải hiệu quả nhân quả.'}
+        return {'session_id':sid,'model_version':e.version,'scenarios':scenarios,'note':'Độ nhạy dự báo bán 30 phút V4 tại các snapshot đã áp dụng. Đây là lượng bán dự kiến (không phải uplift). Không cộng thành doanh thu cả ca, không tái chạy model/policy hoặc dùng kết quả này để tune.'}

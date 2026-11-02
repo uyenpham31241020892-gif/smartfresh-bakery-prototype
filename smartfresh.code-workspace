@@ -1,5 +1,5 @@
 {
   "folders": [{"path": "."}],
-  "settings": {"editor.formatOnSave": true, "files.encoding": "utf8", "python.defaultInterpreterPath": "${workspaceFolder}/.tools/python312/python.exe"},
+  "settings": {"editor.formatOnSave": true, "files.encoding": "utf8", "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe"},
   "extensions": {"recommendations": ["ms-python.python", "github.vscode-pull-request-github"]}
 }

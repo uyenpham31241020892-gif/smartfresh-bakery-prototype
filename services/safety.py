@@ -84,7 +84,7 @@ class Safety:
         for sku,r in engine.master.items():
             vals=[v for (d,s),v in visible.items() if s==sku and 0<(datetime.fromisoformat(day)-datetime.fromisoformat(d)).days<=7]
             if not vals:raise GuardError('Không có lịch sử hợp lệ cho Rolling-7; không tự đoán 0.')
-            forecast=sum(vals)/len(vals);base=engine.baseline(day,sku,visible);floor=4*math.ceil(.9*base/4)
+            forecast=sum(vals)/len(vals);base=engine.baseline(day,sku,visible);floor=0
             qty=max(4,base,floor)
             plans.append({'sku':sku,'name':r['product_name_reference'].removeprefix('AEON BREAD '),'price':int(r['unit_price_vnd_reference']),
                           'baseline':base,'forecast':forecast,'buffer':qty-forecast,'floor':floor,'prepared':qty,'batches':qty//4,
@@ -107,14 +107,14 @@ class Safety:
         rows=[]
         for sku,p in s['products'].items():
             if not 0<=p['stock']<=p['prepared']:raise GuardError('Tồn kho không hợp lệ; không được tự sửa số liệu.')
-            tier=max(p['discount'],FLOORS[j])
+            tier=p['discount']
             if tier not in LADDER or tier>CAPS[j]:raise GuardError('Giá hiện tại không tương thích hard rules.')
             tx=[t for t in s['ledger'] if t['sku']==sku]
             sales30=sum(t['qty'] for t in tx if s['minute']-30<=t['minute']<=s['minute'])
             sales60=sum(t['qty'] for t in tx if s['minute']-60<=t['minute']<=s['minute'])
             rows.append({'sku':sku,'minute':s['minute'],'stock':p['stock'],'sales30':sales30,'sales60':sales60,'previous':p['discount'],
                          'discount':tier,'price':p['price'],'new_price':round(p['price']*(1-tier/100)),'cap':CAPS[j],'floor':FLOORS[j],
-                         'schedule':[],'candidates':[],'low_stock':p['stock']<=3,'reason':'MANUAL_HOLD_OR_MANDATORY_FLOOR'})
+                         'schedule':[],'candidates':[],'low_stock':p['stock']<=3,'reason':'MANAGER_CONTROL_V4'})
         return rows
 
     def set_mode(self,sid,mode,reason,expected_revision):
@@ -146,14 +146,14 @@ class Safety:
         history={(r['date'],r['sku']):r['sold'] for r in s['input_history']}
         outcomes={(r['date'],r['sku_code']):r for r in s.get('input_outcomes',[])}
         q=s.get('data_quality',{})
-        trusted_demo=q.get('weather',{}).get('status')=='WARN' and q.get('lineage',{}).get('weather_origin')=='bundled_V9_previous_day1_unverified'
+        trusted_demo=q.get('weather',{}).get('status')=='WARN' and q.get('lineage',{}).get('weather_origin')=='bundled_V4_lagged_weather'
         feature_rows=[{'sku':sku,'features':engine.features(s['day'],sku,history,s['weather'],outcomes)} for sku in engine.master]
         build_snapshot(s['day'],history,s['weather'],engine,feature_rows,outcomes,q.get('lineage',{}),trusted_demo)
         rows=engine.plan(s['day'],history,s['weather'],outcomes)
         if not all(math.isfinite(p['forecast']) and p['prepared']%4==0 and p['prepared']>=p['floor'] for p in rows):raise GuardError('Smoke test M2 thất bại.')
         j=max(0,min(4,sum(s['minute']>=t for t in [1170,1200,1230,1260,1290])-1))
         for sku,p in s['products'].items():
-            r=engine.price(sku,j,p['stock'],p['prepared'],p['discount'],0,0,p['forecast'],s['weather'],as_of=s['minute'])
+            r=engine.price(sku,j,p['stock'],p['prepared'],p['discount'],0,0,p['forecast'],s['weather'],as_of=max(1170,min(1290,1170+30*((s['minute']-1170)//30))))
             if r['discount'] not in LADDER or not max(p['discount'],FLOORS[j])<=r['discount']<=CAPS[j]:raise GuardError('Smoke test M1 hard rules thất bại.')
         return {'passed':True,'revision':s['revision'],'control_version':c['version'],'model_version':engine.version,
                 'model_hashes':engine.manifest['native_model_hashes'],'checked_at':now(),

@@ -16,7 +16,7 @@ from .engine import DATA, ROOT, SLOTS, LADDER, CAPS, FLOORS
 from .identity import actor
 from .quality import digest, sales_quality
 
-FEATURES = ['lag1_sales','lag7_sales','rolling7_sales','rolling14_sales','rolling7_std','rain_forecast_proxy','temp_forecast_jma']
+FEATURES = ['sold_calendar_lag1','sold_calendar_lag7','sold_last7_observed_mean','prepared_last_observed','censored_last7_observed_rate','prior_day_rain_mm','prior_day_temp_c']
 DEFAULTS = {'version':0,'psi_threshold':None,'performance_delta_pp':None,'academic_wape_goal_pct':18.,
             'window_days':7,'min_rows':30,'min_days':5,'calibration_note':'Chưa hiệu chỉnh ngưỡng drift; không phải SLA production.'}
 
@@ -143,11 +143,11 @@ class Monitoring:
         with self.store.connect() as db:r=db.execute('SELECT * FROM monitoring_evaluations WHERE sid=?',(s['id'],)).fetchone()
         if r and r['state_hash']==state_hash:return json.loads(r['payload'])
         if s['mode']=='simulation':
-            if s.get('simulator_hash')!=self.simulator.arrivals.hash:return []
-            try:events=self.simulator.events(s['day'],s['seed'],s['weather'],s.get('simulator_version'))
+            if s.get('simulator_hash')!=self.simulator.hash_for(s.get('simulator_version')):return []
+            try:actual=self.simulator.evaluation_counts(s['day'],s.get('simulator_version'))
             except ValueError:return []
-            actual=Counter(e['sku'] for e in events if not e['promo'])
-            target='synthetic_base_demand';target_note='Nhu cầu gốc simulator, chỉ tái lập sau chốt ca; không phải POS.'
+            target='V4_organic_simulated_requests' if s.get('simulator_version')==self.simulator.version else 'V4_observed_POS_replay'
+            target_note='Nhu cầu gốc mô phỏng V4 chỉ đọc sau chốt ca; không đưa vào feature.' if target=='V4_organic_simulated_requests' else 'Lượng bán quan sát replay V4, có thể bị censored; không phải nhu cầu tiềm ẩn.'
         else:
             actual={sku:p['sold'] for sku,p in s['products'].items()}
             target='observed_sales_proxy';target_note='Số bán quan sát, có thể bị kiểm duyệt do hết hàng/khuyến mãi; không phải nhãn nhu cầu gốc.'
@@ -162,7 +162,7 @@ class Monitoring:
                          'weekday':s['weather'].get('weekday_iso'),'is_holiday':s['weather'].get('is_public_holiday',0),
                          'rain_mm':s['weather'].get('forecast_rain_mm_previous_day1'),
                          'evaluation_recorded_at':utcnow(),'simulator_hash':s.get('simulator_hash'),'simulator_version':s.get('simulator_version'),
-                         'stockout':product['stock']==0,'source_mode':s['mode'],'is_synthetic':s['mode']=='simulation'})
+                         'stockout':product.get('first_stockout_minute',1320)<1320 or product['stock']==0 or any(x['date']==s['day'] and x['sku_code']==sku and x.get('censored_demand_flag') for x in self.engine.observed),'source_mode':s['mode'],'is_synthetic':s['mode']=='simulation'})
         with self.store.connect() as db:
             db.execute('INSERT INTO monitoring_evaluations VALUES (?,?,?) ON CONFLICT(sid) DO UPDATE SET state_hash=excluded.state_hash,payload=excluded.payload',
                        (s['id'],state_hash,json.dumps(rows,allow_nan=False)))
@@ -183,25 +183,20 @@ class Monitoring:
                 slices[field]=[{'slice':k,**metric([r for r in group if str(fn(r))==k])} for k in keys]
             result.append({'model_version':model,'origin':origin,'target_kind':target,'target_note':group[0]['target_note'],
                            'is_synthetic':all(r['is_synthetic'] for r in group),'session_count':len({r['session_id'] for r in group}),
-                           'day_count':len(daily),'stockout_rows':sum(r['stockout'] for r in group),'metrics':metric(group),'daily':daily,'slices':slices})
+                           'day_count':len(daily),'stockout_rows':sum(r['stockout'] for r in group),'metrics':metric([r for r in group if not r.get('stockout')]),'all_observed_metrics':metric(group),'uncensored_metrics':metric([r for r in group if not r.get('stockout')]),'censored_rate_pct':100*sum(bool(r.get('stockout')) for r in group)/len(group),'daily':daily,'slices':slices})
         return result
 
     def reference(self,engine,sku=''):
-        if engine.manifest.get('parent'):return [],{'available':False,'reason':'Model học mới chưa có reference feature tương thích được đăng ký; không tự dùng baseline V9.'}
-        path=DATA/'M2_Training_Matrix.csv'
+        if engine.manifest.get('parent'):return [],{'available':False,'reason':'Không có reference feature tương thích đã đăng ký.'}
+        path=DATA/'fit_features.csv'
         try:
-            provenance=json.loads((DATA/'provenance.json').read_text())
-            sha=hashlib.sha256(path.read_bytes()).hexdigest()
-        except (OSError,ValueError):
-            return [],{'available':False,'reason':'Thiếu/hỏng file reference hoặc provenance; không tự tạo reference giả.'}
-        if sha!=provenance.get('files',{}).get('data/current_v9/M2_Training_Matrix.csv'):return [],{'available':False,'reason':'Reference feature hash không khớp; không tính drift.'}
-        frame=pd.read_csv(path)
-        frame=frame[(frame['dataset_role']=='TRAIN')&(frame['date']<=engine.manifest.get('trained_until','2022-08-15'))]
+            engine.require_integrity();sha=hashlib.sha256(path.read_bytes()).hexdigest()
+            frame=pd.read_csv(path)
+        except (OSError,ValueError):return [],{'available':False,'reason':'Reference V4 không vượt kiểm tra hash.'}
+        frame=frame[frame['date']<=engine.manifest['trained_until']]
         if sku:frame=frame[frame.sku_code==sku]
-        # Explicit allowlist: never return the simulator target, label or evaluation fields.
         columns=['date','sku_code']+[f for f in FEATURES if f in frame]
-        return frame[columns].to_dict('records'),{'available':True,'sha256':sha,'rows':len(frame),'from':frame.date.min() if len(frame) else None,
-               'through':frame.date.max() if len(frame) else None,'source':'V9 TRAIN features, synthetic reference','features':[f for f in FEATURES if f in frame]}
+        return frame[columns].to_dict('records'),{'available':True,'sha256':sha,'rows':len(frame),'from':frame.date.min() if len(frame) else None,'through':frame.date.max() if len(frame) else None,'source':'V4 Fit feature reference, proxy data','features':[f for f in FEATURES if f in frame]}
 
     def drift(self,feature_rows,evaluation_rows,engine,config,sku=''):
         reference,manifest=self.reference(engine,sku)
@@ -336,17 +331,17 @@ class Monitoring:
     def sandbox(self):
         # Separate demonstration dataset. No session, model, learning or price is modified.
         self.engine.require_integrity()
-        if self.engine.manifest.get('parent'):raise ValueError('Bộ minh họa này dùng model V9 gốc; model đang chọn đã học mới. Chọn ca dùng V9 gốc để minh họa.')
+        if self.engine.manifest.get('parent'):raise ValueError('Bộ minh họa này dùng model V4 đã khóa; model đang chọn đã học mới. Chọn ca dùng V4 đã khóa để minh họa.')
         visible=dict(self.simulator.seed);rows=[];sid='monitor-demo-'+uuid.uuid4().hex
-        dates=sorted(d for d in self.simulator.calendar if d>='2022-08-16')[:28]
+        dates=sorted(d for d in self.simulator.calendar if d>='2022-05-01')[:28]
         for index,day in enumerate(dates):
-            weather=self.simulator.calendar[day];plans=self.engine.plan(day,visible,weather)
-            actual=Counter(e['sku'] for e in self.simulator.events(day,515,weather,self.simulator.version) if not e['promo'])
+            weather=self.simulator.calendar[day];plans=self.engine.plan(day,self.simulator.history_before(day),weather,self.simulator.outcomes_before(day))
+            actual=self.simulator.evaluation_counts(day,self.simulator.version)
             for p in plans:
                 value=int(round(actual[p['sku']]*(2.5 if index>=21 else 1.0)))
                 rows.append({'session_id':sid,'day':day,'sku':p['sku'],'model_version':self.engine.version,'origin':'AI_M2',
-                             'target_kind':'controlled_synthetic_demand','target_note':'Minh họa cô lập: lượt mua synthetic; từ ngày 22 tiêm demand shock 2.5x sau khi đã dự báo.',
-                             'prediction':p['forecast'],'actual':value,'features':{f:p['features'].get(f) for f in FEATURES},
+                             'target_kind':'controlled_synthetic_demand','target_note':'Minh họa cô lập: lượt mua synthetic; từ ngày 22 tiêm shock minh họa 2.5x vào bản sao đánh giá sau khi đã dự báo.',
+                             'prediction':p['forecast'],'actual':value,'features':{f:(p['features'].get(f)*2.5 if index>=21 and f in ['sold_calendar_lag1','sold_calendar_lag7','sold_last7_observed_mean'] else p['features'].get(f)) for f in FEATURES},
                              'weekday':weather['weekday_iso'],'is_holiday':weather['is_public_holiday'],'rain_mm':weather['forecast_rain_mm_previous_day1'],
                              'stockout':False,'source_mode':'sandbox','is_synthetic':True})
             # Only completed synthetic days become history for later demonstration predictions.

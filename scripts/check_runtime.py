@@ -1,25 +1,6 @@
-"""Import every application dependency before starting either Windows launcher."""
-import importlib
-import sys
-
-MODULES = ('fastapi', 'uvicorn', 'python_multipart', 'numpy', 'pandas',
-           'lightgbm', 'sklearn', 'openpyxl', 'httpx', 'joblib')
-
-
-def main():
-    failures = []
-    for name in MODULES:
-        try:
-            importlib.import_module(name)
-        except Exception as exc:
-            failures.append(f'{name}: {exc}')
-    if failures:
-        print('SmartFresh dependencies need installation or repair:')
-        print('\n'.join(failures))
-        return 1
-    print('SmartFresh dependencies: OK')
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+import importlib.metadata as m,sys
+assert sys.version_info[:2]==(3,12), "Use Python 3.12"
+for k,v in {"scikit-learn":"1.9.1","joblib":"1.6.0","fastapi":"0.116.1","numpy":"2.3.5"}.items():
+ assert m.version(k)==v,k+" version mismatch"
+import pandas,scipy,httpx,uvicorn,openpyxl,multipart
+print("V4 runtime OK")

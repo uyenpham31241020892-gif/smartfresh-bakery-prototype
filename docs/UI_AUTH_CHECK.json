@@ -1,0 +1,10 @@
+{
+  "checks_passed": [
+    "Both fixed manager logins pass",
+    "Staff registration cannot request manager role",
+    "Manager actions denied at backend",
+    "Approved operations permitted to staff",
+    "Restart preserves exactly two managers"
+  ],
+  "scope": "Identity unit checks and JS/Python syntax; no end-to-end browser check yet"
+}

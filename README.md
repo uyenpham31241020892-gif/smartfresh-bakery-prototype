@@ -1,159 +1,127 @@
-## Bản cập nhật GD9.3
+# SmartFresh — giao diện vận hành và tài khoản cố định
 
-Chế độ Assisted / Manual / Shadow dùng chung cho ca, đặt ở đầu Tổng quan, Kế hoạch sản lượng và Giảm giá cuối ngày. Đã xóa ô chuyển hướng thừa ở An toàn & sự cố và cập nhật hướng dẫn. Xem [hướng dẫn GD9.3](docs/GD9_3_SHARED_MODES.md).
+Bản cập nhật 31/10/2026: bỏ trang Tổng quan, mở mặc định Kế hoạch sản lượng; làm gọn chú thích và giao diện. Hai Manager cố định là manager.chau và manager.uyen. Đăng ký tại màn hình đăng nhập chỉ tạo Staff. Các Manager cũ khác được chuyển thành Staff khi khởi động.
 
-# GD9.2 — Sàn sản lượng khuyến nghị
+Nhân viên được tạo ca Assisted, chạy đồng hồ, xác nhận đã chuẩn bị sau phê duyệt, áp giá đã được Manager duyệt, ghi nhận bán và chốt ca. Không sửa/duyệt sản lượng hoặc giá, thay chế độ, quản lý sự cố/model/tài khoản/cấu hình. Máy chủ kiểm tra quyền độc lập giao diện. Hai Manager có toàn bộ quyền ứng dụng; khóa model V4 và quy tắc nghiệp vụ vẫn giữ nguyên.
 
-Manager được duyệt dưới sàn90%baseline khi ghi lý do và audit; giữ mẻ4 và số dương. Xem [hướng dẫn GD9.2](docs/GD9_2_SOFT_PRODUCTION_FLOOR.md). Bao gồm bản sửa giá GD9.1.
+Chạy Start-Gemini.cmd hoặc Start.cmd, Python 3.12. Mật khẩu bàn giao gửi riêng, không nằm trong source; manager_accounts.json chỉ lưu salt và hash scrypt. Không tự sửa file này. Chia sẻ cùng một server/database để Châu và Uyên cùng truy vết lịch sử; các bản giải nén chạy độc lập không tự đồng bộ dữ liệu.
 
-# GD9.1 — Sửa Manager chỉnh giá
+Không chép runtime cũ sang khi chưa sao lưu. Nếu cần giữ ca cũ: sao lưu thư mục runtime trước rồi thay source khi server đã dừng.
 
-Ba chế độ ở ngay trang M1; dropdown giữ lựa chọn khi polling; Manual tạo bảng mới; mở lại chỉnh giá cùng mốc. Xem [hướng dẫn và phân tích báo cáo](docs/GD9_1_MANAGER_PRICING_FIX.md). Model/data/policy giữ nguyên.
+Bằng chứng QA cũ trong docs là của bản trước. Xem docs/UI_AUTH_CHECK.json cho kiểm tra của cập nhật này. Chưa xác nhận chạy Windows hoặc API Gemini/POS thật.
 
-# SmartFresh — Giai đoạn 9
+# SmartFresh — Prototype gốc tích hợp V4
 
-Final QA & Deployment Readiness: health 200/503, structured API errors, Request ID tracing, offline backup/restore, GitHub CI và GO/NO-GO có bằng chứng cho demo local. Chưa nghiệm thu production/AEON; BigQuery chưa tích hợp; F04 vẫn bỏ khỏi UI.
+Bản này phát triển tiếp từ `smartfresh-bakery-prototype-Kuyn (1)(1).zip`. Giữ dashboard và các nhóm chức năng của prototype; thay toàn bộ model/dữ liệu vận hành cũ bằng V4 và sửa lớp kết nối cho đúng hợp đồng V4. Không sử dụng bản app V4 rút gọn đã gửi trước đó.
 
-Nâng cấp từ GD8 bằng patch, giữ environment/runtime và launcher cũ. Xem [hướng dẫn GD9](docs/GIAI_DOAN_9_HUONG_DAN.md) và [cách chép patch](docs/GD9_PATCH_GUIDE.md).
+## 1. Mở app trên Windows
 
-QA: `python scripts/run_qa.py`. GitHub Actions: `.github/workflows/ci.yml` (Ubuntu/Windows; chưa chạy trên repository của bạn).
+1. Giải nén ZIP ra thư mục ngắn, ví dụ `C:\SmartFresh_V4_Prototype`. Mở thư mục có `app.py`, `Start-Gemini.cmd`, `Start.cmd`.
+2. Máy cần Python **3.12**. Nhấn `Start-Gemini.cmd` nếu muốn chọn Gemini cho Copilot; hoặc `Start.cmd` để dùng cấu hình AI trong `.env`/môi trường.
+3. Lần đầu, launcher tạo `.venv` và cài thư viện V4. Các lần sau dùng lại môi trường; chỉ cài khi thiếu/sai phiên bản hoặc requirements thay đổi. V4 cần **scikit-learn 1.9.1**; môi trường cũ 1.6.1/1.8 không chạy đúng bundle này.
+4. Khi health check đạt, cửa sổ in `http://127.0.0.1:8000` và mở trình duyệt. Giữ cửa sổ đó mở trong lúc demo. Nếu port bị chiếm, đóng cửa sổ SmartFresh cũ; launcher không tự tắt chương trình khác.
+5. Lần đầu app yêu cầu **tự tạo tài khoản Manager**, mật khẩu tối thiểu 8 ký tự. Không có mật khẩu mặc định. Các lần sau đăng nhập tài khoản đã tạo trên máy.
+6. Nếu có lỗi: đọc dòng lỗi ở cửa sổ chạy và `runtime/server.log`. Đừng mở app trực tiếp trong ZIP; đừng ghép hai bộ `data`/model vào nhau.
 
-# SmartFresh — Giai đoạn 8
+Không phải chạy lại train/test. Lệnh `py -3.12 launch.py` chỉ dựng môi trường và mở dashboard.
 
-Đối soát cuối ca, model registry, fresh holdout, promotion và rollback. F04 baseline vs M1+M2 đã gỡ khỏi giao diện theo yêu cầu.
+## 2. Những chức năng được giữ
 
-Nâng cấp GD7: dùng patch, giữ environment/runtime và chạy launcher cũ. Xem [hướng dẫn GD8](docs/GIAI_DOAN_8_HUONG_DAN.md) và [cách chép patch](docs/GD8_PATCH_GUIDE.md).
-
-# SmartFresh — Giai đoạn 7: Monitoring & Drift Dashboard
-**Đang có GD6:** dùng ZIP PATCH, dừng server → chép đè vào thư mục có app.py → mở lại Start-Gemini.cmd cũ → Ctrl+F5. **Giữ nguyên .venv/runtime/.env/model/data**; không cần cài lại environment.
-
-**Source mới:** Start-Gemini.cmd hoặc Start.cmd như trước; tài khoản local theo GD6.
-Menu **Giám sát hệ thống** có 4 tab Dữ liệu/Mô hình/Vận hành/Cảnh báo. Nút **Tạo minh họa drift cô lập** giúp thử đầy đủ khi chưa có ca đã chốt.
-
-- [Cách dùng PATCH](docs/GD7_PATCH_GUIDE.md)
-- [Hướng dẫn GD7 đầy đủ](docs/GIAI_DOAN_7_HUONG_DAN.md)
-- `python scripts/demo_gd7_check.py`: diễn tập API trên database tạm.
-
-Full source bao gồm tất cả GD5/GD6 và bản sửa launcher; không đóng gói environment hay database phiên cũ.
-
----
-
-# Bản bàn giao Giai đoạn 6 — Safety, Incident & Fallback
-Full source **GD5 + sửa Start-Gemini + GD6**. Chạy **Start-Gemini.cmd** (không khởi động Ollama) hoặc Start.cmd.
-Mở http://127.0.0.1:8000, lần đầu **tạo tài khoản Manager** bằng mật khẩu bạn tự chọn.
-Menu **An toàn & sự cố**: Manual/Assisted/Shadow, phân quyền, incident và diễn tập phục hồi.
-
-**Đọc:** [docs/GIAI_DOAN_6_HUONG_DAN.md](docs/GIAI_DOAN_6_HUONG_DAN.md).
-**Thử tự động:** `python scripts/demo_gd6_check.py` (database tạm, không đổi ca của bạn).
-Source gọn, không chứa .venv hoặc database phiên cũ. Hướng dẫn giữ runtime cũ nằm trong tài liệu trên.
-
----
-
-# Bản bàn giao Giai đoạn 5 — Data Quality & Provenance
-Mở **Start.cmd** để chạy demo. Vào **Dữ liệu đầu vào** để xem kiểm tra mới.
-Hướng dẫn đầy đủ: [docs/GIAI_DOAN_5_HUONG_DAN.md](docs/GIAI_DOAN_5_HUONG_DAN.md).
-File thử: **examples/gd5/** (ngày mục tiêu 16/08/2022).
-Full source gọn, không kèm .venv/runtime của máy cũ. Giải nén vào thư mục mới.
-
----
-
-# SmartFresh · Bakery Intelligence
-
-Dashboard chạy local, dùng **hai mô hình LightGBM V9 đã huấn luyện sẵn** suy luận từ đầu vào mới, có upload dữ liệu, xác nhận quyết định, sổ giao dịch và Copilot tùy chọn (Gemini / OpenAI / Ollama).
-
-Nguồn chính: **V9-20261020T063226Z-1-001.zip**, 173 tệp. Giao diện tham khảo Mockup draft 1.pdf, nền sáng và magenta theo hướng AEON Bakery PoC.
-
-**Học từ dữ liệu:** mở `http://127.0.0.1:8000/?view=learning`. Nạp kết quả thực tế → huấn luyện ứng viên → kiểm tra trên ngày chưa học → xác nhận áp dụng. Có demo tách riêng và rollback; ca đang chạy giữ phiên bản cũ. Xem [định dạng dữ liệu và cơ chế đánh giá](docs/ADAPTIVE_LEARNING.md).
-
-## Chạy trên máy hiện tại
-
-Nếu dùng Gemini trên máy RAM thấp, chạy **Start-Gemini.cmd** (không bật Ollama), sau đó truy cập **http://127.0.0.1:8000**. `Start.cmd` là lối khởi động cũ có tích hợp Ollama.
-
-Python 3.12 riêng được chuẩn bị trong .tools/python312, không thay Python hệ thống. PowerShell:
-
-    .\.tools\python312\python.exe app.py
-
-## Chạy trên máy mới
-
-Cài Python 3.12, rồi:
-
-    py -3.12 -m venv .venv
-    .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-    .\.venv\Scripts\python.exe app.py
-
-Model native, metadata, dữ liệu tuyển chọn và reference có sẵn trong repository; không cần ZIP gốc để chạy. Python 3.14 gặp lỗi native dependencies trên máy hiện tại.
-
-## Trải nghiệm
-
-1. Mở **Kế hoạch sản lượng**. M2 đã suy luận mới cho ngày mẫu 16/08/2022.
-2. Xem từng SKU: nhu cầu, buffer, baseline, sàn, sản lượng và TreeSHAP thật.
-3. **Duyệt kế hoạch**, rồi **Xác nhận đã chuẩn bị**.
-4. Tới **19:30**. M1 tự tính đề xuất từ tồn và doanh số vừa quan sát.
-5. **Duyệt giá**, rồi **Áp dụng giá đã duyệt**. Giao dịch tiếp theo dùng giá mới.
-6. Tới 22:00; hệ thống dừng từng mốc cần xác nhận. Qua 21:30, tới 22:00 và **Chốt ngày**.
-7. Xem báo cáo, xuất sổ CSV và mở nhật ký quyết định.
-
-Ca được lưu ở runtime/smartfresh.sqlite3. **Ca mới** tạo phiên riêng; **Lịch sử ca** mở lại kết quả. Thao tác có revision và audit.
-
-## Upload dữ liệu
-
-Trong **Dữ liệu đầu vào**, chọn ngày rồi tải CSV, XLSX hoặc ZIP tối đa 20 MB. Xem preview và xác nhận; backend tự chạy M2 hoặc nhập giao dịch, tính lại M1 nếu cần.
-
-| Dữ liệu | Cột cần thiết |
+| Chức năng | Hoạt động với V4 |
 |---|---|
-| Lịch sử | date, sku_code, sold_qty — chỉ ngày trước ngày mục tiêu |
-| Weather | date, forecast_rain_mm_previous_day1, forecast_temperature_max_c_previous_day1, issued_at |
-| Giao dịch | sku_code, minute, quantity — phút bằng đồng hồ ca hiện tại |
+| Tổng quan | Kế hoạch, tồn, số bán, doanh thu, lịch sử nguồn của ca |
+| Kế hoạch sản lượng | M2 V4, duyệt/từ chối, Manager sửa có lý do, đúng mẻ/công suất mẫu |
+| Giảm giá cuối ngày | M1 V4, Assisted/Manual/Shadow, duyệt rồi áp giá, giá theo từng SKU |
+| Giao dịch & theo dõi | Sổ giao dịch, bán 30/60 phút, tồn và xuất CSV |
+| Báo cáo hiệu quả | Biểu đồ ngày/giờ/SKU, lịch sử ca, tham chiếu baseline từ cùng bộ nguồn V4, đối soát và xác nhận |
+| Dữ liệu đầu vào | CSV/XLSX/ZIP, xem trước, cách ly lỗi, xác nhận nhập, lịch sử nhập/hash |
+| Giám sát | DQ, MAE/WAPE trên quan sát đủ điều kiện, tỷ lệ censor, drift PSI/KS, M1 safety, API/jobs, cảnh báo/tiếp nhận |
+| An toàn & sự cố | Manager/Staff/Viewer, diễn tập lỗi, Rolling-7 thủ công, tiếp nhận → Verify → đóng sự cố |
+| Model Registry/lifecycle | Model V4 ghim theo ca, hash, lịch sử, snapshot và khôi phục triển khai V4 |
+| Học từ dữ liệu | Thu/lưu kết quả ca đủ điều kiện, tách real/demo; trọng số V4 tiếp tục được khóa |
+| GO/NO-GO | Health, checksum release, đối soát, quyền/xử lý sự cố và bằng chứng QA local |
+| Nhật ký | Người thao tác, lý do, phiên bản ca/model, giá trước/sau và request ID |
+| Copilot | Gemini/OpenAI/Ollama, hỏi đáp và giải thích từ công cụ đọc dữ liệu V4 |
 
-Ngày mới ngoài V9: Excel hai sheet history/weather, hoặc ZIP có history.csv và weather.csv. issued_at phải có múi giờ, không sau 06:00 ngày mục tiêu. File mẫu tải trên dashboard. ZIP V9 gốc cũng được nhận diện lịch sử/forecast.
+Train/tune/promotion một model khác không được bật: quyết định nhóm dùng duy nhất V4; prototype đầu vào cũng đã khóa các endpoint huấn luyện. Lifecycle khôi phục **bản sao triển khai của cùng V4**, không nạp lại model cũ, không tạo V4.1. Đây là phân biệt giữa phiên bản model và bản sao để phục hồi.
 
-Model hỗ trợ đúng 8 SKU của SKU master. SKU mới cần bổ sung dữ liệu và đào tạo/kiểm chứng model.
+## 3. Demo một ca hoàn chỉnh
 
-## Kết nối Copilot qua Gemini / OpenAI / Ollama
+1. Chọn **Ca mới**, ngày **02/05/2022**, chế độ **Mô phỏng V4**, nguồn **Thị trường V4 có phản ứng giá giả định gốc** (mặc định). Để tự điều khiển, bỏ chọn tự bán sau xác nhận; hoặc tạm dừng đồng hồ sau khi mở ca.
+2. Mở **Kế hoạch sản lượng**. Đọc giải thích từng món, tổng cả ngày và lịch đầu ngày/refill. Có thể sửa một lượng đúng bội số 4 trong công suất mẫu, ghi lý do rồi **Duyệt kế hoạch**. Ví dụ 48/52, không nhập 50 nếu mẻ là 4.
+3. Nhấn **Xác nhận đã chuẩn bị**. App chỉ đưa lượng đầu ngày của V4 vào tồn lúc 08:00. Phần refill được nhận vào tồn lúc 14:00 và 17:00. “Tổng đề xuất cả ngày” khác “Đã chuẩn bị đến hiện tại”.
+4. Chạy đồng hồ hoặc chuyển đến 14:00/17:00 để xem refill và sổ bán. Thử vào Giao dịch & theo dõi để kiểm tra số bán/tồn nguyên.
+5. Tới **19:30**, mở **Giảm giá cuối ngày**. M1 V4 đánh giá tại 19:30, 20:00, 20:30, 21:00, 21:30. HOLD là giữ giá đang có, không tăng về niêm yết. Không có mức giảm mới thì không bắt buộc duyệt.
+6. Muốn tự quyết: chọn **Manager tự quyết · Manual** ngay đầu trang, ghi lý do. Mở “Điều chỉnh của quản lý” ở từng món, chọn mức cần thiết. Chọn kênh **E-ink** cho sản phẩm trong quầy hoặc **tem** cho hàng đóng hộp phù hợp thực tế demo.
+7. Nhấn **Duyệt thay đổi giá**, ghi lý do nếu khác gợi ý; sau đó **Áp dụng giá đã duyệt**. Duyệt chưa làm đổi giá. Sau Áp dụng mới đổi `price_version` và ghi `SIMULATED_ACK`.
+8. Quy tắc: trần 40% trước 20:30, tối đa 50% từ 20:30, không tăng lại giá trong ngày, cách tối thiểu 30 phút, tối đa 2 lần đổi giá/SKU/ngày. Các trường hợp vi phạm bị chặn và lưu dấu vết; Manual không bỏ các ràng buộc này.
+9. **Shadow** chỉ ghi thử quyết định, không đổi giá của giao dịch. Ba trang Tổng quan/Kế hoạch/Giảm giá dùng chung chế độ ca.
+10. Tiếp tục từng checkpoint, duyệt/áp dụng hoặc từ chối có lý do. Tới 22:00 nhấn **Chốt ca**.
+11. Vào **Báo cáo hiệu quả** và **Đối soát cuối ca**: chuẩn bị = bán + tồn; doanh thu phải khớp từng giao dịch. Manager xác nhận đối soát để lưu biên bản gắn checksum.
+12. Mở **Giám sát hệ thống** xem DQ/sai số/drift/API/cảnh báo. Ca đang mở chưa có nhãn cả ngày nên không bịa accuracy. Một ngày ít mẫu chưa đủ để kết luận drift; nút “Tạo minh họa drift cô lập” dựng 28 ngày V4 có shock đánh giá riêng, không sửa tồn/giá/model ca.
+13. Vào **Nhật ký quyết định** xem ai duyệt, khi nào và vì sao. Có thể quay lại lịch sử ca hoặc tạo kế hoạch ngày kế tiếp từ ca đã đóng.
 
-Mở **Cài đặt AI**, nhập OpenAI API key và model có quyền truy cập. Key giữ trong bộ nhớ backend. Hoặc copy .env.example thành .env, điền key rồi khởi động lại.
+### Mở lại một ca cũ
 
-Copilot dùng **OpenAI Responses API** và công cụ chỉ đọc để giải thích số liệu ca, không tự duyệt hoặc áp dụng. GPT có thể đề nghị ánh xạ cột chưa nhận diện; vẫn cần validation và preview.
+Nhấn Lịch sử ca từ trang Nhật ký/Báo cáo; chọn ca cần xem. Các ca V4 lưu trong `runtime/smartfresh_v4.sqlite3`. Dữ liệu cũ của prototype nằm trong database khác và không được nhập vào workspace V4.
 
-Nút **Kết nối & gọi thử AI** gọi Responses API cùng công cụ dữ liệu ca, rồi hiển thị phản hồi thật, model và Response ID. Chỉ báo đã xác minh sau khi cuộc gọi thành công. Có thể mở thẳng http://127.0.0.1:8000/?view=settings khi server hoạt động.
+## 4. Chatbot vẫn có, cấu hình như trước
 
-**Chưa kiểm thử gọi OpenAI thật vì chưa có API key.** Khi chưa cấu hình, ứng dụng báo chưa kết nối; không trả lời GPT giả.
+Vào **Cài đặt AI**, chọn Gemini/OpenAI/Ollama; nhập model/API key của dịch vụ bạn có quyền dùng rồi **Kết nối & gọi thử AI**. Gemini có công cụ kiểm tra danh sách model trong phần cấu hình cũ khi phù hợp; đừng coi tên model mặc định là bảo đảm tài khoản được truy cập.
 
-## Kiểm tra
+Copilot có vai trò giải thích, không quyết định thay Manager. Nó đọc `get_session_context`, `get_model_evidence` và `get_business_report`; không có công cụ duyệt, áp giá hay train. Nguồn số liệu là đúng ca V4 đang xem. Prompt/version/hash được hiển thị trong Cài đặt AI và mô tả ở `docs/COPILOT_V4.md`.
 
-    .\.tools\python312\python.exe -m pytest -q
-    node --check web\app.js
+Chưa kết nối dịch vụ thì app và M1/M2 vẫn chạy; lời giải thích theo bằng chứng do máy chủ dựng vẫn có. Kiểm thử bàn giao đã thử luồng công cụ bằng phản hồi giả lập; không có API key của nhóm nên không gọi thực tế Gemini/OpenAI/Ollama hay khẳng định chi phí API bằng 0. Phí cloud tùy model/token và tài khoản; Ollama không có phí API cloud nhưng dùng tài nguyên máy.
 
-Máy mới cài requirements-dev.txt để chạy pytest. Browser QA cần server hoạt động và Microsoft Edge:
+## 5. Dữ liệu nào được dùng?
 
-    .\.tools\python312\python.exe scripts\browser_qa.py
+- Model/adapter/config: nguyên byte V4 trong bộ `Data (evaluated)/TRAINED_TESTED` được cung cấp; ba hash quan trọng ở `docs/MIGRATION_V4.md`.
+- Mẫu chạy tương tác: **Validation 01/05–30/06/2022**, morning features, lịch sử quan sát và sự kiện thị trường thuộc cùng bộ V4. Luồng thị trường gốc cố định và seed được lưu truy vết; có thêm lựa chọn Replay POS để đối chiếu sổ cố định.
+- Lịch sử: quan sát trước ngày quyết định trong cùng bộ nguồn V4; ca tự chạy đã chốt có thể bổ sung lịch sử riêng, không dùng dữ liệu tương lai.
+- Drift reference: feature **Fit** V4, 777 SKU-ngày, tới 30/04/2022. Chỉ dùng để giám sát, không làm target hay tune trong app.
+- `reference/v4`: bảng kết quả V4 62 ngày và ledger của lượt đánh giá đã khóa, **chỉ đọc để tham chiếu**. Không đưa scorer/nhu cầu ẩn vào model input. Bộ kết quả tháng 7–8/2022 ghi đúng là **Post-Test Development Iteration**.
 
-Đã đạt 66 test backend, đối chiếu hàm policy V9 gốc và đối soát 480 SKU-ngày; browser QA desktop/mobile và luồng học dữ liệu không ghi nhận lỗi JavaScript. Provider API dùng stub trong unit test; Ollama đã được gọi thật trên máy này. Gemini/OpenAI cần key/quota để kiểm chứng tài khoản thật. Lỗi 429 được phân loại riêng thành quota/số dư, hạn mức chi tiêu và giới hạn tốc độ; không tự gọi lại khi thiếu credit/quota. Ảnh và kết quả ở docs/qa/.
+Mặc định giữ khả năng mô phỏng phản ứng giá: worker riêng đọc sự kiện Validation V4 và dùng quy tắc gốc `min(1, 0.6 × sku_response × (discount/50)^0.9)`. Worker chỉ trả lượt yêu cầu mua trong khoảng thời gian vừa trôi qua; không trả dòng khách tương lai hoặc response draw cho model. Đây là giả định mô phỏng của nguồn V4, không phải phản ứng khách AEON đã đo. Lựa chọn **Replay POS** chỉ có giao dịch quan sát, có thể bị che khuất bởi tồn; riêng lựa chọn đó không sinh thêm khách khi giảm giá. Hai nguồn tách version/hash, không trộn khi nối ca/báo cáo. Một ca tương tác không phải chạy lại closed-loop test và không được ép cho ra đúng 140.133.307đ lãi góp của toàn bộ 62 ngày. Các nhánh Baseline/M1/M2 trong bảng tham chiếu đều thuộc lượt đánh giá V4, không phải model cũ được nạp vào app.
 
-## Giới hạn cần biết
+## 6. Nhập dữ liệu và lỗi thiếu/sai
 
-- Chạy **inference thật** từ model đã huấn luyện; màn hình **Học từ dữ liệu** huấn luyện ứng viên LightGBM mới khi đủ kết quả thực tế. Cần đạt đánh giá và được xác nhận trước khi áp dụng. Không tự train từ mọi file, chưa fine-tune LLM.
-- Nhu cầu và phản ứng giá V9 là mô phỏng; chưa xác nhận chất lượng trên POS AEON thực.
-- ZIP thiếu observations gốc tháng 9. Demo dùng bộ sinh lượt mua mới có seed; output tháng 9 giữ ở **Đối chiếu V9**.
-- WAPE run audit là **11,953181%**. WAPE **12,077197%** thuộc workbook/hash khác.
-- Chưa đủ nguồn chứng nhận tái huấn luyện end-to-end cả hai model. Hash artifact và kết quả inference đã được kiểm tra.
+Trong Dữ liệu đầu vào, tải mẫu History/Weather/Morning features V4/Transactions. Chọn ngày mục tiêu; tải CSV/XLSX/ZIP, xem trước lỗi/cảnh báo, sau đó mới xác nhận.
 
-Xem [triển khai](docs/IMPLEMENTATION_V9.md), [nguồn](docs/SOURCES.md) và [inventory](docs/source_inventory.json) để đọc cơ chế, giả định và giới hạn.
-# Ollama và Gemini
+- Lịch sử phải trước ngày mục tiêu, đúng 7 SKU, số không âm; nên kèm `prepared_qty` và `censored_demand_flag` để dựng lag/censor V4. Không suy lượng cầu đầy đủ từ lượng bán đã hết hàng.
+- Morning features: đủ 7 SKU không trùng, đúng ngày/cutoff 06:00 có múi giờ. Trường lag thiếu chỉ được nhận theo đúng cờ missing và giá trị fallback đã khai báo trong hợp đồng V4; không tùy tiện đổi mọi ô trống thành 0.
+- Ngoài ngày mẫu: cần morning features đầy đủ và thời tiết có `issued_at`/nguồn/thời điểm sẵn có hợp lệ. App chặn nếu thiếu, không chuyển về data/model cũ.
+- File chứa nhãn/nhu cầu ẩn/tương lai bị cách ly. Thời tiết mẫu là dữ liệu ngày trước phục vụ mô phỏng; cảnh báo chưa xác minh forecast là thông tin nguồn, không phải lỗi tải model.
+- Giao dịch nhập phải đúng SKU/phút ca, không vượt tồn. Tệp đã xác nhận cùng hash bị chặn nhập trùng.
+- Sau lỗi hard rule, xem An toàn & sự cố để xử lý incident; không chỉ bấm đổi lại Assisted khi sự cố chưa đóng.
 
-Trong **Cài đặt AI**, chọn Ollama, Gemini hoặc OpenAI. Mỗi lần kết nối đều gọi model thật qua vòng đọc công cụ; chỉ sau khi thành công mới thay kết nối hiện tại. Không tự chuyển sang cloud khi local lỗi.
+## 7. An toàn, monitoring và lifecycle
 
-- Ollama: chạy `Setup-Ollama.cmd` một lần để tải CLI chính thức và `qwen3.5:4b` vào thư mục dự án. Cần vài GB tải xuống và dung lượng lưu trữ. `Start.cmd` tự khởi động CLI đã cài trên loopback. Chọn Ollama, giữ tên model, bấm kết nối; không cần API key. Không có phí API, vẫn dùng điện và phần cứng của máy.
-- Gemini: tạo key tại https://aistudio.google.com/api-keys, chọn Gemini, nhập key trực tiếp vào dashboard và bấm kết nối. Mặc định `gemini-3.8-flash`; có thể đổi tên model theo quyền project. Google AI Pro trong ứng dụng Gemini không bảo đảm quota API; kiểm tra project/free tier/billing tại AI Studio. Không gửi key trong chat. Free tier có giới hạn và điều khoản dữ liệu khác paid tier.
-- Để giữ cấu hình sau restart: dùng `.env.example` làm mẫu, đặt `AI_PROVIDER=Ollama` hoặc `AI_PROVIDER=Gemini` và các biến model/key tương ứng. Key nhập qua UI chỉ giữ trong bộ nhớ phiên chạy.
+Thử lỗi M2 trên ca đang chờ duyệt; thử lỗi M1/tồn từ 19:30. App chuyển phương án thủ công và lưu incident. Trình tự phục hồi: gỡ cờ diễn tập → tiếp nhận → kiểm tra phục hồi → đóng sự cố → bật Assisted. Không sửa file model để demo lỗi; có nút diễn tập sẵn.
 
-M1/M2 đã huấn luyện tính nhu cầu, sản lượng và lịch giá. LLM đọc kết quả để giải thích và ánh xạ cột, không được fine-tune riêng trên V9, không có công cụ duyệt/áp dụng giá. Model local nhỏ có thể suy luận hoặc giải thích kém; cloud cũng có thể sai. Câu trả lời không đọc công cụ bị từ chối, nhưng việc đọc công cụ không bảo đảm mọi câu giải thích đều đúng. Cần đánh giá trên tình huống thực tế trước vận hành.
+Trong Model Registry, **Tạo snapshot V4** lưu bản sao model/adapter/config có checksum. **Khôi phục V4** kiểm checksum snapshot rồi khôi phục đúng những byte đó, ghi người/lý do. Ca vẫn ghim V4; không đổi sang một model chưa được nhóm chốt. Snapshot không sao lưu database bán hàng; dùng công cụ backup SQLite riêng khi cần.
 
-Kiểm thử provider sử dụng HTTP giả lập để kiểm tra truyền bằng chứng, giữ thought signature Gemini, không làm thay đổi ca và từ chối model không đọc tool. Đây không phải kết quả đánh giá chất lượng model thực hay bằng chứng đã gọi Gemini bằng tài khoản người dùng.
+GO/NO-GO là đánh giá ca demo local, có thể còn PENDING trước khi chốt/xác nhận. Cảnh báo phục vụ/công suất theo ca được đọc riêng, không phải yêu cầu chọn lại model V4. Không coi GO local là đã kết nối production AEON.
 
+## 8. Lãi góp và E-ink
 
-Xem [c? ch? realtime, m? ph?ng v? chuy?n ng?y](docs/DAILY_REALTIME_LOOP.md).
+Lãi góp mô phỏng = doanh thu thực ghi nhận − giá vốn V4 của **toàn bộ bánh đã làm** − phí hủy 150đ/bánh cuối ca − phí markdown của sổ ca. Giá vốn bánh dư đã nằm trong chi phí sản xuất, không trừ lần hai. Trước chốt, phí hủy còn chờ; không so lãi góp tạm giữa ca với lãi cả ngày.
 
-## Bàn giao và kịch bản demo V1
+App có hai kênh: tem giấy 350đ/lần đổi và E-ink 0đ/lần (xấp xỉ chi phí biên theo thông tin vận hành nhóm). Giá vốn/công suất/lead time còn là giả định của bộ dữ liệu, không phải chi phí AEON đã kiểm chứng. Adapter V4 vẫn quyết định với chi phí 350đ nguyên bản; đổi kênh hiển thị không sửa model/config hoặc tính lại bảng kết quả 62 ngày.
 
-Xem [Giai đoạn 4: QA Human Approval, ZIP và kịch bản demo](GIAI_DOAN_4_BAN_GIAO_VA_DEMO.md). Chạy `python -m pytest -q` và `python scripts/demo_gd4_check.py` để kiểm thử trên database tạm. Gói mã nguồn không chứa `.venv`, `.env` hoặc phiên SQLite.
+POS/E-ink ở prototype trả ACK mô phỏng, chưa gọi API AEON thật. Phương án tận dụng E-ink sẵn có không yêu cầu mua thêm màn hình cho prototype; tích hợp thực tế còn phụ thuộc hệ thống/quyền truy cập.
+
+## 9. Kiểm thử và tệp trong gói
+
+- `app.py`, `services/`, `web/`: app gốc được nối V4, các màn hình cũ và điều khiển vẫn có.
+- `v4/`: adapter/bundle/config/lookup gốc. Không sửa nếu muốn giữ khóa.
+- `simulation_only/v4/`: sự kiện thị trường Validation V4, chỉ worker mô phỏng đọc; không nằm trong feature input hoặc static web.
+- `data/v4/`: mẫu đầu vào model và quan sát mới. Không còn `current_v9`, `v606`, `v607` hay LightGBM/XGBoost model cũ.
+- `MODEL_DATA_HASHES.json`: hash model và dữ liệu được kiểm trước suy luận.
+- `release_manifest.json`: checksum phần source/model/data phát hành.
+- `docs/`: nguồn, đối chiếu thay đổi, QA, mô tả Copilot và hướng dẫn này.
+- `tests/`: kiểm thử tích hợp. Chạy QA khi developer sửa app; người demo không cần chạy.
+- `.github/workflows/ci.yml`: CI Linux/Windows, chưa có bằng chứng đã chạy trên GitHub của nhóm.
+
+Muốn developer chạy lại kiểm thử app: cài `requirements-dev.txt`, chạy `python scripts/run_qa.py`. Đây là regression app, không train/tune/test lại mô hình kinh doanh.
+
+Bản bàn giao đã kiểm tra trên Linux/Python 3.12; launcher CMD có trong gói nhưng chưa được thực thi trực tiếp trên máy Windows của bạn. Bằng chứng kiểm thử cụ thể nằm trong `docs/V4_QA_RESULTS.json` và `docs/V4_BROWSER_QA.json`.

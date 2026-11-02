@@ -1,0 +1,77 @@
+{
+  "version": "V2_POST_TEST_ITERATION_JOINT_M1_M2_OPTIMIZED",
+  "service_availability_target_normal": 0.88,
+  "service_availability_target_constrained": 0.78,
+  "simulated_lost_sales_rate_ceiling": 0.12,
+  "max_markdowns_per_sku_day": 2,
+  "markdown_action_cost_vnd": 350,
+  "q25_uncertainty_penalty_units": 0.35,
+  "min_net_gain_over_hold_vnd": 3500.0,
+  "pre_2100_sellout_prob_hold_threshold": 0.7,
+  "pre_2100_min_surplus_units_to_markdown": 4.0,
+  "dow_quantile_weights": {
+    "1": {
+      "q25": 0.15,
+      "q50": 0.7,
+      "q75": 0.15,
+      "buffer": 0.5
+    },
+    "2": {
+      "q25": 0.4,
+      "q50": 0.6,
+      "q75": 0.0,
+      "buffer": -0.8
+    },
+    "3": {
+      "q25": 0.35,
+      "q50": 0.65,
+      "q75": 0.0,
+      "buffer": -0.6
+    },
+    "4": {
+      "q25": 0.15,
+      "q50": 0.7,
+      "q75": 0.15,
+      "buffer": 0.4
+    },
+    "5": {
+      "q25": 0.0,
+      "q50": 0.6,
+      "q75": 0.4,
+      "buffer": 1.0
+    },
+    "6": {
+      "q25": 0.0,
+      "q50": 0.45,
+      "q75": 0.55,
+      "buffer": 1.8
+    },
+    "7": {
+      "q25": 0.0,
+      "q50": 0.35,
+      "q75": 0.65,
+      "buffer": 2.2
+    }
+  },
+  "slow_mover_skus": [
+    "TP-CP-001",
+    "TP-RV-001"
+  ],
+  "hot_protected_skus": [
+    "TP-DN-001",
+    "TP-CR-001"
+  ],
+  "action_menu": [
+    0,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ],
+  "min_cooldown_minutes": 30
+}

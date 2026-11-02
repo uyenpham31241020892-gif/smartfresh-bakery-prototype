@@ -1,0 +1,13 @@
+{
+  "model": "V4",
+  "archive": "Data (evaluated)-20261029T043742Z-1-001(4).zip",
+  "scope": "Provided TRAINED_TESTED V4 model + train/validation public observations; read-only V4 scorer reference separately.",
+  "demo_dates": [
+    "2022-05-01",
+    "2022-06-30"
+  ],
+  "test_protocol": "POST_TEST_DEVELOPMENT_ITERATION",
+  "no_retraining": true,
+  "old_data_allowed": false,
+  "simulation_source": "V4 Validation dates only, customer_events_ALL_PRIVATE.jsonl; separate worker, original response rule strength0.6. Replay POS remains a separate scenario."
+}

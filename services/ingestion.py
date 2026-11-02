@@ -54,10 +54,10 @@ def tables(name, raw):
             if len(z.infolist()) > 500 or sum(x.file_size for x in z.infolist()) > 80 * 1024 * 1024:
                 raise ValueError('ZIP có quá nhiều tệp hoặc dung lượng mở rộng quá lớn.')
             candidates = [n for n in z.namelist() if PurePosixPath(n).name in
-                ['history.csv', 'history_through_aug15_synthetic.csv', 'weather.csv', 'weather_forecast_feed_2022.csv']
-                and ('01_Dataset_moi/' in n or '/' not in n)]
+                ['history.csv','weather.csv','morning_features_V4.csv','morning_features.csv']
+                ]
             if not candidates:
-                raise ValueError('ZIP cần history.csv và/hoặc weather.csv; ZIP V9 gốc cũng được hỗ trợ.')
+                raise ValueError('ZIP cần history.csv, weather.csv và/hoặc morning_features_V4.csv.')
             result = []
             for n in candidates:
                 result += tables(n, z.read(n))
@@ -68,7 +68,7 @@ def tables(name, raw):
 def inspect(name, raw, day, master, mapping=None):
     day = iso(day)
     result = {'filename': PurePosixPath(name.replace('\\', '/')).name, 'sha256': hashlib.sha256(raw).hexdigest(),
-              'day': day, 'errors': [], 'warnings': [], 'history': [], 'weather': None, 'transactions': [], 'tables': []}
+              'day': day, 'errors': [], 'warnings': [], 'history': [], 'weather': None, 'transactions': [], 'tables': [],'outcomes':[],'feature_rows':[]}
     if day > '2022-09-30':
         result['warnings'].append('Model được khóa từ dữ liệu năm 2022. Dự báo cho ngày ngoài giai đoạn này chưa được xác nhận độ chính xác.')
     history_keys = set()
@@ -88,7 +88,7 @@ def inspect(name, raw, day, master, mapping=None):
         if blocked:
             result['errors'].append({'table': table_name, 'row': 1, 'message': 'Cột evaluation/target bị cách ly: ' + ', '.join(blocked)})
             continue
-        kind = 'history' if {'date', 'sku_code', 'sold_qty'} <= cols else 'weather' if {'date', 'forecast_rain_mm_previous_day1', 'forecast_temperature_max_c_previous_day1'} <= cols else 'transactions' if {'sku_code', 'minute', 'quantity'} <= cols else 'unknown'
+        kind = 'features' if {'date','sku_code','decision_at','sold_calendar_lag1','prepared_last_observed'}<=cols else 'history' if {'date', 'sku_code', 'sold_qty'} <= cols else 'weather' if {'date', 'forecast_rain_mm_previous_day1', 'forecast_temperature_max_c_previous_day1'} <= cols else 'transactions' if {'sku_code', 'minute', 'quantity'} <= cols else 'unknown'
         result['tables'].append({'name': table_name, 'kind': kind, 'rows': len(frame), 'columns': list(frame.columns),
                                  'sample': json.loads(frame.head(5).to_json(orient='records', date_format='iso'))})
         if kind == 'unknown':
@@ -96,10 +96,21 @@ def inspect(name, raw, day, master, mapping=None):
             continue
         for i, r in enumerate(frame.to_dict('records'), 2):
             try:
-                if kind == 'history':
+                if kind=='features':
+                    from .engine import clean,adapter_module
+                    f=clean(r);sku=f.get('sku_code')
+                    if sku not in master or f.get('date')!=day:raise ValueError('Feature V4 sai SKU/ngày mục tiêu.')
+                    if any(x['sku_code']==sku for x in result['feature_rows']):raise ValueError('Trùng feature SKU.')
+                    if timestamp(f['decision_at'])>cutoff(day) or timestamp(f['decision_at']).date().isoformat()!=day:raise ValueError('decision_at V4 sai cutoff/ngày.')
+                    if str(f.get('history_through','9999'))>=day or str(f.get('weather_reference_date','9999'))>=day:raise ValueError('Feature chứa lịch sử/thời tiết hiện tại hoặc tương lai.')
+                    for column in adapter_module()._M2_BUNDLE['preprocessor'].numeric_cols:
+                        if column in ['sold_calendar_lag1','sold_calendar_lag7'] and f.get(column) is None and f.get(column+'_missing')==1 and f.get(column+'_fallback_observed_sales') is not None and math.isfinite(float(f[column+'_fallback_observed_sales'])):continue
+                        if f.get(column) is None or not math.isfinite(float(f[column])):raise ValueError('Thiếu/sai feature '+column)
+                    result['feature_rows'].append(f)
+                elif kind == 'history':
                     d, sku = iso(r['date']), str(r['sku_code']).strip()
                     if sku not in master:
-                        raise ValueError('SKU không có trong SKU master V9')
+                        raise ValueError('SKU không có trong SKU master V4')
                     if d >= day:
                         raise ValueError('Lịch sử phải trước ngày mục tiêu; dữ liệu hiện tại/tương lai không được làm feature')
                     key = (d, sku)
@@ -108,6 +119,10 @@ def inspect(name, raw, day, master, mapping=None):
                     if 'available_at' in r and not pd.isna(r['available_at']):
                         if timestamp(r['available_at']) > cutoff(day):
                             raise ValueError('Lịch sử chưa có tại thời điểm dự báo 06:00 (available_at).')
+                    if {'prepared_qty','censored_demand_flag'}<=cols:
+                        prep=integer(r['prepared_qty'],'prepared_qty');sold=integer(r['sold_qty'],'sold_qty');censor=integer(r['censored_demand_flag'],'censored_demand_flag')
+                        if prep<sold or censor not in [0,1]:raise ValueError('prepared >= sold, censor nhận 0/1.')
+                        result['outcomes'].append({'date':d,'sku_code':sku,'prepared_qty':prep,'sold_qty':sold,'stockout':censor,'censored_demand_flag':censor})
                     history_keys.add(key)
                     result['history'].append({'date': d, 'sku_code': sku, 'sold_qty': integer(r['sold_qty'], 'sold_qty'),
                         'available_at': str(r['available_at']) if 'available_at' in r and not pd.isna(r['available_at']) else None})
@@ -133,7 +148,7 @@ def inspect(name, raw, day, master, mapping=None):
                         'is_public_holiday': holiday, 'is_festival_non_public': festival,
                         'forecast_rain_mm_previous_day1': rain, 'forecast_temperature_max_c_previous_day1': temp,
                         'forecast_source': str(r.get('forecast_source', 'UPLOADED_FORECAST')),
-                        'issued_at': str(issued) if issued is not None else None,
+                        'issued_at': str(issued) if issued is not None else None,'weather_reference_date':str(r.get('weather_reference_date') or (date.fromisoformat(day)-__import__('datetime').timedelta(days=1)).isoformat()),'date':day,
                         'available_at': str(r['available_at']) if 'available_at' in r and not pd.isna(r['available_at']) else str(issued)}
                 else:
                     sku = str(r['sku_code']).strip()
@@ -154,6 +169,9 @@ def inspect(name, raw, day, master, mapping=None):
             count = sum(r['sku_code'] == sku for r in result['history'])
             if count < 7:
                 result['warnings'].append(f'{sku}: ít hơn 7 ngày lịch sử; model sẽ dùng giá trị dự phòng đã khóa.')
+    if result['feature_rows']:
+        if len(result['feature_rows'])!=len(master) or {x['sku_code'] for x in result['feature_rows']}!=set(master):result['errors'].append({'row':1,'message':'Feature V4 cần đủ 7 SKU không trùng.'})
+        if result['weather'] is not None:result['weather']['v4_features']={x['sku_code']:x for x in result['feature_rows']}
     result['quality_policy'] = 'GD5-v1'
     result['prediction_as_of'] = cutoff(day).isoformat()
     result['source_assurance'] = 'User-declared upload; SHA256 chứng minh nội dung, không chứng minh nguồn POS/JMA.'
@@ -167,6 +185,6 @@ def inspect(name, raw, day, master, mapping=None):
             if q['status'] == 'BLOCK':
                 result['warnings'].append(q['sku'] + ': thiếu/quá cũ; sẽ chặn tạo dự báo nếu không đủ dữ liệu.')
     result['quarantine'] = bool(result['errors'])
-    result['valid'] = not result['errors'] and bool(result['history'] or result['weather'] or result['transactions'])
+    result['valid'] = not result['errors'] and bool(result['history'] or result['weather'] or result['transactions'] or result['feature_rows'])
     result['quarantine'] = not result['valid']
     return result

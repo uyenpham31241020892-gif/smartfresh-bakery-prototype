@@ -1,0 +1,12 @@
+[
+  {
+    "username": "manager.chau",
+    "salt": "de30990be5d338475b0ebd10b8e1be5e",
+    "password_hash": "668c61a6691fe3a91b51946900cdb81875420004f14f7f052109c9269e2c23abba42d42af39560d1ace0964381d676915bbab80701636ca479fb9dcb4bb8d60a"
+  },
+  {
+    "username": "manager.uyen",
+    "salt": "72d9f238a7a0452c09afd2f9a213f3e1",
+    "password_hash": "abaeb9f7e48d3e7d534c9ab608e986099e0931c6ac76d2097f6800d56d02e47485d6708a680543b593abedcf33567fc9990d11b6b3ffc5b4fae0020a6d885ed3"
+  }
+]

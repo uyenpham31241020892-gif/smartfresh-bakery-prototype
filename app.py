@@ -1,10 +1,13 @@
 """SmartFresh local inference, approvals, uploads and OpenAI tools."""
+import os
+for _thread_var in ["OMP_NUM_THREADS","OPENBLAS_NUM_THREADS","MKL_NUM_THREADS"]:os.environ[_thread_var]="1"
 import csv
 import io
 import json
 import os
 from pathlib import Path
 import sys
+if hasattr(sys.stdout, 'reconfigure'): sys.stdout.reconfigure(encoding='utf-8', errors='replace'); sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import uuid
 import zipfile
 import time
@@ -40,7 +43,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 engine = Engine(allow_degraded=True)
 simulator = Simulator(engine)
-store = Store(os.environ.get('SMARTFRESH_DB'))
+store = Store(os.environ.get('SMARTFRESH_DB') or ROOT/'runtime/smartfresh_v4.sqlite3')
 identity = Identity(store)
 workflow = Workflow(engine, simulator, store)
 learning = Learning(store, engine, os.environ.get('SMARTFRESH_LEARNING_DIR'))
@@ -49,6 +52,8 @@ workflow.version_engine = learning.resolve
 workflow.observed_history = learning.history_before
 workflow.observed_outcomes = learning.outcomes_before
 assistant = Assistant()
+from services.explanations import Explanations
+explanations = Explanations()
 realtime = Realtime(workflow,store)
 if engine.artifact_error:
     workflow.safety.report('__system__','STARTUP_ARTIFACT',engine.artifact_error)
@@ -78,6 +83,8 @@ async def local_origin(request: Request, call_next):
     if request.method not in ['GET','HEAD'] and origin and (urlparse(origin).netloc!=request.url.netloc or urlparse(origin).scheme!=request.url.scheme):
         return JSONResponse({'error':'Chỉ nhận thao tác từ dashboard local.','code':'ORIGIN_DENIED'},status_code=403)
     path=request.url.path
+    if path in ['/api/learning/train','/api/learning/demo'] or path.startswith('/api/learning/') and path.endswith('/promote') or path.startswith('/api/learning/') and path.endswith('/holdout'):
+        return JSONResponse({'error':'V4 đã khóa: không train/tune hay promotion model mới trong app.'},status_code=409)
     public=path in ['/api/health','/api/auth/status','/api/auth/login','/api/auth/setup']
     user=None
     if path.startswith('/api/') and not public:
@@ -198,7 +205,7 @@ def auth_response(token,user):
 
 @app.post('/api/auth/setup')
 def setup(body:Credentials):
-    identity.create(body.username,body.password,'manager',bootstrap=True)
+    identity.create(body.username,body.password,'staff',bootstrap=True)
     token,user=identity.login(body.username,body.password)
     return auth_response(token,user)
 
@@ -271,10 +278,10 @@ def safety_control(body:SafetyRequest):
         from services.engine import LADDER,CAPS,FLOORS
         for p in plans:
             current=s['products'].get(p['sku'],{'stock':p['prepared'],'prepared':p['prepared'],'discount':0,'forecast':p['forecast']})
-            r=engine.price(p['sku'],j,current['stock'],current['prepared'],current['discount'],0,0,current['forecast'],s['weather'],as_of=max(1170,s['minute']))
+            r=engine.price(p['sku'],j,current['stock'],current['prepared'],current['discount'],0,0,current['forecast'],s['weather'],as_of=max(1170,min(1290,1170+30*((s['minute']-1170)//30))))
             if r['discount'] not in LADDER or not max(current['discount'],FLOORS[j])<=r['discount']<=CAPS[j]:raise GuardError('Rollback M1 smoke test thất bại.')
         receipt={'passed':True,'changed_active_model':False,'candidate':engine.version,'at':now(),
-                 'steps':['Ghim ca và phiên bản hiện tại','Nạp bundle V9 gốc','Kiểm SHA256','Smoke test M2 batch/floor và M1 ladder/cap/floor','Lưu bằng chứng drill','Giữ nguyên active model; phục hồi thật cần Manager duyệt'],
+                 'steps':['Ghim ca và phiên bản hiện tại','Nạp bundle V4 đã khóa','Kiểm SHA256','Smoke test M2 batch/floor và M1 ladder/cap/floor','Lưu bằng chứng drill','Giữ nguyên active model; phục hồi thật cần Manager duyệt'],
                  'model_hashes':engine.manifest['native_model_hashes']}
         with store.connect() as db:workflow.safety.audit(db,s['id'],'ROLLBACK_DRILL',{'reason':body.reason,'receipt':receipt})
         return {'drill':receipt,'state':snapshot(s)}
@@ -344,16 +351,19 @@ def evidence(s, sku):
     plan = next((p for p in s['plan'] if p['sku'] == sku), None)
     if plan is None:
         raise ValueError('SKU không hợp lệ.')
-    pricing = next((p for p in (s['pending'] or {}).get('rows', []) if p['sku'] == sku), None)
+    current=s['pending'] or {}
+    pricing = next((p for p in current.get('rows', [])+current.get('held_rows',[]) if p['sku'] == sku), None)
     if pricing is None and s['decisions']:
-        pricing = next((p for p in s['decisions'][-1]['rows'] if p['sku'] == sku), None)
+        last=s['decisions'][-1]
+        pricing = next((p for p in last['rows']+last.get('held_rows',[]) if p['sku'] == sku), None)
     manifest = learning.resolve(s['model_version']).manifest
     return {'sku': sku, 'model_version': s['model_version'], 'session_id': s['id'], 'revision': s['revision'],
             'training': {'parent': manifest.get('parent'), 'component_retrained': manifest.get('learning_kind'),
                          'data_cutoff': manifest.get('trained_until', '2022-08-15'),
-                         'source': 'uploaded_real_outcomes' if manifest.get('parent') else 'provided_V9_synthetic_bundle'},
+                         'source': 'provided_V4_locked_model_and_validation_inputs',
+                         'review':engine.training_review},
             'm2': plan, 'm1': pricing, 'm2_origin':s.get('prediction_origin','LEGACY'),
-            'm1_origin':(s.get('pending') or (s['decisions'][-1] if s['decisions'] else {})).get('origin','LEGACY'), 'explanation_type': 'rule_fallback_no_shap' if s.get('prediction_origin')=='RULE_ROLLING7' else 'exact_tree_contributions_M2_and_optimizer_candidates_M1'}
+            'm1_origin':(s.get('pending') or (s['decisions'][-1] if s['decisions'] else {})).get('origin','LEGACY'), 'explanation_type': 'Observed-state risk forecast and declared pricing policy; no causal uplift or SHAP claim'}
 
 
 def snapshot(s):
@@ -362,22 +372,35 @@ def snapshot(s):
     prepared = sum(p['prepared'] for p in products)
     sold = sum(p['sold'] for p in products)
     revenue = sum(p['revenue'] for p in products)
-    cost = sum(round(p['prepared'] * p['price'] * .45) for p in products)
+    from services.costs import estimate
+    financial=estimate(s['products'],closed=s['phase']=='closed');cost=financial['preparation_cost']
     s = dict(s)
+    s['live_products'] = []
+    for sku,p in s['products'].items():
+        tx=[t for t in s['ledger'] if t['sku']==sku]
+        sales30=sum(t['qty'] for t in tx if s['minute']-30<=t['minute']<s['minute'])
+        sales60=sum(t['qty'] for t in tx if s['minute']-60<=t['minute']<s['minute'])
+        s['live_products'].append(dict(sku=sku,name=p['name'],prepared=p['prepared'],sold=p['sold'],stock=p['stock'],
+            sales30=sales30,sales60=sales60,transactions=len(tx),revenue=p['revenue'],
+            projected_stockout_minute=s['minute']+60*p['stock']/sales60 if sales60 else None,
+            stock_at_2130=p.get('stock_at_2130'),first_stockout_minute=p.get('first_stockout_minute')))
+    s['feed_status'] = dict(as_of_minute=s['minute'],revision=s['revision'],transaction_rows=len(s['ledger']),
+                          cumulative_sold=sold,last_transaction_minute=max((t['minute'] for t in s['ledger']),default=None))
     s.pop('keys', None)
     s.pop('input_history', None)
     s.pop('input_outcomes',None)
     s['totals'] = {'prepared': prepared, 'sold': sold, 'stock': prepared - sold, 'revenue': revenue,
         'waste': prepared - sold if s['phase'] == 'closed' else None,
         'lost_simulator_only': sum(p['lost'] for p in products) if s['mode'] == 'simulation' else None,
-        'cost_assumed': cost, 'contribution_before_overhead': revenue - cost,
+        'cost_assumed': cost, 'contribution_before_overhead': financial['contribution_before_overhead'],
         'sell_through_pct': 100 * sold / prepared if prepared else 0,
         'proposed_prepared': sum(p['prepared'] for p in s['plan']), 'forecast': sum(p['forecast'] for p in s['plan'])}
     s['data_quality'] = {**s.get('data_quality', {'status':'LEGACY','message':'Ca cũ chưa có snapshot GD5; tạo ca mới để kiểm tra.'}), 'sales':sales_quality(s)}
+    s['financial_estimate']=financial
     s['safety'] = {**workflow.safety.control(s['id']),'open_incidents':sum(i['status']!='resolved' for i in workflow.safety.incidents(s['id']))}
     s['ai'] = assistant.status()
     s['realtime']=realtime.status(s['id'])
-    s['sales_feed']={'type':'trained_simulator' if s['mode']=='simulation' else 'manual_import',
+    s['sales_feed']={'type':s.get('simulator_version') if s['mode']=='simulation' else 'manual_import',
                      'has_transactions':bool(s['ledger']),'missing':s['mode']=='live' and not s['ledger'] and not s.get('confirmed_zero_sales'),
                      'confirmed_zero':bool(s.get('confirmed_zero_sales'))}
     if s['sales_feed']['missing'] and s['pending']:
@@ -386,6 +409,10 @@ def snapshot(s):
     if accounting['errors']:
         for key in ['revenue','cost_assumed','contribution_before_overhead','waste','sell_through_pct']:s['totals'][key]=None
     s['totals']['forecast_units']=sum(int(p['forecast']+.5) for p in s['plan'])
+    from services.proposal_narrative import prepare,immediate
+    component='m1' if s['minute']>=1170 else 'm2'
+    s['proposal_explanation']=dict(component=component,answer=immediate(prepare(s,component,lambda sku:evidence(s,sku))),
+        evidence_delivery='SERVER_EXECUTED_READ_ONLY_TOOLS_BEFORE_GENERATION',ai_status='pending')
     return s
 
 
@@ -397,16 +424,37 @@ def state(session_id: str | None = None):
         if session_id:
             raise
         if actor.get()['role']=='viewer':raise AccessError('Chưa có ca để xem; cần Staff/Manager tạo ca đầu tiên.')
-        s = workflow.create()
+        s = workflow.create(auto_run=True)
     return snapshot(s)
 
 
+@app.get('/api/proposal-explanation/{sid}')
+def proposal_explanation(sid: str, component: str = 'm2',retry: bool=False):
+    if retry:explanations.invalidate_errors()
+    return explanations.get(store.get(sid),component,assistant,evidence)
+
+
+@app.get('/api/report-explanation/{sid}')
+def report_explanation(sid: str, days: int=30, section: str='overview', sku: str='all', refresh_revision: int|None=None, retry: bool=False):
+    from services.business_reports import report,analysis_context
+    s=store.get(sid)
+    if refresh_revision is not None and not 0<=refresh_revision<=s['revision']:raise ValueError('Invalid report refresh revision')
+    if section=='baseline':
+        from services.baseline_history import report as baseline_report
+        data=baseline_report(s['day'],days)
+    else:data=report(store,sid,days,selected=s)
+    context=analysis_context(data,section,sku,refresh_revision)
+    if retry:explanations.invalidate_errors()
+    return explanations.get(s,'reports',assistant,evidence,context)
+
+
 class NewSession(BaseModel):
-    day: str = '2022-08-16'
+    day: str = '2022-05-02'
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
     mode: str = 'simulation'
-    auto_run: bool = False
+    auto_run: bool = True
     operation_mode: str = 'assisted'
+    market_version: str | None = None
 
 
 @app.post('/api/sessions')
@@ -454,7 +502,7 @@ def act(sid: str, action: str, body: Action):
 
 class ClockRequest(BaseModel):
     enabled: bool
-    speed: float = 5.
+    speed: float = 30.
     pause_confirm: bool = True
 
 
@@ -506,6 +554,21 @@ def certify_report(sid:str,body:ReconciliationRequest):
 @app.get('/api/evaluation/{sid}/sensitivity')
 def evaluation_sensitivity(sid:str):
     return Evaluation(store,learning).sensitivity(sid)
+
+
+class LifecycleRequest(BaseModel):
+    reason: str = Field(min_length=3,max_length=2000)
+    checkpoint_id: str | None = None
+
+@app.post('/api/registry/checkpoint')
+def registry_checkpoint(body:LifecycleRequest):
+    if actor.get()['role']!='manager':raise AccessError('Chỉ Manager quản lý snapshot model.')
+    return learning.checkpoint(body.reason)
+
+@app.post('/api/registry/restore')
+def registry_restore(body:LifecycleRequest):
+    if actor.get()['role']!='manager':raise AccessError('Chỉ Manager khôi phục model.')
+    return learning.rollback(engine.version,body.reason,body.checkpoint_id)
 
 @app.get('/api/registry')
 def model_registry():
@@ -583,11 +646,7 @@ def audit(sid: str):
 @app.get('/api/metadata')
 def metadata():
     active = learning.active()
-    provenance = json.loads((DATA / 'provenance.json').read_text())
-    summary = json.loads((ROOT / 'reference/drive_v9/summary.json').read_text())
-    return {'model': active.version, 'original_frozen_model': engine.version, 'skus': engine.skus, 'selection': active.selection,
-            'archive': provenance['archive'], 'archive_sha256': provenance['archive_sha256'],
-            'original_observations_available': False, 'reference_run': summary, 'ai': assistant.status()}
+    return {'model':active.version,'original_frozen_model':engine.version,'skus':engine.skus,'selection':active.selection,'archive':'V4 locked model + V4 Validation inputs','archive_sha256':__import__('hashlib').sha256((ROOT/'MODEL_DATA_HASHES.json').read_bytes()).hexdigest(),'original_observations_available':False,'reference_run':{},'ai':assistant.status(),'training_review':engine.training_review,'simulation_scenarios':simulator.report()['scenarios'],'demo_dates':sorted(simulator.calendar),'model_manifest':engine.manifest}
 
 
 @app.get('/api/history')
@@ -596,23 +655,32 @@ def historical(session_id: str | None = None):
         s=store.get(session_id)
         h=pd.DataFrame([{'date':r['date'],'sold_qty':r['sold']} for r in s['input_history'] if r['date']<s['day']])
     except ValueError:
-        h = pd.read_csv(DATA / 'history_through_aug15_synthetic.csv')
+        h = pd.DataFrame(engine.seed_rows)
     if h.empty:return []
     rows = h.groupby('date').sold_qty.sum().tail(14)
     return [{'day': d, 'sold': int(v)} for d, v in rows.items()]
 
 
+@app.get('/api/business-report/{sid}')
+def business_report(sid: str, days: int = 30):
+    from services.business_reports import report
+    return report(store, sid, days)
+
+
+@app.get('/api/simulation-comparison')
+def simulation_comparison(day: str = '2022-05-02', seed: int = 42):
+    return simulator.comparison(day,seed)
+
+
+@app.get('/api/baseline-history/{sid}')
+def baseline_history(sid: str,days: int=180):
+    from services.baseline_history import report
+    return report(store.get(sid)['day'],days)
+
+
 @app.get('/api/reference')
 def reference():
-    results = []
-    for system in ['BASELINE', 'M1_M2_SELECTED']:
-        frame = pd.read_csv(DATA / 'outputs' / f'{system}_daily_sep.csv')
-        sums = {k: int(frame[k].sum()) for k in ['prepared_qty', 'sold_qty', 'waste_qty', 'lost_sales_qty', 'revenue_vnd', 'production_cost_assumed_vnd', 'contribution_before_overhead_vnd']}
-        sums['system'] = system
-        results.append(sums)
-    daily = pd.read_csv(DATA / 'outputs/M1_M2_SELECTED_daily_sep.csv').groupby('date')[['revenue_vnd', 'waste_qty', 'lost_sales_qty']].sum().reset_index().to_dict('records')
-    return {'source': 'Archived V9 run d8b621a5; read-only reference', 'systems': results, 'daily': daily,
-            'metrics': json.loads((ROOT / 'reference/drive_v9/summary.json').read_text())['m2_metrics']}
+    return {'source':'V4 locked 62-day evaluation · POST_TEST_DEVELOPMENT_ITERATION · read-only reference, not current session','systems':pd.read_csv(ROOT/'reference/v4/BUSINESS_KPI_COMPARISON_SCORER_ONLY.csv').to_dict('records'),'daily':[],'metrics':{}}
 
 
 @app.get('/api/quality')
@@ -707,7 +775,12 @@ def _confirm_import(iid: str, body: ImportConfirm):
         s = workflow.mutate(s['id'], body.revision, 'sales', {'rows': p['transactions']}, iid)
     else:
         visible = {(r['date'], r['sku_code']): r['sold_qty'] for r in p['history']} if p['history'] else None
-        s = workflow.create(day=p['day'], seed=body.seed, mode='live', history=visible, weather=p['weather'], identifier='import-' + iid,
+        feature_demo=bool(p.get('feature_rows')) and p['weather'] is None
+        if feature_demo:
+            if p['day'] not in simulator.calendar:raise ValueError('Ngày ngoài lịch mẫu V4 cần weather.csv có issued_at; không tự tạo forecast.')
+            p['weather']={**simulator.calendar[p['day']],'v4_features':{x['sku_code']:x for x in p['feature_rows']}}
+
+        s = workflow.create(day=p['day'], seed=body.seed, mode='simulation' if feature_demo else 'live', history=visible, weather=p['weather'],outcome_snapshot={(x['date'],x['sku_code']):x for x in p.get('outcomes',[])} or None, identifier='import-' + iid,
                             source=p['filename'] + ' · SHA256 ' + p['sha256'][:12],
                             provenance={'type':'upload','import_id':iid,'filename':p['filename'],'file_sha256':p['sha256'],
                                         'source':p.get('source_name','User upload'),'availability':p.get('history_availability','date_only_unverified'),
@@ -724,14 +797,17 @@ def _confirm_import(iid: str, body: ImportConfirm):
 
 @app.get('/api/templates/{kind}')
 def template(kind: str):
-    if kind == 'history':
-        return FileResponse(DATA / 'history_through_aug15_synthetic.csv', filename='history.csv')
-    if kind == 'weather':
-        content = 'date,forecast_rain_mm_previous_day1,forecast_temperature_max_c_previous_day1,is_public_holiday,is_festival_non_public,issued_at\n2026-10-21,5,31,0,0,2026-10-20T18:00:00+07:00\n'
-    elif kind == 'transactions':
-        content = 'sku_code,minute,quantity\nBK-001,480,2\n'
-    else:
-        raise ValueError('Loại file mẫu không hợp lệ.')
+    if kind=='history':
+        sample=pd.DataFrame(engine.observed)
+        sample=sample[sample['date']<'2022-05-02'][['date','sku_code','sold_qty','prepared_qty','censored_demand_flag']]
+        content=sample.to_csv(index=False)
+    elif kind=='features':
+        return FileResponse(ROOT/'data/v4/import_example.csv',filename='morning_features_V4.csv')
+    elif kind=='weather':
+        content='date,forecast_rain_mm_previous_day1,forecast_temperature_max_c_previous_day1,is_public_holiday,is_festival_non_public,issued_at,weather_reference_date\n2022-05-02,0,28,0,0,2022-05-01T23:00:00+07:00,2022-05-01\n'
+    elif kind=='transactions':
+        content='sku_code,minute,quantity\nTP-DN-001,480,2\n'
+    else:raise ValueError('Loại file mẫu không hợp lệ.')
     return Response(content, media_type='text/csv', headers={'Content-Disposition': f'attachment; filename="{kind}.csv"'})
 
 
@@ -739,7 +815,7 @@ def template(kind: str):
 def export(sid: str):
     s = store.get(sid)
     out = io.StringIO()
-    writer = csv.DictWriter(out, fieldnames=['sku', 'minute', 'qty', 'discount', 'unit_price', 'paid', 'origin'])
+    writer = csv.DictWriter(out, extrasaction='ignore', fieldnames=['sku', 'minute', 'qty', 'discount', 'unit_price', 'paid', 'origin'])
     writer.writeheader()
     writer.writerows(s['ledger'])
     return Response('\ufeff' + out.getvalue(), media_type='text/csv', headers={'Content-Disposition': f'attachment; filename="ledger-{s["day"]}-{sid[:8]}.csv"'})
@@ -769,6 +845,9 @@ def ai_settings(body: AISettings):
 class Chat(BaseModel):
     session_id: str
     message: str = Field(min_length=1, max_length=4000)
+    report_days: int|None=None
+    report_section: str='overview'
+    report_sku: str='all'
 
 
 class AIConnection(AISettings):
@@ -776,11 +855,8 @@ class AIConnection(AISettings):
 
 
 def verify_ai(client, s):
-    result = client.chat(
-        'Kiểm tra kết nối SmartFresh: gọi công cụ đọc ca và bằng chứng của BK-001, '
-        'sau đó trả lời ngắn gọn bằng tiếng Việt về nhu cầu dự báo và sản lượng đề xuất của BK-001. '
-        'Nêu bước nào đang chờ quản lý xác nhận.',
-        s, lambda sku: evidence(s, sku))
+    sku=s['plan'][0]['sku']
+    result = client.chat('Verify connection: call get_session_context and get_model_evidence for '+sku+'. Explain raw M2 forecast, supply plan, current cumulative sales and stock in Vietnamese. State missing evidence explicitly.',s,lambda sku:evidence(s,sku))
     with store.connect() as db:
         db.execute('INSERT INTO audit(session_id,action,detail) VALUES (?,?,?)',
                    (s['id'], client.provider.upper() + '_CONNECTION_TEST', json.dumps({
@@ -803,6 +879,7 @@ def ai_connect(body: AIConnection):
         raise
     # Replace the current connection only after a real Responses/tool loop succeeds.
     assistant.configure(candidate.key, candidate.model, candidate.provider)
+    explanations.invalidate_errors()
     assistant.verified, assistant.last_response_id = True, result['response_id']
     return {'ai': assistant.status(), 'verification': result}
 
@@ -816,7 +893,11 @@ def ai_verify(body: Chat):
 @app.post('/api/chat')
 def chat(body: Chat):
     s = store.get(body.session_id)
-    result = assistant.chat(body.message, s, lambda sku: evidence(s, sku))
+    report_context=None
+    if body.report_days is not None:
+        from services.business_reports import report,analysis_context
+        report_context=analysis_context(report(store,s['id'],body.report_days,selected=s),body.report_section,body.report_sku)
+    result = assistant.chat(body.message, s, lambda sku: evidence(s, sku),report_context)
     with store.connect() as db:
         db.execute('INSERT INTO audit(session_id,action,detail) VALUES (?,?,?)',
                    (s['id'], assistant.provider.upper() + '_EXPLANATION', json.dumps({'response_id': result['response_id'], 'model': result['model'], 'provider': assistant.provider, 'tools': result['tools_used'], 'revision': s['revision']})))
@@ -826,5 +907,5 @@ def chat(body: Chat):
 if __name__ == '__main__':
     import uvicorn
     port = int(os.environ.get('PORT', '8000'))
-    print(f'SmartFresh: http://127.0.0.1:{port} | V9 inference + SQLite | Ctrl+C để dừng')
+    print(f'SmartFresh: http://127.0.0.1:{port} | V4 locked models + original prototype + V4 POS replay | Ctrl+C để dừng')
     uvicorn.run(app, host='127.0.0.1', port=port, log_level='warning')

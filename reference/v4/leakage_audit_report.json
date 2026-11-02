@@ -1,0 +1,6 @@
+{
+  "custodian_filesystem_violations": [],
+  "weights_frozen_verified": true,
+  "online_retrain_performed": false,
+  "history_rollforward_branch_isolated": true
+}

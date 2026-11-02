@@ -25,23 +25,40 @@ class Identity:
                 CREATE TABLE IF NOT EXISTS login_sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,expires REAL NOT NULL);
                 CREATE TABLE IF NOT EXISTS login_limits(username TEXT PRIMARY KEY,failures INTEGER NOT NULL,blocked_until REAL NOT NULL);
             ''')
+        self.enforce_fixed_managers()
+
+    def enforce_fixed_managers(self):
+        from pathlib import Path
+        accounts=json.loads((Path(__file__).resolve().parents[1]/'manager_accounts.json').read_text())
+        allowed={a['username'] for a in accounts}
+        if allowed != {'manager.chau','manager.uyen'}:raise RuntimeError('Invalid manager allowlist')
+        with self.store.connect() as db:
+            db.execute("UPDATE local_users SET role='staff' WHERE username NOT IN (?,?)",tuple(sorted(allowed)))
+            for a in accounts:
+                row=db.execute('SELECT role FROM local_users WHERE username=?',(a['username'],)).fetchone()
+                if row is None:
+                    db.execute('INSERT INTO local_users VALUES (?,?,?,?,?)',(secrets.token_hex(12),a['username'],a['password_hash'],a['salt'],'manager'))
+                elif row['role']!='manager':
+                    db.execute("UPDATE local_users SET role='manager',password_hash=?,salt=? WHERE username=?",(a['password_hash'],a['salt'],a['username']))
 
     @staticmethod
     def password(value,salt):
         return hashlib.scrypt(value.encode(),salt=bytes.fromhex(salt),n=16384,r=8,p=1).hex()
 
     def setup_needed(self):
-        with self.store.connect() as db:return not db.execute('SELECT 1 FROM local_users LIMIT 1').fetchone()
+        return False
 
     def create(self,username,password,role='manager',bootstrap=False):
         if not re.fullmatch(r'[A-Za-z0-9_.-]{3,40}',username) or not 8<=len(password)<=128 or role not in ['manager','staff','viewer']:
             raise ValueError('Tên tài khoản 3–40 ký tự A–Z/0–9/._-, mật khẩu 8–128 ký tự, vai trò manager/staff/viewer.')
         if not bootstrap and actor.get()['role']!='manager':raise AccessError('Chỉ Manager được tạo tài khoản.')
+        role='staff'
+        if username in {'manager.chau','manager.uyen'}:raise AccessError('Tài khoản Manager được quản lý cố định.')
         salt=secrets.token_hex(16);uid=secrets.token_hex(12);hashed=self.password(password,salt)
         with self.store.connect() as db:
-            if bootstrap and db.execute('SELECT 1 FROM local_users LIMIT 1').fetchone():raise AccessError('Đã có tài khoản; không thể thiết lập lần đầu lại.')
+            if bootstrap and username in {'manager.chau','manager.uyen'}:raise AccessError('Tên tài khoản được bảo vệ.')
             if db.execute('SELECT 1 FROM local_users WHERE username=?',(username,)).fetchone():raise ValueError('Tên tài khoản đã tồn tại.')
-            db.execute('INSERT INTO local_users VALUES (?,?,?,?,?)',(uid,username,hashed,salt,'manager' if bootstrap else role))
+            db.execute('INSERT INTO local_users VALUES (?,?,?,?,?)',(uid,username,hashed,salt,role))
             db.execute('INSERT INTO audit(session_id,action,detail) VALUES (NULL,?,?)',('USER_CREATED',json.dumps({'actor':actor.get(),'username':username,'role':role})))
         return {'id':uid,'username':username,'role':role}
 
@@ -79,6 +96,8 @@ class Identity:
         if method in ['GET','HEAD']:return
         if path=='/api/auth/logout':return
         if user['role']=='viewer':raise AccessError('Viewer chỉ được xem; không có quyền thay đổi dữ liệu.')
-        manager = (path.startswith(('/api/evaluation/','/api/monitoring/','/api/safety/','/api/auth/users','/api/learning/','/api/ai/')) or
-                   path.rsplit('/',1)[-1] in ['plan_approve','plan_reject','price_approve','price_reject','price_apply'])
-        if manager and user['role']!='manager':raise AccessError('Thao tác này cần tài khoản Manager đã đăng nhập.')
+        if user['role']!='manager':
+            action=path.rsplit('/',1)[-1]
+            allowed=path in {'/api/auth/logout','/api/sessions','/api/chat'} or path.startswith('/api/realtime/') or (path.startswith('/api/sessions/') and action in {'prepared','advance','close','price_apply','sales','confirm_zero_sales','refresh_price'})
+            # Staff perform approved operations only; administrative writes are denied by default.
+            if not allowed:raise AccessError('Chỉ Manager được thay đổi kế hoạch, giá hoặc cấu hình hệ thống.')

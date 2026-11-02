@@ -1,22 +1,21 @@
-"""Build reproducible source/model/data manifest; no environment or private runtime."""
-import hashlib,json,sys
+"""Content-address the app release. Frozen V4 model/data must still match their lock."""
+import hashlib,json,os,sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from services.engine import ROOT
-from services.readiness import SCHEMA_CONTRACT
-
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
+from services.engine import Engine
+EVIDENCE={'docs/V4_QA_RESULTS.json','docs/V4_pytest.xml','docs/V4_TEST_OUTPUT.txt','docs/V4_BROWSER_QA.json','docs/PATCH_QA.json'}
 def build(root=ROOT):
-    root=Path(root);files={}
-    for f in root.rglob('*'):
-        if not f.is_file():continue
-        rel=f.relative_to(root);name=rel.as_posix()
-        if set(rel.parts)&{'.venv','.tools','runtime','__pycache__','.pytest_cache','.git','node_modules'}:continue
-        if not (rel.parts[0] in ['services','web','models','data','reference','scripts','tests','.github'] or name=='app.py' or name.startswith('requirements') or name.endswith('.cmd')):continue
-        b=f.read_bytes()
-        # Hash canonical LF for command launchers; packaging preserves CRLF for Windows.
-        if name.endswith('.cmd'):b=b.replace(b'\r\n',b'\n')
-        files[name]=hashlib.sha256(b).hexdigest()
-    canonical=json.dumps(files,sort_keys=True).encode();ident=hashlib.sha256(canonical).hexdigest()
-    manifest={'release':'SmartFresh GD9','release_id':ident,'hash_algorithm':'SHA256','cmd_line_endings':'canonical LF','files':dict(sorted(files.items())),'schema_version':'GD9-additive-v1','schema_contract':SCHEMA_CONTRACT,'schema_contract_sha256':hashlib.sha256(json.dumps(SCHEMA_CONTRACT,sort_keys=True).encode()).hexdigest(),'frozen_model_version':json.loads((root/'models/manifest.json').read_text())['version'],'policy_sha256':hashlib.sha256(json.dumps(json.loads((root/'models/manifest.json').read_text())['selection'],sort_keys=True).encode()).hexdigest()}
-    (root/'release_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n');return manifest
+    root=Path(root);Engine().require_integrity();files={}
+    exclude={'.venv','.tools','.git','runtime','__pycache__','.pytest_cache','node_modules'}
+    for folder,dirs,names in os.walk(root):
+        dirs[:]=[d for d in dirs if d not in exclude]
+        for name in names:
+            p=Path(folder)/name;rel=p.relative_to(root).as_posix()
+            if rel in ['release_manifest.json','.env'] or p.is_symlink() or p.suffix=='.pyc':continue
+            data=p.read_bytes();data=data.replace(b'\r\n',b'\n') if rel.endswith('.cmd') else data
+            files[rel]=hashlib.sha256(data).hexdigest()
+    core={k:v for k,v in sorted(files.items()) if k not in EVIDENCE}
+    ident=hashlib.sha256(json.dumps(core,sort_keys=True).encode()).hexdigest()
+    manifest=dict(release='SmartFresh V4 Original Prototype integration 2026-10-30',release_id=ident,files=dict(sorted(files.items())),hash_algorithm='SHA256',cmd_line_endings='canonical LF',frozen_model_version='SMARTFRESH_V4_LOCKED',evidence_excluded_from_release_id=sorted(EVIDENCE))
+    (root/'release_manifest.json').write_text(json.dumps(manifest,indent=2)+'\n');return manifest
 if __name__=='__main__':print(build()['release_id'])

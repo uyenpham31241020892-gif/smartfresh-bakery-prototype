@@ -1,81 +1,39 @@
-"""Auditable local training, chronological evaluation and explicit model promotion."""
-from copy import deepcopy
-from datetime import date, datetime, timedelta, timezone
+"""V4-only lifecycle: evidence, data collection, immutable deployment snapshots and recovery.
+Training remains locked, as in the supplied prototype, per the V4 freeze decision.
+"""
+from datetime import date,datetime,timedelta,timezone
 from pathlib import Path
-import hashlib
-import io
-import json
-import math
-import threading
-import uuid
-import zipfile
-import lightgbm as lgb
-import numpy as np
+import hashlib,io,json,math,threading,uuid,zipfile,shutil
 import pandas as pd
-from .engine import ROOT, Engine, encode, LADDER, CAPS, FLOORS, OUTCOME_FEATURES, outcome_features
-from .ingestion import tables, integer, MAX_BYTES
+from .engine import ROOT,Engine,LADDER,CAPS,FLOORS,MODEL_VERSION
+from .ingestion import tables,integer,MAX_BYTES
 from .identity import actor
+WEATHER=['forecast_rain_mm_previous_day1','forecast_temperature_max_c_previous_day1','is_public_holiday','is_festival_non_public','issued_at']
+DAILY=['date','sku_code','prepared_qty','sold_qty','waste_qty','stockout','discounted_qty']+WEATHER
+PROMO=['date','sku_code','slot','discount_pct','incremental_promo_qty','measurement_method','experiment_id']+WEATHER
 
-WEATHER = ['forecast_rain_mm_previous_day1', 'forecast_temperature_max_c_previous_day1',
-           'is_public_holiday', 'is_festival_non_public', 'issued_at']
-DAILY = ['date', 'sku_code', 'prepared_qty', 'sold_qty', 'waste_qty', 'stockout', 'discounted_qty'] + WEATHER
-PROMO = ['date', 'sku_code', 'slot', 'discount_pct', 'incremental_promo_qty',
-         'measurement_method', 'experiment_id'] + WEATHER
-
-
-def digest(value):
-    return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
-
-
-def weather(row):
-    d = date.fromisoformat(row['date'])
-    return {**{k: row[k] for k in WEATHER if k != 'issued_at'}, 'weekday_iso': d.isoweekday(),
-            'is_weekend': int(d.weekday() >= 5), 'month': d.month, 'day_of_year': d.timetuple().tm_yday}
-
-
+def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,allow_nan=False).encode()).hexdigest()
 class Learning:
-    def __init__(self, store, frozen, directory=None):
-        self.store, self.frozen = store, frozen
-        self.root = Path(directory or ROOT / 'runtime/learning')
-        self.root.mkdir(parents=True, exist_ok=True)
-        self.lock = threading.Lock()
-        self.cache = {frozen.version: frozen}
+    def __init__(self,store,frozen,directory=None):
+        self.store,self.frozen=store,frozen;self.root=Path(directory or ROOT/'runtime/v4_lifecycle');self.root.mkdir(parents=True,exist_ok=True);self.lock=threading.RLock()
         with store.connect() as db:
-            db.executescript('''
-                CREATE TABLE IF NOT EXISTS learning_rows(kind TEXT, origin TEXT, row_key TEXT, payload TEXT,
-                    PRIMARY KEY(kind,origin,row_key));
-                CREATE TABLE IF NOT EXISTS learning_datasets(id TEXT PRIMARY KEY, report TEXT);
-                CREATE TABLE IF NOT EXISTS learning_runs(id TEXT PRIMARY KEY, report TEXT);
-                CREATE TABLE IF NOT EXISTS model_holdouts(id TEXT PRIMARY KEY,version TEXT,report TEXT);
-                CREATE TABLE IF NOT EXISTS model_active(id INTEGER PRIMARY KEY CHECK(id=1), version TEXT);
-            ''')
-
-    def resolve(self, version):
-        if version not in self.cache:
-            if not version.startswith('learn-') or not version.removeprefix('learn-').isalnum():
-                raise ValueError('Phiên bản model không hợp lệ.')
-            try:
-                self.cache[version] = Engine(self.root / version, allow_degraded=True)
-            except OSError:
-                raise ValueError('Không tìm thấy đầy đủ artifact của phiên bản model.') from None
-        return self.cache[version]
-
-    def active(self):
-        with self.store.connect() as db:
-            row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
-        return self.resolve(row['version']) if row else self.frozen
-
-    def rows(self, kind, origin):
-        with self.store.connect() as db:
-            return [json.loads(r['payload']) for r in db.execute(
-                'SELECT payload FROM learning_rows WHERE kind=? AND origin=? ORDER BY row_key', (kind, origin))]
-
-    def history_before(self, day):
-        return {(r['date'], r['sku_code']): r['sold_qty'] for r in self.rows('m2', 'real') if r['date'] < day}
-
-    def outcomes_before(self,day):
-        return {(r['date'],r['sku_code']):r for r in self.rows('m2','real') if r['date']<day}
-
+            db.executescript('''CREATE TABLE IF NOT EXISTS learning_rows(kind TEXT,origin TEXT,row_key TEXT,payload TEXT,PRIMARY KEY(kind,origin,row_key));
+            CREATE TABLE IF NOT EXISTS learning_datasets(id TEXT PRIMARY KEY,report TEXT);
+            CREATE TABLE IF NOT EXISTS learning_runs(id TEXT PRIMARY KEY,report TEXT);
+            CREATE TABLE IF NOT EXISTS model_holdouts(id TEXT PRIMARY KEY,version TEXT,report TEXT);
+            CREATE TABLE IF NOT EXISTS model_active(id INTEGER PRIMARY KEY CHECK(id=1),version TEXT);
+            CREATE TABLE IF NOT EXISTS v4_checkpoints(id TEXT PRIMARY KEY,payload TEXT);''')
+            db.execute('INSERT OR IGNORE INTO model_active VALUES(1,?)',(MODEL_VERSION,))
+            current=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()['version']
+            if current!=MODEL_VERSION:raise ValueError('Database chứa phiên bản ngoài V4; không trộn workspace cũ.')
+    def resolve(self,version):
+        if version!=MODEL_VERSION:raise ValueError('Không nạp phiên bản/data cũ trong workspace V4.')
+        return self.frozen
+    def active(self):return self.frozen
+    def rows(self,kind,origin):
+        with self.store.read() as db:return [json.loads(r['payload']) for r in db.execute('SELECT payload FROM learning_rows WHERE kind=? AND origin=? ORDER BY row_key',(kind,origin))]
+    def history_before(self,day):return {(r['date'],r['sku_code']):r['sold_qty'] for r in self.rows('m2','real') if r['date']<day}
+    def outcomes_before(self,day):return {(r['date'],r['sku_code']):r for r in self.rows('m2','real') if r['date']<day}
     def ingest(self, name, raw, kind, origin='real', allow_closed_today=False):
         if kind not in ['m2', 'm1'] or origin not in ['real', 'demo']:
             raise ValueError('Loại dữ liệu học không hợp lệ.')
@@ -108,7 +66,7 @@ class Learning:
                 if date.fromisoformat(r['date']) > today or (date.fromisoformat(r['date']) == today and not allow_closed_today):
                     raise ValueError('Chỉ học từ ngày đã kết thúc.')
                 if r['sku_code'] not in self.frozen.master:
-                    raise ValueError('SKU chưa có trong danh mục V9; cần quy trình thêm SKU riêng.')
+                    raise ValueError('SKU chưa có trong danh mục V4; cần quy trình thêm SKU riêng.')
                 issued = datetime.fromisoformat(str(r['issued_at']))
                 cutoff = datetime.fromisoformat(r['date'] + 'T06:00:00+07:00')
                 if issued.tzinfo is None or issued > cutoff:
@@ -198,340 +156,45 @@ class Learning:
         return {'active': active.version, 'frozen': self.frozen.version, 'counts': counts, 'runs': runs, 'datasets': datasets, 'events': events,
                 'minimum_days': {'m2': 63, 'm1': 42}, 'trained_until': active.manifest.get('trained_until', '2022-08-15')}
 
-    def train(self, kind, origin='real'):
-        if kind not in ['m1', 'm2'] or origin not in ['real', 'demo']:
-            raise ValueError('Loại huấn luyện không hợp lệ.')
-        if not self.lock.acquire(blocking=False):
-            raise ValueError('Đang có một lần huấn luyện hoặc đổi model; thử lại khi hoàn tất.')
-        try:
-            parent, rows = (self.frozen if origin == 'demo' else self.active()), self.rows(kind, origin)
-            dates = sorted({r['date'] for r in rows})
-            minimum = 63 if kind == 'm2' else 42
-            if len(dates) < minimum:
-                raise ValueError(f'{kind.upper()} cần ít nhất {minimum} ngày khác nhau; hiện có {len(dates)}. Không bịa dữ liệu để train.')
-            fingerprint = digest({'rows': rows, 'parent': parent.version, 'kind': kind, 'origin': origin, 'recipe': 2})
-            with self.store.connect() as db:
-                prior = [json.loads(r['report']) for r in db.execute('SELECT report FROM learning_runs')]
-            same = next((r for r in prior if r.get('fingerprint') == fingerprint), None)
-            if same:
-                if same['status'] == 'promoted':
-                    raise ValueError('Báo cáo này đã được áp dụng trước đó. Sau rollback, cần dữ liệu kiểm tra mới để đánh giá lại.')
-                return same
-            test_start, calibration_start = dates[-7], dates[-14]
-            if test_start <= parent.manifest.get('trained_until', '2022-08-15'):
-                raise ValueError('Holdout phải nằm sau dữ liệu model hiện tại đã học/đánh giá. Cần dữ liệu thực tế mới hơn.')
-            previous_tests = [r['evaluated_until'] for r in prior if r['kind'] == kind and r['origin'] == origin]
-            with self.store.connect() as db:
-                previous_tests += [h['through'] for x in db.execute('SELECT report FROM model_holdouts') if (h:=json.loads(x['report'])).get('kind')==kind and h.get('origin')==origin]
-            if previous_tests and test_start <= max(previous_tests):
-                raise ValueError('Cần 7 ngày kiểm tra mới chưa dùng trong lần đánh giá trước. Không lặp holdout để chọn model.')
-            if kind == 'm2':
-                expected = {s for s in parent.master}
-                by_day = {d: {r['sku_code'] for r in rows if r['date'] == d} for d in dates}
-                if any(v != expected for v in by_day.values()) or any((date.fromisoformat(b) - date.fromisoformat(a)).days != 1 for a, b in zip(dates, dates[1:])):
-                    raise ValueError('M2 cần ngày liên tục và đủ 8 SKU mỗi ngày để dựng lag đúng.')
-            features, targets, meta, visible = [], [], [], {}
-            outcomes={(r['date'],r['sku_code']):r for r in rows} if kind=='m2' else {}
-            for row in sorted(rows, key=lambda r: (r['date'], r['sku_code'])):
-                d, sku, w = row['date'], row['sku_code'], weather(row)
-                if kind == 'm2':
-                    f = parent.features(d, sku, visible, w,outcomes)
-                    f.update(outcome_features(d,sku,outcomes))
-                    visible[(d, sku)] = row['sold_qty']
-                    if not row['eligible'] or f['history_days'] < 35:
-                        continue
-                    y = row['sold_qty']
-                else:
-                    f = {'sku_code': sku, 'slot': row['slot'], 'discount_pct': row['discount_pct'],
-                         'weekday': w['weekday_iso'], 'is_weekend': w['is_weekend'], 'is_holiday': w['is_public_holiday'],
-                         'rain_jma': w[WEATHER[0]], 'temp_jma': w[WEATHER[1]]}
-                    y = row['incremental_promo_qty']
-                features.append(f)
-                targets.append(y)
-                meta.append(row)
-            splits = [np.array([r['date'] < calibration_start for r in meta]),
-                      np.array([calibration_start <= r['date'] < test_start for r in meta]),
-                      np.array([r['date'] >= test_start for r in meta])]
-            for label, mask in zip(['train', 'calibration', 'test'], splits):
-                for sku in parent.master:
-                    if sum(bool(m) and r['sku_code'] == sku for r, m in zip(meta, mask)) < (10 if label == 'train' else 5):
-                        raise ValueError(f'{label}: {sku} chưa đủ quan sát không bị giới hạn tồn kho.')
-                if kind == 'm1':
-                    required = {(s, j, t) for s in parent.master for j in range(5) for t in LADDER if FLOORS[j] <= t <= CAPS[j]}
-                    available = {(r['sku_code'], r['slot'], r['discount_pct']) for r, m in zip(meta, mask) if m}
-                    if not required <= available:
-                        raise ValueError(label + ': M1 thiếu độ phủ SKU/slot/mức giảm hợp lệ; chưa đủ bằng chứng học phản ứng giá.')
-            cols = list(parent.manifest['COLS' if kind == 'm2' else 'MCOLS'])
-            if kind=='m2':
-                cols += [n for n in OUTCOME_FEATURES if n not in cols]
-            X, y = encode(features, cols), np.asarray(targets, dtype=float)
-            parent_X=encode(features,parent.manifest['COLS' if kind=='m2' else 'MCOLS'])
-            train_mask, calibration_mask, test_mask = splits
-            parameters = {'objective': 'regression_l1', 'verbosity': -1, 'num_threads': 2,
-                               'num_leaves': 7, 'min_data_in_leaf': 8, 'learning_rate': .05,
-                               'seed': 42, 'deterministic': True, 'force_col_wise': True}
-            model = lgb.train(parameters,
-                              lgb.Dataset(X[train_mask], label=y[train_mask], feature_name=cols), num_boost_round=160)
-            version = 'learn-' + uuid.uuid4().hex
-            directory = self.root / version
-            directory.mkdir()
-            snapshot = directory / 'training_data.json'
-            snapshot.write_text(json.dumps(rows, sort_keys=True, allow_nan=False), encoding='utf-8')
-            manifest = deepcopy(parent.manifest)
-            if kind=='m2':
-                manifest['COLS']=cols
-                manifest['M2FEATURES']=list(dict.fromkeys(manifest.get('M2FEATURES',[])+OUTCOME_FEATURES))
-            manifest.update(version=version, parent=parent.version, trained_until=max(dates[-1], parent.manifest.get('trained_until', '2022-08-15')),
-                            evaluated_until=dates[-1], training_fingerprint=fingerprint, learning_kind=kind)
-            manifest['training_data_sha256'] = hashlib.sha256(snapshot.read_bytes()).hexdigest()
-            manifest['trainer'] = {'lightgbm': lgb.__version__, 'numpy': np.__version__, 'recipe': 2,
-                                   'parameters': parameters, 'boost_rounds': 160}
-            model.save_model(str(directory / (kind + '.txt')))
-            (parent.m1 if kind == 'm2' else parent.m2).save_model(str(directory / ('m1.txt' if kind == 'm2' else 'm2.txt')))
-            if kind == 'm2':
-                predictions = np.maximum(0, model.predict(X[calibration_mask], num_threads=2))
-                residuals = {s: [] for s in parent.master}
-                for row, actual, pred in zip([r for r, m in zip(meta, calibration_mask) if m], y[calibration_mask], predictions):
-                    residuals[row['sku_code']].append(float(actual - pred))
-                q = parent.selection['selected_q']
-                for entry in manifest['residual_offsets']:
-                    if entry['key'][0] == q:
-                        entry['value'] = max(0., float(np.quantile(residuals[entry['key'][1]], q)))
-            else:
-                grouped = {}
-                for row, m in zip(meta, train_mask):
-                    if m:
-                        grouped.setdefault((row['sku_code'], row['slot'], row['discount_pct']), []).append(row['incremental_promo_qty'])
-                for entry in manifest['emp']:
-                    key = tuple(entry['key'])
-                    if key in grouped:
-                        entry['value'] = float(np.mean(grouped[key]))
-                    elif key[2] < FLOORS[key[1]]:
-                        # Illegal lower tiers must not propagate stale uplift through monotonic accumulation.
-                        entry['value'] = 0.
-            manifest['native_model_hashes'] = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in ['m1.txt', 'm2.txt']}
-            (directory / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
-            candidate = Engine(directory)
-            test_rows = [r for r, m in zip(meta, test_mask) if m]
-            if kind == 'm2':
-                old_pred = np.maximum(0, parent.m2.predict(parent_X[test_mask], num_threads=2))
-                new_pred = np.maximum(0, candidate.m2.predict(X[test_mask], num_threads=2))
-                naive = np.array([f['lag7_sales'] for f, m in zip(features, test_mask) if m])
-            else:
-                def response(engine, observations=test_rows):
-                    cache = {}
-                    result = []
-                    for row in observations:
-                        key = (row['date'], row['sku_code'])
-                        if key not in cache:
-                            cache[key] = engine.promo(row['sku_code'], weather(row))
-                        result.append(cache[key][row['slot'], LADDER.index(row['discount_pct'])])
-                    return np.asarray(result)
-                old_pred, new_pred = response(parent), response(candidate)
-                naive = np.array([parent.emp.get((r['sku_code'], r['slot'], r['discount_pct']), 0.) for r in test_rows])
-            actual = y[test_mask]
-            def metrics(pred, actual=actual, test_rows=test_rows):
-                mae = float(np.mean(np.abs(pred - actual)))
-                return {'mae': mae, 'wape_pct': float(np.abs(pred - actual).sum() / actual.sum() * 100) if actual.sum() > 0 else None,
-                        'by_sku_mae': {s: float(np.mean(np.abs(pred[[r['sku_code'] == s for r in test_rows]] - actual[[r['sku_code'] == s for r in test_rows]]))) for s in parent.master}}
-            old, new, baseline = metrics(old_pred), metrics(new_pred), metrics(naive)
-            calibration_rows = [r for r, m in zip(meta, calibration_mask) if m]
-            if kind == 'm2':
-                old_cal = np.maximum(0, parent.m2.predict(parent_X[calibration_mask], num_threads=2))
-                new_cal = np.maximum(0, candidate.m2.predict(X[calibration_mask], num_threads=2))
-            else:
-                old_cal, new_cal = response(parent, calibration_rows), response(candidate, calibration_rows)
-            validation = {'current': metrics(old_cal, y[calibration_mask], calibration_rows),
-                          'candidate': metrics(new_cal, y[calibration_mask], calibration_rows)}
-            gates = {'mae_improves_at_least_5pct': new['mae'] < old['mae'] * .95,
-                     'beats_naive': new['mae'] <= baseline['mae'] + 1e-8,
-                     'no_sku_regression_over_10pct_or_half_unit': all(new['by_sku_mae'][s] <= old['by_sku_mae'][s] * 1.1 + .5 for s in parent.master)}
-            if kind == 'm2':
-                # Evaluate the actual proposed quantities, including buffer and preparation floor.
-                quantities = []
-                for eng, pred in [(parent, old_pred), (candidate, new_pred)]:
-                    qties = []
-                    for row, forecast in zip(test_rows, pred):
-                        past = {(r['date'], r['sku_code']): r['sold_qty'] for r in rows if r['date'] < row['date']}
-                        floor = 4 * math.ceil(eng.selection['selected_prep_floor'] * eng.baseline(row['date'], row['sku_code'], past) / 4)
-                        qties.append(max(4, floor, 4 * math.ceil((forecast + eng.offsets[(eng.selection['selected_q'], row['sku_code'])]) / 4)))
-                    residual = actual - np.asarray(qties)
-                    quantities.append(float(np.mean(np.maximum(.85 * residual, -.15 * residual))))
-                old['prepared_pinball_loss'], new['prepared_pinball_loss'] = quantities
-                gates['preparation_loss_no_regression'] = quantities[1] <= quantities[0] * 1.05 + .1
-            report = {'id': version, 'kind': kind, 'origin': origin, 'parent': parent.version, 'fingerprint': fingerprint,
-                      'evaluated_until': dates[-1], 'train_until': max(r['date'] for r, m in zip(meta, train_mask) if m),
-                      'calibration_from': calibration_start, 'test_from': test_start, 'test_rows': len(test_rows),
-                      'training_rows': int(train_mask.sum()), 'excluded_rows': len(rows) - len(meta),
-                      'current': old, 'candidate': new, 'naive': baseline, 'validation': validation, 'gates': gates,
-                      'passed': all(gates.values()), 'status': 'awaiting_confirmation' if all(gates.values()) and origin == 'real' else 'demo_only' if origin == 'demo' else 'rejected',
-                      'actor':actor.get(),'created':datetime.now(timezone.utc).isoformat(),
-                      'limitation': 'Offline errors on observed outcomes; not proof of profit or counterfactual policy improvement.'}
-            (directory / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
-            with self.store.connect() as db:
-                db.execute('INSERT INTO learning_runs VALUES (?,?)', (version, json.dumps(report)))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_TRAIN_EVALUATE', json.dumps(report)))
-            return report
-        finally:
-            self.lock.release()
-
-    def promote(self, version, expected_active, reason):
-        if not reason.strip():
-            raise ValueError('Cần lý do xác nhận đổi model.')
-        with self.lock:
-            if not version.startswith('learn-') or not version.removeprefix('learn-').isalnum():
-                raise ValueError('Chỉ được áp dụng phiên bản ứng viên đã đánh giá.')
-            self.resolve(version)  # validate the version name before constructing a filesystem path
-            candidate = Engine(self.root / version)  # recheck hashes even if a preview was cached
-            compatibility=self.compatible(candidate,self.active())
-            if not all(compatibility.values()):raise ValueError('Ứng viên không tương thích SKU, policy hoặc feature schema.')
-            snapshot = self.root / version / 'training_data.json'
-            if not snapshot.exists() or hashlib.sha256(snapshot.read_bytes()).hexdigest() != candidate.manifest.get('training_data_sha256'):
-                raise ValueError('Checksum dữ liệu huấn luyện không khớp.')
-            with self.store.connect() as db:
-                row = db.execute('SELECT report FROM learning_runs WHERE id=?', (version,)).fetchone()
-                if not row:
-                    raise ValueError('Không có báo cáo đánh giá model.')
-                report = json.loads(row['report'])
-                active_row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
-                active = active_row['version'] if active_row else self.frozen.version
-                if active != expected_active or report['parent'] != active:
-                    raise ValueError('Model đang dùng đã thay đổi; cần đánh giá lại trên parent mới.')
-                if report['origin'] != 'real' or not report['passed'] or report['status'] != 'awaiting_confirmation':
-                    raise ValueError('Model demo, không đạt hoặc đã xử lý không được đưa vào dùng thật.')
-                checks=[json.loads(r['report']) for r in db.execute('SELECT report FROM model_holdouts WHERE version=? ORDER BY rowid',(version,))]
-                if checks and not checks[-1]['passed']:raise ValueError('Fresh holdout mới nhất không đạt; không cho promotion.')
-                report['status'] = 'promoted'
-                db.execute('UPDATE learning_runs SET report=? WHERE id=?', (json.dumps(report), version))
-                db.execute('INSERT INTO model_active VALUES (1,?) ON CONFLICT(id) DO UPDATE SET version=excluded.version', (candidate.version,))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_PROMOTE', json.dumps({'from': active, 'to': version, 'reason': reason,'actor':actor.get(),'compatibility':compatibility})))
-                self.cache[version] = candidate
-        return self.status()
-
-
-    def rollback(self, expected_active, reason):
-        if not reason.strip():
-            raise ValueError('Cần lý do quay về model trước.')
-        with self.lock:
-            with self.store.connect() as db:
-                active_row=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
-                run=db.execute('SELECT report FROM learning_runs WHERE id=?',(expected_active,)).fetchone()
-            if not active_row or active_row['version']!=expected_active or expected_active==self.frozen.version:
-                raise ValueError('Model đã thay đổi hoặc đang ở bản gốc.')
-            if not run:raise ValueError('Thiếu lịch sử parent; không thể rollback an toàn.')
-            previous = self.resolve(json.loads(run['report'])['parent'])
-            previous.require_integrity()
-            previous.reload_if_needed()
-            with self.store.connect() as db:
-                row = db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
-                if not row or row['version'] != expected_active:
-                    raise ValueError('Model đang dùng đã thay đổi.')
-                db.execute('UPDATE model_active SET version=? WHERE id=1', (previous.version,))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)', ('MODEL_ROLLBACK', json.dumps({'from': expected_active, 'to': previous.version, 'reason': reason,'actor':actor.get(),'verified_hashes':previous.manifest.get('native_model_hashes')})))
-        return self.status()
-
-    @staticmethod
-    def compatible(candidate,parent):
-        from .engine import OUTCOME_FEATURES
-        kind=candidate.manifest.get('learning_kind')
-        allowed=set(parent.manifest['COLS'])|set(OUTCOME_FEATURES)
-        return {'same_skus':set(candidate.master)==set(parent.master),
-                'same_policy':candidate.selection==parent.selection,
-                'm1_schema':candidate.manifest['MCOLS']==parent.manifest['MCOLS'],
-                'm2_schema':set(parent.manifest['COLS'])<=set(candidate.manifest['COLS'])<=allowed,
-                'kind_known':kind in ['m1','m2']}
-
+    def train(self,*args,**kwargs):raise ValueError('V4 đã khóa; ứng dụng không train/tune lại.')
+    def fresh_holdout(self,*args,**kwargs):raise ValueError('Không tạo nhãn holdout mù mới cho kết quả V4 đã khóa. Xem hồ sơ kiểm định V4.')
+    def promote(self,*args,**kwargs):raise ValueError('V4 là phiên bản duy nhất đã chốt; không có ứng viên khác để promotion.')
     def registry(self):
-        versions=[]
-        with self.store.connect() as db:
-            current=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
-            status={'active':current['version'] if current else self.frozen.version}
-            reports=[json.loads(r['report']) for r in db.execute('SELECT report FROM learning_runs ORDER BY rowid DESC')]
-            holdouts=[json.loads(r['report']) for r in db.execute('SELECT report FROM model_holdouts ORDER BY rowid DESC')]
-            events=[dict(r) for r in db.execute("SELECT * FROM audit WHERE action IN ('MODEL_PROMOTE','MODEL_ROLLBACK','MODEL_FRESH_HOLDOUT') ORDER BY id DESC LIMIT 100")]
-        for version,report in [(self.frozen.version,None)]+[(r['id'],r) for r in reports]:
-            try:
-                e=self.resolve(version);e.require_integrity()
-                manifest_hash=hashlib.sha256((e.model_dir/'manifest.json').read_bytes()).hexdigest()
-                compatibility=self.compatible(e,self.resolve(report['parent'])) if report else {}
-                integrity=True;error=None
-            except Exception as exc:
-                e=None;manifest_hash=None;compatibility={};integrity=False;error=str(exc)
-            versions.append({'version':version,'active':version==status['active'],'frozen':version==self.frozen.version,'integrity':integrity,'error':error,'manifest_sha256':manifest_hash,'parent':report['parent'] if report else None,'origin':report['origin'] if report else 'frozen','status':report['status'] if report else 'frozen','report':report,'compatibility':compatibility,'holdouts':[h for h in holdouts if h['version']==version]})
-        return {'active':status['active'],'versions':versions,'events':events,'note':'Đổi model chỉ ảnh hưởng ca mới. Ca hiện tại ghim phiên bản; rollback quay về parent đã kiểm tra checksum.'}
-
-    def fresh_holdout(self,version):
+        e=self.frozen
+        try:e.require_integrity();integrity=True;error=None
+        except Exception as exc:integrity=False;error=str(exc)
+        with self.store.read() as db:
+            checkpoints=[json.loads(r['payload']) for r in db.execute('SELECT payload FROM v4_checkpoints ORDER BY rowid DESC')]
+            events=[dict(r) for r in db.execute("SELECT * FROM audit WHERE action LIKE 'MODEL_%' ORDER BY id DESC LIMIT 100")]
+        return dict(active=e.version,versions=[dict(version=e.version,active=True,frozen=True,integrity=integrity,error=error,manifest_sha256=digest(e.manifest),parent=None,origin='provided_V4_locked',status='frozen',report=None,compatibility={},holdouts=[])],checkpoints=checkpoints,events=events,
+            protocol='POST_TEST_DEVELOPMENT_ITERATION',manifest=e.manifest,
+            note='Chỉ V4 đã khóa. Giữ registry/hash, ghim ca, lịch sử và snapshot/khôi phục triển khai V4. Snapshot là bản sao cùng trọng số, không phải model V4.1. Train/tune/promotion phiên bản mới được khóa theo quyết định nhóm.')
+    def checkpoint(self,reason):
+        if len(reason.strip())<3:raise ValueError('Cần lý do tạo snapshot.')
         with self.lock:
+            self.frozen.require_integrity();ident=uuid.uuid4().hex;target=self.root/ident;target.mkdir()
+            for rel,h in self.frozen._hashes.items():
+                if not rel.startswith('v4/'):continue
+                p=target/rel;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,p)
+            payload=dict(id=ident,model_version=MODEL_VERSION,created=datetime.now(timezone.utc).isoformat(),actor=actor.get()['username'],reason=reason,hashes=self.frozen.manifest['native_model_hashes'])
             with self.store.connect() as db:
-                r=db.execute('SELECT report FROM learning_runs WHERE id=?',(version,)).fetchone()
-                prior=[json.loads(x['report']) for x in db.execute('SELECT report FROM model_holdouts WHERE version=?',(version,))]
-            if not r:raise ValueError('Chọn ứng viên có báo cáo huấn luyện.')
-            report=json.loads(r['report']);kind=report['kind'];origin=report['origin']
-            e=self.resolve(version);e.require_integrity();e.reload_if_needed()
-            parent=self.resolve(report['parent']);parent.require_integrity();parent.reload_if_needed()
-            if not all(self.compatible(e,parent).values()):raise ValueError('Model không tương thích.')
-            with self.store.connect() as db:
-                used=[json.loads(x['report']) for x in db.execute('SELECT report FROM model_holdouts')]
-                trained=[json.loads(x['report']) for x in db.execute('SELECT report FROM learning_runs')]
-            cutoff=max([report['evaluated_until']]+[h['through'] for h in used if h.get('kind')==kind and h.get('origin')==origin]+[r['evaluated_until'] for r in trained if r['kind']==kind and r['origin']==origin])
-            rows=self.rows(kind,origin);dates=sorted({r['date'] for r in rows if r['date']>cutoff})
-            if len(dates)<7:raise ValueError('Cần ít nhất 7 ngày holdout mới sau '+cutoff+' chưa dùng đánh giá ứng viên.')
-            days=dates[:7]
-            if any((date.fromisoformat(b)-date.fromisoformat(a)).days!=1 for a,b in zip(days,days[1:])):raise ValueError('Holdout phải có 7 ngày liên tục.')
-            if kind=='m2' and any({r['sku_code'] for r in rows if r['date']==d}!=set(e.master) for d in days):raise ValueError('Holdout M2 cần đủ SKU từng ngày.')
-            selected=[r for r in rows if r['date'] in days and r.get('eligible',True)]
-            if kind=='m1':
-                required={(sku,j,t) for sku in e.master for j in range(5) for t in LADDER if FLOORS[j]<=t<=CAPS[j]}
-                if not required<={(r['sku_code'],r['slot'],r['discount_pct']) for r in selected}:raise ValueError('Holdout M1 thiếu độ phủ SKU/slot/mức giảm.')
-            if any(sum(r['sku_code']==sku for r in selected)<5 for sku in e.master):raise ValueError('Holdout thiếu quan sát hợp lệ từng SKU; không dùng nhãn bị giới hạn tồn kho/giảm giá.')
-            pred={}
-            for model in [parent,e]:
-                values=[];response_cache={}
-                for row in selected:
-                    d,sku=row['date'],row['sku_code']
-                    if kind=='m2':
-                        history={(r['date'],r['sku_code']):r['sold_qty'] for r in rows if r['date']<d}
-                        outcomes={(r['date'],r['sku_code']):r for r in rows if r['date']<d}
-                        f=model.features(d,sku,history,weather(row),outcomes);f.update(outcome_features(d,sku,outcomes))
-                        if f['history_days']<35:raise ValueError('Thiếu lịch sử point-in-time cho holdout.')
-                        value=float(model.m2.predict(encode([f],model.manifest['COLS']),num_threads=2)[0])
-                    else:
-                        key=(d,sku)
-                        if key not in response_cache:response_cache[key]=model.promo(sku,weather(row))
-                        value=float(response_cache[key][row['slot'],LADDER.index(row['discount_pct'])])
-                    values.append(max(0,value))
-                pred[model.version]=values
-            actual=np.array([r['sold_qty'] if kind=='m2' else r['incremental_promo_qty'] for r in selected])
-            def metric(v):
-                err=np.array(v)-actual
-                return {'mae':float(np.abs(err).mean()),'wape_pct':float(np.abs(err).sum()/actual.sum()*100) if actual.sum() else None,'bias_pct':float(err.sum()/actual.sum()*100) if actual.sum() else None}
-            old,new=metric(pred[parent.version]),metric(pred[e.version])
-            passed=new['mae']<=old['mae']*1.1+.5
-            result={'id':uuid.uuid4().hex,'version':version,'parent':parent.version,'origin':origin,'kind':kind,'from':days[0],'through':days[-1],'rows':len(selected),'dataset_sha256':digest(selected),'candidate':new,'parent_metric':old,'passed':passed,'gate':'MAE ứng viên ≤ parent × 1.10 + 0.5; ngưỡng prototype, chưa phải SLA','actor':actor.get(),'created':datetime.now(timezone.utc).isoformat(),'protocol':'7 ngày mới, walk-forward một ngày; không fit/hiệu chỉnh trọng số, không tái dùng ngày đã đánh giá.'}
-            with self.store.connect() as db:
-                # Reserve new days atomically across server processes.
-                newest=[h for x in db.execute('SELECT report FROM model_holdouts') if (h:=json.loads(x['report'])).get('kind')==kind and h.get('origin')==origin]
-                if any(h['through']>=days[0] for h in newest):raise ValueError('Holdout đã được sử dụng; tải lại.')
-                db.execute('INSERT INTO model_holdouts VALUES (?,?,?)',(result['id'],version,json.dumps(result)))
-                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)',('MODEL_FRESH_HOLDOUT',json.dumps(result)))
-            return result
+                db.execute('INSERT INTO v4_checkpoints VALUES(?,?)',(ident,json.dumps(payload)))
+                db.execute('INSERT INTO audit(action,detail) VALUES(?,?)',('MODEL_CHECKPOINT',json.dumps(payload)))
+            return self.registry()
+    def rollback(self,expected_active,reason,checkpoint_id=None):
+        if expected_active!=MODEL_VERSION or len(reason.strip())<3:raise ValueError('Cần đúng phiên bản active V4 và lý do khôi phục.')
+        with self.lock:
+            with self.store.read() as db:
+                row=db.execute('SELECT payload FROM v4_checkpoints WHERE id=?',(checkpoint_id,)).fetchone() if checkpoint_id else db.execute('SELECT payload FROM v4_checkpoints ORDER BY rowid DESC LIMIT 1').fetchone()
+            if row is None:raise ValueError('Tạo snapshot V4 nguyên vẹn trước khi khôi phục.')
+            snap=json.loads(row['payload']);target=self.root/snap['id']
+            if snap['hashes']!=self.frozen.manifest['native_model_hashes']:raise ValueError('Snapshot không khớp model V4 đã khóa.')
+            for rel,h in snap['hashes'].items():
+                if hashlib.sha256((target/rel).read_bytes()).hexdigest()!=h:raise ValueError('Snapshot hỏng: '+rel)
+            for rel in snap['hashes']:
+                p=ROOT/rel;temp=p.with_suffix(p.suffix+'.restore');shutil.copyfile(target/rel,temp);temp.replace(p)
+            self.frozen.require_integrity();self.frozen.reload_if_needed()
+            with self.store.connect() as db:db.execute('INSERT INTO audit(action,detail) VALUES(?,?)',('MODEL_ROLLBACK',json.dumps(dict(checkpoint=snap['id'],from_version=MODEL_VERSION,to_version=MODEL_VERSION,reason=reason,actor=actor.get(),verified_hashes=snap['hashes']))))
+        return self.registry()
 
-
-def demo_data(kind, skus):
-    """Synthetic fixtures for an explicitly requested demo, never a source of real labels."""
-    rows = []
-    for i in range(63 if kind == 'm2' else 42):
-        d = date(2024, 1, 1) + timedelta(days=i)
-        for sku in skus:
-            base = {'date': d.isoformat(), 'sku_code': sku, 'forecast_rain_mm_previous_day1': 2,
-                    'forecast_temperature_max_c_previous_day1': 28, 'is_public_holiday': 0,
-                    'is_festival_non_public': 0, 'issued_at': (d-timedelta(days=1)).isoformat()+'T18:00:00+07:00'}
-            if kind == 'm2':
-                rows.append({**base, 'prepared_qty': 120, 'sold_qty': 80, 'waste_qty': 40, 'stockout': 0, 'discounted_qty': 0})
-            else:
-                for j in range(5):
-                    for tier in LADDER:
-                        if FLOORS[j] <= tier <= CAPS[j]:
-                            rows.append({**base, 'slot': j, 'discount_pct': tier, 'incremental_promo_qty': 0,
-                                         'measurement_method': 'controlled_increment', 'experiment_id': f'DEMO-{i}-{sku}-{j}-{tier}'})
-    return pd.DataFrame(rows).to_csv(index=False).encode()
+def demo_data(kind,skus):raise ValueError('V4 đã khóa; không sinh data huấn luyện cũ trong ứng dụng.')

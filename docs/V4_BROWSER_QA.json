@@ -1,0 +1,63 @@
+{
+  "browser": "153.0.8010.0",
+  "views": [
+    {
+      "view": "overview",
+      "ok": true
+    },
+    {
+      "view": "m2",
+      "ok": true
+    },
+    {
+      "view": "m1",
+      "ok": true
+    },
+    {
+      "view": "ledger",
+      "ok": true
+    },
+    {
+      "view": "reports",
+      "ok": true
+    },
+    {
+      "view": "data",
+      "ok": true
+    },
+    {
+      "view": "safety",
+      "ok": true
+    },
+    {
+      "view": "monitoring",
+      "ok": true
+    },
+    {
+      "view": "registry",
+      "ok": true
+    },
+    {
+      "view": "learning",
+      "ok": true
+    },
+    {
+      "view": "readiness",
+      "ok": true
+    },
+    {
+      "view": "audit",
+      "ok": true
+    },
+    {
+      "view": "settings",
+      "ok": true
+    },
+    {
+      "flow": "Original UI approval + Manager dropdown30 + apply",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

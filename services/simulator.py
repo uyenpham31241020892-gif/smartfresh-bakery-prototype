@@ -1,136 +1,66 @@
-"""Synthetic events stay on the simulator side of the inference boundary."""
-from functools import lru_cache
-import hashlib
-import json
-import numpy as np
-import pandas as pd
-from .engine import DATA, ROOT, SLOTS, END
-from .arrivals import Arrivals
-
+"""V4 Validation POS replay, isolated from inference and the 62-day scorer."""
+from collections import defaultdict
+from types import SimpleNamespace
+import hashlib,json,subprocess,sys
+from datetime import date,timedelta
+from .engine import DATA,ROOT,read_csv
 class Simulator:
-    def __init__(self, engine):
-        self.engine = engine
-        self.arrivals = Arrivals()
-        self.version = self.arrivals.version
-        self.calendar = pd.read_csv(DATA / 'weather_forecast_feed_2022.csv').fillna({'public_holiday_name': ''}).set_index('date').to_dict('index')
-        h = pd.read_csv(DATA / 'history_through_aug15_synthetic.csv')
-        self.seed = {(r.date, r.sku_code): int(r.sold_qty) for r in h.itertuples()}
-    @lru_cache(maxsize=200)
-    def legacy_events(self, day, seed=42):
-        """New seeded demo arrivals; original V9 observations are absent from ZIP.
-
-        This is an explicit simulator extension, never presented as reproduction
-        of the archived September experiment or an independent model evaluation.
-        """
-        entropy = int.from_bytes(hashlib.sha256(f'{day}:{seed}'.encode()).digest()[:8], 'little')
-        rng = np.random.default_rng(entropy)
-        events = []
-        for sku in self.engine.master:
-            n = int(rng.poisson(self.engine.means[sku]))
-            fractions = [self.engine.organic[(sku, j)] for j in range(5)]
-            bins = rng.multinomial(n, [1 - sum(fractions)] + fractions)
-            for j, count in enumerate(bins):
-                times = (480 + rng.beta(2.4, 1.8, count) * 690).astype(int) if j == 0 else rng.integers(SLOTS[j - 1], SLOTS[j - 1] + 30, count)
-                for t in times:
-                    events.append({'id': len(events), 'sku': sku, 'minute': int(t), 'promo': 0, 'required': 0, 'draw': 0})
-            for j, t in enumerate(SLOTS):
-                from .engine import LADDER
-                response = np.maximum.accumulate([self.engine.emp.get((sku, j, tier), 0) for tier in LADDER])
-                for k in range(1, len(LADDER)):
-                    count = int(rng.poisson(max(0, response[k] - response[k - 1]) / .6))
-                    for _ in range(count):
-                        events.append({'id': len(events), 'sku': sku, 'minute': int(rng.integers(t, t + 30)),
-                                       'promo': 1, 'required': LADDER[k], 'draw': float(rng.random())})
-        return sorted(events, key=lambda x: (x['minute'], x['id']))
-
-    def events(self, day, seed=42, weather=None, version=None):
-        if version == 'new_seeded_demo_v1':
-            return self.legacy_events(day,seed)
-        if version not in [None,self.version]:
-            raise ValueError('Không có phiên bản bộ mô phỏng đã ghim cho ca này.')
-        weather=weather or self.calendar.get(day)
-        if weather is None:
-            raise ValueError('Bộ mô phỏng cần forecast đúng ngày, không tự tạo thời tiết.')
-        return self._trained_events(day,seed,json.dumps(weather,sort_keys=True,default=str))
-
-    @lru_cache(maxsize=200)
-    def _trained_events(self,day,seed,weather_json):
-        from .engine import LADDER
-        weather=json.loads(weather_json)
-        entropy=int.from_bytes(hashlib.sha256(f'{self.version}:{day}:{seed}:{weather_json}'.encode()).digest()[:8],'little')
-        rng=np.random.default_rng(entropy)
-        events=[]
-        for sku in self.engine.master:
-            mean=self.arrivals.mean(day,sku,weather)
-            residual=float(rng.choice(self.arrivals.model['noise'][sku]))
-            count=max(0,min(int(round(mean+residual)),int(self.arrivals.model['daily_caps'][sku])))
-            bins=rng.multinomial(count,self.arrivals.model['profiles'][sku])
-            for j,n in enumerate(bins):
-                if j==0:
-                    times=(480+rng.beta(2.4,1.8,n)*630).astype(int)
-                else:
-                    start=1110 if j==1 else 1140 if j==2 else SLOTS[j-3]
-                    times=rng.integers(start,start+30,n)
-                for t in times:
-                    events.append({'id':len(events),'sku':sku,'minute':int(t),'promo':0,'required':0,'draw':0})
-            for j,t in enumerate(SLOTS):
-                response=np.maximum.accumulate([self.arrivals.promo.get((sku,j,tier),0) for tier in LADDER])
-                for k in range(1,len(LADDER)):
-                    for _ in range(int(rng.poisson(max(0,response[k]-response[k-1])/.6))):
-                        events.append({'id':len(events),'sku':sku,'minute':int(rng.integers(t,t+30)),
-                                       'promo':1,'required':LADDER[k],'draw':float(rng.random())})
-        return sorted(events,key=lambda x:(x['minute'],x['id']))
-
-    def simulate(self, day, visible, system='M1_M2_SELECTED', seed=42):
-        weather = self.calendar[day]
-        plans = self.engine.plan(day, visible, weather)
-        if system == 'BASELINE':
-            for p in plans:
-                p['prepared'] = p['baseline']
-        products = {p['sku']: {'prepared': p['prepared'], 'stock': p['prepared'], 'discount': 0,
-                              'forecast': p['forecast'], 'sold': 0, 'revenue': 0, 'lost': 0, 'sales': []} for p in plans}
-        cursor = 360
-        decisions, ledger = [], []
-        for minute in SLOTS + [END]:
-            for ev in self.events(day, seed, weather):
-                if not cursor <= ev['minute'] < minute:
-                    continue
-                p = products[ev['sku']]
-                if ev['promo'] and (ev['required'] > p['discount'] or ev['draw'] > .6):
-                    continue
-                if p['stock']:
-                    p['stock'] -= 1
-                    p['sold'] += 1
-                    paid = int(round(self.engine.master[ev['sku']]['unit_price_vnd_reference'] * (1 - p['discount'] / 100)))
-                    p['revenue'] += paid
-                    p['sales'].append(ev['minute'])
-                    ledger.append({'sku': ev['sku'], 'minute': ev['minute'], 'paid': paid, 'discount': p['discount']})
-                else:
-                    p['lost'] += 1
-            cursor = minute
-            if minute == END:
-                break
-            j = SLOTS.index(minute)
-            for sku, p in products.items():
-                s30 = sum(x >= minute - 30 for x in p['sales'])
-                s60 = sum(x >= minute - 60 for x in p['sales'])
-                if system == 'BASELINE':
-                    discount = 30 if minute >= 1260 else 0
-                else:
-                    proposal = self.engine.price(sku, j, p['stock'], p['prepared'], p['discount'], s30, s60, p['forecast'], weather)
-                    discount = proposal['discount']
-                decisions.append({'sku': sku, 'minute': minute, 'stock': p['stock'], 'discount': discount})
-                p['discount'] = discount
-        return products, decisions, ledger, plans
-
-    @lru_cache(maxsize=80)
-    def history_before(self, day, system='M1_M2_SELECTED', seed=42):
-        if day < '2022-08-16' or day not in self.calendar:
-            raise ValueError('Kịch bản V9 hỗ trợ 16/08–30/09/2022. Ngày mới cần file lịch sử và dự báo thời tiết.')
-        visible = dict(self.seed)
-        for d in sorted(self.calendar):
-            if '2022-08-16' <= d < day:
-                products, _, _, _ = self.simulate(d, visible, system, seed)
-                for sku, p in products.items():
-                    visible[(d, sku)] = p['sold']
-        return visible
+    def __init__(self,engine):
+        self.engine=engine;self.version='V4_MARKET_WORLD_V1';self.replay_version='V4_VALIDATION_POS_REPLAY_V1'
+        self._world_hashes=json.loads((ROOT/'docs/SIMULATOR_INPUT_HASHES.json').read_text())
+        self.arrivals=SimpleNamespace(version=self.version,hash=self.hash_for(self.version),report=self.report)
+        self.calendar={}
+        for (day,sku),r in engine.morning.items():
+            self.calendar.setdefault(day,dict(date=day,weekday_iso=r['weekday_iso'],is_weekend=r['is_weekend'],month=r['month'],day_of_year=date.fromisoformat(day).timetuple().tm_yday,
+                is_public_holiday=r['is_public_holiday'],is_festival_non_public=0,prior_day_rain_mm=r['prior_day_rain_mm'],prior_day_temp_c=r['prior_day_temp_c'],
+                forecast_rain_mm_previous_day1=r['prior_day_rain_mm'],forecast_temperature_max_c_previous_day1=r['prior_day_temp_c'],
+                weather_reference_date=r['weather_reference_date'],forecast_source='V4_BUNDLED_PRIOR_DAY_PROXY',
+                weather_provenance={'status':'RETROSPECTIVE_PRIOR_DAY_SIMULATION_ONLY','vintage_verified':False}))
+        self.seed=self.history_before(min(self.calendar));self._events=defaultdict(list)
+        for index,r in enumerate(read_csv(DATA/'simulated_POS.csv')):
+            if r['branch']!='BASELINE':continue
+            tm=r['transaction_at'][11:16];h,m=map(int,tm.split(':'));available=r['available_at']
+            self._events[r['date']].append(dict(id=index,sku=r['sku_code'],minute=h*60+m,promo=0,required=0,draw=0,
+                quantity=int(r['quantity']),available_at=available,transaction_at=r['transaction_at']))
+    def hash_for(self,version):
+        if version==self.replay_version:
+            return hashlib.sha256((version+hashlib.sha256((DATA/'simulated_POS.csv').read_bytes()).hexdigest()).encode()).hexdigest()
+        if version!=self.version:raise ValueError('Luồng mô phỏng không phải V4; tạo ca V4 mới.')
+        for rel,expected in self._world_hashes.items():
+            if hashlib.sha256((ROOT/rel).read_bytes()).hexdigest()!=expected:raise ValueError('Checksum nguồn thị trường V4 không khớp.')
+        return hashlib.sha256((version+json.dumps(self._world_hashes,sort_keys=True)).encode()).hexdigest()
+    def _custodian(self,request):
+        self.hash_for(self.version)
+        result=subprocess.run([sys.executable,str(ROOT/'services/v4_market_worker.py'),str(ROOT/'simulation_only/v4/validation_world.jsonl')],input=json.dumps(request),text=True,encoding='utf-8',capture_output=True,timeout=20)
+        if result.returncode:raise ValueError('Custodian mô phỏng V4 không trả dữ liệu hợp lệ.')
+        value=json.loads(result.stdout)
+        if 'error' in value:raise ValueError(value['error'])
+        return value
+    def observed_requests(self,s,destination):
+        if s['simulator_version']==self.replay_version:
+            return [e for e in self.events(s['day'],s['seed'],s['weather'],self.replay_version) if s['minute']<=e['minute']<destination]
+        if s['day'] not in self.calendar:raise ValueError('Ngày chưa có nguồn mô phỏng V4.')
+        return self._custodian(dict(operation='consume',day=s['day'],start=s['minute'],end=destination,discounts={sku:p['discount'] for sku,p in s['products'].items()}))['requests']
+    def evaluation_counts(self,day,version):
+        if version==self.replay_version:
+            from collections import Counter
+            c=Counter()
+            for e in self.events(day,version=version):c[e['sku']]+=e.get('quantity',1)
+            return c
+        return self._custodian(dict(operation='closed_evaluation',day=day))['counts']
+    def history_before(self,day,**kwargs):
+        return {(r['date'],r['sku_code']):r['sold_qty'] for r in self.engine.observed if r['date']<day}
+    def outcomes_before(self,day):
+        return {(r['date'],r['sku_code']):dict(r,stockout=int(r.get('censored_demand_flag',0))) for r in self.engine.observed if r['date']<day}
+    def events(self,day,seed=42,weather=None,version=None):
+        version=version or self.version
+        self.hash_for(version)
+        if version!=self.replay_version:raise ValueError('Không công bố tương lai của thị trường. Dùng worker cho cửa sổ đã trôi qua.')
+        if day not in self.calendar:raise ValueError('Mô phỏng chỉ dùng ngày có POS V4 01/05–30/06/2022; ngày khác cần dữ liệu nhập.')
+        return sorted(self._events[day],key=lambda e:(e['minute'],e['id']))
+    def report(self):
+        return dict(type='V4 market simulation with custodian process; optional observed-POS replay',version=self.version,sha256=self.arrivals.hash,
+            training_rows=0,train_until=None,calibrated_until=None,test_rows=0,test_from=None,evaluated_until=None,test_mae=None,sku_mean_baseline_mae=None,
+            dates=sorted(self.calendar),scenarios=[{'version':self.version,'label':'Thị trường V4 có phản ứng giá giả định gốc'},{'version':self.replay_version,'label':'Replay POS V4 quan sát, không sinh khách mới'}],note='Thị trường dùng sự kiện Validation V4 và quy tắc phản ứng giá gốc strength 0.6; worker chỉ trả lượt mua trong cửa sổ đã trôi qua. Replay giữ giao dịch quan sát riêng. Cả hai là mô phỏng, không phải đo tại AEON hay chạy lại test 62 ngày.')
+    def comparison(self,day='2022-05-02',seed=42):
+        raise ValueError('Không chạy F04 baseline vs AI trong prototype. Kết quả V4 đã khóa được xem riêng qua /api/reference.')
