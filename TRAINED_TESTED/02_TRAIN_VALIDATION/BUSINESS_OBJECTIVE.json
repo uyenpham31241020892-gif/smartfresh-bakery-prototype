@@ -1,0 +1,18 @@
+{
+  "primary": "MAXIMIZE_OBSERVED_CONTRIBUTION_UNDER_DECLARED_COST_SCENARIOS",
+  "formula": "revenue - total_production_cost - incremental_disposal_cost - markdown_operations_cost",
+  "wasted_production_cost": "REPORT_COMPONENT_ONLY_ALREADY_INCLUDED_IN_TOTAL_PRODUCTION",
+  "supply_decisions": [
+    "initial_qty",
+    "production_batch_qty_and_ready_time",
+    "refill"
+  ],
+  "pricing_decisions": [
+    "HOLD",
+    "approved_price_0_to_50pct_markdown"
+  ],
+  "selection": "validation ONLY; perSKU and price response sensitivity; paired four branches",
+  "service_tradeoff": "Report lost sales and2130availability alongside contribution; user service floor not yet specified; no97percent guarantee",
+  "training_executed": false,
+  "official_test_executed": false
+}

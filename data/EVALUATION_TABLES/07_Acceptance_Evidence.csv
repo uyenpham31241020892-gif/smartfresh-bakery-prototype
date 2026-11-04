@@ -1,0 +1,6 @@
+requirement,evidence,status
+Model ứng viên,model_v4/artifacts_build/models/*.joblib,V4 đã chọn; không tạo ứng viên mới
+Config,model_v4/artifacts_build/models/policy_config.json; build_config.json,Nguyên bản V4
+Feature list,tables/06_Feature_List.csv,82 vị trí; trích code nguồn
+Log,evidence/decision_logs.csv; approved_price_logs.csv; dq_fallback_logs.csv,Log thực thi hiện có; không thay thế experiment log huấn luyện
+Bảng validation so với bản hiện tại,evidence/VALIDATION_REPORT.md; BENCHMARK_RESULTS_EVALUATED.csv,Lưu nguồn cũ; chưa có bảng thực đo riêng chứng minh so sánh V4 trên Validation. Không thay bằng kết quả Test.

@@ -179,7 +179,7 @@ def prepare(morning_features, completed_own_branch_history):
     # BƠM MẠNH SẢN LƯỢNG M2 Ở V4
     if is_slow_sku:
         if weekday_iso in (2, 3):
-            planned_raw = q50  # Lên lại Q50 (V3 là Q37)
+            planned_raw = q50  # V4: q50 cho SKU bán chậm ngày giữa tuần
         else:
             planned_raw = 0.5 * q50 + 0.5 * q75 + 1.0  # Nâng buffer
         total_qty = int(math.ceil(planned_raw / batch_size) * batch_size) # Quay lại math.ceil

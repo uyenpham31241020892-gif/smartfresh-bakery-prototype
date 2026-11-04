@@ -1,0 +1,11 @@
+﻿case,input_json,expected,observed
+valid,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",ACCEPT,ACCEPT
+future,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T21:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",QUARANTINE_FUTURE_EVENT,QUARANTINE_FUTURE_EVENT
+unknown,"{""event_id"": ""e1"", ""sku_code"": ""UNKNOWN"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",QUARANTINE_UNKNOWN_SKU,QUARANTINE_UNKNOWN_SKU
+negative,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": -1, ""unit_price_vnd"": 25000, ""price_version"": 2}",QUARANTINE_QUANTITY,QUARANTINE_QUANTITY
+fractional,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1.5, ""unit_price_vnd"": 25000, ""price_version"": 2}",QUARANTINE_QUANTITY,QUARANTINE_QUANTITY
+price_version,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 1}",RECONCILE_PRICE_VERSION,RECONCILE_PRICE_VERSION
+stale,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T18:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",HOLD_FOR_STALE_FEED,HOLD_FOR_STALE_FEED
+timezone,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",QUARANTINE_TIMEZONE,QUARANTINE_TIMEZONE
+duplicate,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 25000, ""price_version"": 2}",DROP_DUPLICATE,DROP_DUPLICATE
+badprice,"{""event_id"": ""e1"", ""sku_code"": ""TP-DN-001"", ""event_at"": ""2022-04-01T20:00:00+07:00"", ""quantity"": 1, ""unit_price_vnd"": 0, ""price_version"": 2}",QUARANTINE_PRICE,QUARANTINE_PRICE

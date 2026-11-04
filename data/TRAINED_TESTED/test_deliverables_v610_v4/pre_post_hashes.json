@@ -1,0 +1,64 @@
+{
+  "pre_test": {
+    "verified_model_hashes": {
+      "artifacts_build/models/m2_forecast_bundle.joblib": "7de4a8c59229fd1ffe92e96c6b2a4725c9072487cb9562b5c57fb57f4b333e81",
+      "artifacts_build/models/m1_pricing_q_bundle.joblib": "df52041c29332619ab9664b6c92dbc7cfe50714bc7fdef3972fbf4b337139c99",
+      "artifacts_build/models/operational_lookup.json": "1c1a01a4e713ad18217c72917b72d21c5e873403f2f0761887fc6222bfc386b3",
+      "artifacts_build/models/policy_config.json": "c9dded864aa5c5ae9e116479a206a134c4e5dbbf6810e19f4c3ec2c675bcaded",
+      "smartfresh_adapter.py": "1e1d14b2bcbb7dd74ee5a74c957e6cf91f7d3e3cdba6d1b8d058e6d180e36237"
+    },
+    "runtime_file_hashes": {
+      "BUSINESS_OBJECTIVE.json": "19078e57a15a2ff972a90c12f67906ba3341ad0eeaf01282b791ac1f937499ca",
+      "build_config.json": "831d1f3f5cca8ef8fedb04b2c7ffa843c8876f0b05e4e72f59ce21ad36dd8796",
+      "feature_contract.json": "c159ea6e2d23ab8744e0a992ea15c437e3e6f26def66de9d03cf4d527e0077da",
+      "sku_master.csv": "4850f7447ae0ee96ef883570d587fcb5ff4ed077afb3c75c475f8a3b9ea0fc0d",
+      "calendar_test.csv": "08cfdc93d8fc89be8dc9487606db1185c0d58096cb70c80076e0e850e1d021cb",
+      "history_seed_through_20220630.csv": "759b55a733b535434c143dc6110c9e2c6e11ea07911e38932d804254d236991e",
+      "prior_weather_through_20220630.csv": "aa371436528defcd074badad49bb394fe6bd427e75190886a2cff4997fc00ecf",
+      "code/pos_core.py": "47b72cadd4bfccf42bf02f2a25bb2b4e9b2db93c3aa1095d4a3dde5958dff540",
+      "code/pos_server.py": "5e3de7b074e617fee01aa746500b00f6b7861f6a730ac9f63e02090c0c45dae0",
+      "code/score_private.py": "6f351ac4babbd51efdb66cfa285352a445df88995f2aa578b3e712e2ff6e7949"
+    },
+    "market_commitment": [
+      {
+        "private_file": "market_test_PRIVATE.csv",
+        "sha256": "a604feab60c3abfc896deb0fc257d1dbf2781b711370381e05ed57c3f025a8a0"
+      },
+      {
+        "private_file": "customer_events_test_PRIVATE.jsonl",
+        "sha256": "c0c26388277228a36bf53883f3238eb56a0261e361e65b1fd4db0d5a6917b955"
+      }
+    ]
+  },
+  "post_test": {
+    "verified_model_hashes": {
+      "artifacts_build/models/m2_forecast_bundle.joblib": "7de4a8c59229fd1ffe92e96c6b2a4725c9072487cb9562b5c57fb57f4b333e81",
+      "artifacts_build/models/m1_pricing_q_bundle.joblib": "df52041c29332619ab9664b6c92dbc7cfe50714bc7fdef3972fbf4b337139c99",
+      "artifacts_build/models/operational_lookup.json": "1c1a01a4e713ad18217c72917b72d21c5e873403f2f0761887fc6222bfc386b3",
+      "artifacts_build/models/policy_config.json": "c9dded864aa5c5ae9e116479a206a134c4e5dbbf6810e19f4c3ec2c675bcaded",
+      "smartfresh_adapter.py": "1e1d14b2bcbb7dd74ee5a74c957e6cf91f7d3e3cdba6d1b8d058e6d180e36237"
+    },
+    "runtime_file_hashes": {
+      "BUSINESS_OBJECTIVE.json": "19078e57a15a2ff972a90c12f67906ba3341ad0eeaf01282b791ac1f937499ca",
+      "build_config.json": "831d1f3f5cca8ef8fedb04b2c7ffa843c8876f0b05e4e72f59ce21ad36dd8796",
+      "feature_contract.json": "c159ea6e2d23ab8744e0a992ea15c437e3e6f26def66de9d03cf4d527e0077da",
+      "sku_master.csv": "4850f7447ae0ee96ef883570d587fcb5ff4ed077afb3c75c475f8a3b9ea0fc0d",
+      "calendar_test.csv": "08cfdc93d8fc89be8dc9487606db1185c0d58096cb70c80076e0e850e1d021cb",
+      "history_seed_through_20220630.csv": "759b55a733b535434c143dc6110c9e2c6e11ea07911e38932d804254d236991e",
+      "prior_weather_through_20220630.csv": "aa371436528defcd074badad49bb394fe6bd427e75190886a2cff4997fc00ecf",
+      "code/pos_core.py": "47b72cadd4bfccf42bf02f2a25bb2b4e9b2db93c3aa1095d4a3dde5958dff540",
+      "code/pos_server.py": "5e3de7b074e617fee01aa746500b00f6b7861f6a730ac9f63e02090c0c45dae0",
+      "code/score_private.py": "6f351ac4babbd51efdb66cfa285352a445df88995f2aa578b3e712e2ff6e7949"
+    },
+    "market_commitment": [
+      {
+        "private_file": "market_test_PRIVATE.csv",
+        "sha256": "a604feab60c3abfc896deb0fc257d1dbf2781b711370381e05ed57c3f025a8a0"
+      },
+      {
+        "private_file": "customer_events_test_PRIVATE.jsonl",
+        "sha256": "c0c26388277228a36bf53883f3238eb56a0261e361e65b1fd4db0d5a6917b955"
+      }
+    ]
+  }
+}

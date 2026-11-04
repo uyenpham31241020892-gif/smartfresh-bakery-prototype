@@ -71,7 +71,7 @@ def main():
         page.locator('[data-view="audit"]').click()
         expect(page.locator('#view')).to_contain_text('Áp dụng giá đã duyệt')
         page.locator('[data-view="data"]').click()
-        page.locator('#file-input').set_input_files(str(ROOT/'data/current_v9/history_through_aug15_synthetic.csv'))
+        page.locator('#file-input').set_input_files(str(ROOT/'data/v4/import_example.csv'))
         expect(page.locator('.data-preview')).to_contain_text('Dữ liệu hợp lệ')
         page.locator('[data-confirm-import]').click()
         expect(page.locator('#page-title')).to_have_text('Kế hoạch sản lượng')

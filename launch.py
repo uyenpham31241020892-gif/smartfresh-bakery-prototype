@@ -1,14 +1,20 @@
 """Windows launcher; stdlib only, own environment, wait for health before browser."""
 from pathlib import Path
 import sys,subprocess,hashlib,time,urllib.request,webbrowser,os,json
-if sys.version_info[:2]!=(3,12):raise SystemExit('Can Python 3.12. Dung Start.cmd / Start-Gemini.cmd.')
+if sys.version_info[0] < 3:raise SystemExit('Can Python 3. Dung Start.cmd / Start-Gemini.cmd.')
 R=Path(__file__).resolve().parent;os.chdir(R);runtime=R/'runtime';runtime.mkdir(exist_ok=True)
-py=R/'.venv'/('Scripts/python.exe' if os.name=='nt' else 'bin/python');stamp=R/'.venv/requirements.sha256';digest=hashlib.sha256((R/'requirements.txt').read_bytes()).hexdigest()
+check_sys=subprocess.run([sys.executable,str(R/'scripts/check_runtime.py')],capture_output=True)
+if check_sys.returncode==0:
+ py=sys.executable
+else:
+ py=R/'.venv'/('Scripts/python.exe' if os.name=='nt' else 'bin/python');stamp=R/'.venv/requirements.sha256';digest=hashlib.sha256((R/'requirements.txt').read_bytes()).hexdigest()
+ try:
+  if not Path(py).exists():subprocess.run([sys.executable,'-m','venv',str(R/'.venv')],check=True)
+  check=subprocess.run([str(py),str(R/'scripts/check_runtime.py')],capture_output=True)
+  if check.returncode or not stamp.exists() or stamp.read_text()!=digest:
+   subprocess.run([str(py),'-m','pip','install','-r','requirements.txt'],check=True);stamp.write_text(digest)
+ except Exception as e:print('Loi tao venv:',e);sys.exit(1)
 try:
- if not py.exists():subprocess.run([sys.executable,'-m','venv',str(R/'.venv')],check=True)
- check=subprocess.run([str(py),str(R/'scripts/check_runtime.py')],capture_output=True)
- if check.returncode or not stamp.exists() or stamp.read_text()!=digest:
-  subprocess.run([str(py),'-m','pip','install','-r','requirements.txt'],check=True);stamp.write_text(digest)
  # A local listener is not assumed to belong to this app. Never kill processes automatically.
  import socket
  with socket.socket() as sock:
@@ -36,7 +42,7 @@ try:
    except Exception:time.sleep(.5)
   else:
    proc.terminate();raise RuntimeError('Health check khong dat. Xem runtime/server.log')
-  print('SmartFresh V4: http://127.0.0.1:8000 - dong cua so/Ctrl+C de dung.');webbrowser.open('http://127.0.0.1:8000')
+  print('SmartFresh V4: http://127.0.0.1:8000 - dong cua so/Ctrl+C de dung.',flush=True);webbrowser.open('http://127.0.0.1:8000')
   try:proc.wait()
   except KeyboardInterrupt:proc.terminate();proc.wait()
 except Exception as e:print('LOI:',e);sys.exit(1)

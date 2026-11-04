@@ -1,0 +1,115 @@
+{
+  "private_customer_events_sha256": "c0c26388277228a36bf53883f3238eb56a0261e361e65b1fd4db0d5a6917b955",
+  "private_market_sha256": "a604feab60c3abfc896deb0fc257d1dbf2781b711370381e05ed57c3f025a8a0",
+  "runtime_files": [
+    {
+      "relative_path": "BUSINESS_OBJECTIVE.json",
+      "sha256": "19078e57a15a2ff972a90c12f67906ba3341ad0eeaf01282b791ac1f937499ca"
+    },
+    {
+      "relative_path": "TEST_market_commitment.csv",
+      "sha256": "e2aa68acce3cc8712a317fc2633f15c61918ad286763daae7766fb2a3c3c3a80"
+    },
+    {
+      "relative_path": "build_config.json",
+      "sha256": "831d1f3f5cca8ef8fedb04b2c7ffa843c8876f0b05e4e72f59ce21ad36dd8796"
+    },
+    {
+      "relative_path": "calendar_test.csv",
+      "sha256": "08cfdc93d8fc89be8dc9487606db1185c0d58096cb70c80076e0e850e1d021cb"
+    },
+    {
+      "relative_path": "code/agent_bridge.py",
+      "sha256": "a25ff6b02a030c169ea6febdb0d3f9442c5bfa73eeb08c33fae3851f42a7903c"
+    },
+    {
+      "relative_path": "code/context_tools.py",
+      "sha256": "9f3613524dedf1899101ee7a78607c8131d507f4087a34c45b4cfdc1079a5eed"
+    },
+    {
+      "relative_path": "code/features_asof.py",
+      "sha256": "bd274420a7af4bb0b02417cca861b932a0b43d3209f2a79e3593ea17a09d3b1a"
+    },
+    {
+      "relative_path": "code/freeze_submission.py",
+      "sha256": "843f699472d01faa80fda410ff68f501d61e057a2676006b8a142dd7523f423a"
+    },
+    {
+      "relative_path": "code/model_adapter_TEMPLATE.py",
+      "sha256": "1c7c06cdd54a1ccbea12a87ddd0a565c6af0043720564b07628d48877507e61c"
+    },
+    {
+      "relative_path": "code/model_features.py",
+      "sha256": "36e4ddda3074fa628bcd0bafa30f8c1c714c6d8571002cfa9d8dcc4aca7f554e"
+    },
+    {
+      "relative_path": "code/pos_core.py",
+      "sha256": "47b72cadd4bfccf42bf02f2a25bb2b4e9b2db93c3aa1095d4a3dde5958dff540"
+    },
+    {
+      "relative_path": "code/pos_server.py",
+      "sha256": "5e3de7b074e617fee01aa746500b00f6b7861f6a730ac9f63e02090c0c45dae0"
+    },
+    {
+      "relative_path": "code/pos_ui.html",
+      "sha256": "a6c699a3adf144d1d89b9c99c3de57d1cd1d4a232a4b3d79e8c8e24823e7e1d5"
+    },
+    {
+      "relative_path": "code/score_private.py",
+      "sha256": "6f351ac4babbd51efdb66cfa285352a445df88995f2aa578b3e712e2ff6e7949"
+    },
+    {
+      "relative_path": "code/test_pos.py",
+      "sha256": "3d17785d8f1a66c927bc61aa5e5eddea5bde77799f015a735ffac80955a1a179"
+    },
+    {
+      "relative_path": "data_access_manifest.json",
+      "sha256": "ef1791327c26665c57cedf46ca253b0eae20acc862babde61e517c2037a20cef"
+    },
+    {
+      "relative_path": "feature_contract.json",
+      "sha256": "c159ea6e2d23ab8744e0a992ea15c437e3e6f26def66de9d03cf4d527e0077da"
+    },
+    {
+      "relative_path": "history_seed_through_20220630.csv",
+      "sha256": "759b55a733b535434c143dc6110c9e2c6e11ea07911e38932d804254d236991e"
+    },
+    {
+      "relative_path": "prior_weather_through_20220630.csv",
+      "sha256": "aa371436528defcd074badad49bb394fe6bd427e75190886a2cff4997fc00ecf"
+    },
+    {
+      "relative_path": "sku_master.csv",
+      "sha256": "4850f7447ae0ee96ef883570d587fcb5ff4ed077afb3c75c475f8a3b9ea0fc0d"
+    }
+  ],
+  "protocol": "V609_FROZEN_PARAMETERS_BRANCH_OWN_HISTORY",
+  "config_sha256": "831d1f3f5cca8ef8fedb04b2c7ffa843c8876f0b05e4e72f59ce21ad36dd8796",
+  "model_files": [
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/smartfresh_adapter.py",
+      "sha256": "851f95fb403a457d6922d47e095c095d7f5a0dbad2d6a4dad38d2e21a66c6ba7"
+    },
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/artifacts_build/models/policy_config.json",
+      "sha256": "99c0398d3b8b786b2753310bb12950b839eee9bae599aa491b3ecb9cdf667523"
+    },
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/artifacts_build/models/m2_forecast_bundle.joblib",
+      "sha256": "77084f9dd6b330ad660268662d4e8ef8f001e07284ba99c081acd0898d00d95f"
+    },
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/artifacts_build/models/operational_lookup.json",
+      "sha256": "f708623cf35c0eb415f1bb4b35dc8f7504cc3d9f43917b88a4ca7dc855289f57"
+    },
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/artifacts_build/models/m1_pricing_q_bundle.joblib",
+      "sha256": "615e9573b28ba98bbe670a0c3fe2a65252f9fafc663938e08a14047e5f0faa3c"
+    },
+    {
+      "path": "/mnt/data/SmartFresh_V4_FIXED_WORK/SmartFresh_V4/TRAINED_TESTED/artifacts_build/models/SHA256SUMS.json",
+      "sha256": "42124fe25d4f937f443d74eaea981006062ec681f4ee087768d8ec266a4d123f"
+    }
+  ],
+  "online_retraining": "DISABLED_UNLESS_SEPARATELY_PREREGISTERED"
+}

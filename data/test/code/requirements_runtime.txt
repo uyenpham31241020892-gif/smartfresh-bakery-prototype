@@ -1,0 +1,2 @@
+# Runtime / API / UI / unit tests use Python3.10+ standard library only.
+# Trained model adapters may require additional packages not included here.

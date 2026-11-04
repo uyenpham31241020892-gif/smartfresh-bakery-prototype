@@ -1,0 +1,42 @@
+{
+  "release": "V6.09",
+  "source_days": 233,
+  "sku_count": 7,
+  "user_waste_target_units_per_day": 40,
+  "user_waste_scope": "TOTAL7_SKUS_END_OF_DAY_NOT_PER_SKU",
+  "target_evidence_status": "USER_SUSPECTS_OVER30_CENTRAL40_ASSUMED_NOT_MEASURED",
+  "calibration_partition": "FIT_ONLY111_DAYS",
+  "selected_total_buffer_units": 22.75,
+  "baseline": "WEEKLY_OBSERVED_HISTORY_PLUS_FIT_CALIBRATED_BUFFER;40PCT_INITIAL_AND14H17H_BATCHES;SELECTIVE21_PRICE",
+  "default_price_response_strength": 0.6,
+  "price_response_scenarios_assumed": {
+    "null": 0.0,
+    "weak": 0.25,
+    "central": 0.6,
+    "strong": 1.0
+  },
+  "price_response_formula": "min(1,strength*sku_response*(discount/50)**0.9)",
+  "price_cap_pct": 50,
+  "price_quantum_vnd": 1,
+  "laminated_sku_shares_assumed": {
+    "TP-DN-001": 0.3,
+    "TP-DN-002": 0.16,
+    "TP-DN-003": 0.16,
+    "TP-DN-004": 0.16,
+    "TP-CR-001": 0.22
+  },
+  "weekday_profile_assumed": [
+    1.0,
+    1.0,
+    1.0,
+    1.05,
+    1.1,
+    1.35,
+    1.4
+  ],
+  "model_training_executed": false,
+  "official_test_executed": false,
+  "holdout_status": "LOGICAL_SIMULATOR_ISOLATION_NOT_NEW_REAL_WORLD_BLIND_HOLDOUT",
+  "weather": "PREVIOUS_DAY_REANALYSIS_ONLY_NOT_ISSUED_FORECAST",
+  "footfall": "PROXY_BASKET_IDS_AND_ASSUMED_BROWSERS_NOT_MEASURED_MALL_VISITORS"
+}

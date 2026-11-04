@@ -21,7 +21,7 @@ def test_native_tool_roundtrip_preserves_evidence_and_signatures(provider, flow,
             assert declarations[0]['parametersJsonSchema']['additionalProperties'] is False
             if len(requests) == 1:
                 return httpx.Response(200, json={'candidates': [{'content': {'role': 'model', 'parts': [
-                    {'functionCall': {'name': 'get_model_evidence', 'args': {'sku': 'BK-001'}, 'id': 'native1'}, 'thoughtSignature': 'signature-kept'}]}}]})
+                    {'functionCall': {'name': 'get_model_evidence', 'args': {'sku': 'TP-DN-001'}, 'id': 'native1'}, 'thoughtSignature': 'signature-kept'}]}}]})
             assert body['contents'][1]['parts'][0]['thoughtSignature'] == 'signature-kept'
             result = body['contents'][2]['parts'][0]['functionResponse']
             assert result['id'] == 'native1' and result['response']['result']['forecast'] == 12.5
@@ -29,7 +29,7 @@ def test_native_tool_roundtrip_preserves_evidence_and_signatures(provider, flow,
         assert str(request.url) == 'http://127.0.0.1:11434/api/chat'
         if len(requests) == 1:
             return httpx.Response(200, json={'message': {'role': 'assistant', 'tool_calls': [
-                {'function': {'name': 'get_model_evidence', 'arguments': {'sku': 'BK-001'}}}]}})
+                {'function': {'name': 'get_model_evidence', 'arguments': {'sku': 'TP-DN-001'}}}]}})
         assert json.loads(body['messages'][-1]['content'])['forecast'] == 12.5
         return httpx.Response(200, json={'message': {'content': 'Dự báo 12.5 từ công cụ.'}})
 
@@ -37,7 +37,7 @@ def test_native_tool_roundtrip_preserves_evidence_and_signatures(provider, flow,
     a = Assistant()
     a.configure('test-key-not-real-123456789' if provider == 'Gemini' else '', 'test-model', provider)
     state = flow.create()
-    result = a.chat('Dự báo BK-001?', state, lambda sku: {'forecast': 12.5})
+    result = a.chat('Dự báo TP-DN-001?', state, lambda sku: {'forecast': 12.5})
     assert result['tools_used'] == ['get_model_evidence']
     assert result['provider'] == provider and a.verified
     assert flow.store.get(state['id'])['revision'] == state['revision']
@@ -58,7 +58,7 @@ def test_gemini_parallel_results_share_one_turn_and_keep_signatures(flow, monkey
     turns = []
     content = {'role': 'model', 'parts': [
         {'functionCall': {'name': 'get_session_context', 'args': {}, 'id': 'context1'}, 'thoughtSignature': 'opaque-signature'},
-        {'functionCall': {'name': 'get_model_evidence', 'args': {'sku': 'BK-001'}, 'id': 'evidence1'}}]}
+        {'functionCall': {'name': 'get_model_evidence', 'args': {'sku': 'TP-DN-001'}, 'id': 'evidence1'}}]}
     def respond(request):
         body = json.loads(request.content)
         turns.append(body)
