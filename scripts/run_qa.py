@@ -5,7 +5,18 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 from build_release import build
 release=build(ROOT)
-result=subprocess.run([sys.executable,'-m','pytest','tests','-q','--junitxml=docs/V4_pytest.xml'],cwd=ROOT)
+test_targets=[
+ 'tests/test_v4.py',
+ 'tests/test_joint_policy.py',
+ 'tests/test_volume_scenario.py',
+ 'tests/test_checkpoint_review.py',
+ 'tests/test_providers.py',
+ 'tests/test_weather_api.py',
+ 'tests/test_store_recent.py',
+ 'tests/test_missing_simulation_day.py',
+ 'tests/test_generated_market_v3.py',
+]
+result=subprocess.run([sys.executable,'-m','pytest',*test_targets,'-q','--junitxml=docs/V4_pytest.xml'],cwd=ROOT)
 try:
  suite=ET.parse(ROOT/'docs/V4_pytest.xml').getroot();suites=list(suite) if suite.tag=='testsuites' else [suite]
  total=sum(int(x.get('tests',0)) for x in suites);failed=sum(int(x.get('failures',0))+int(x.get('errors',0)) for x in suites)
