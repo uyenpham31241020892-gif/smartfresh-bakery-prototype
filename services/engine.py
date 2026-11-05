@@ -51,7 +51,9 @@ class Engine:
     def require_integrity(self):
         for rel,h in self._hashes.items():
             p=ROOT/rel
-            if not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest()!=h:raise ValueError('V4 HASH_MISMATCH: '+rel)
+            if not p.is_file():raise ValueError('V4 HASH_MISMATCH: '+rel)
+            raw=p.read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=h and hashlib.sha256(raw.replace(b'\r\n',b'\n')).hexdigest()!=h:raise ValueError('V4 HASH_MISMATCH: '+rel)
         return True
     def reload_if_needed(self):
         self.require_integrity()
