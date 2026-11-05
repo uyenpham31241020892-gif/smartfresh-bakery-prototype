@@ -1,0 +1,1987 @@
+[
+  {
+    "minute": 1170,
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "stock": 71,
+        "sales30": 25,
+        "sales60": 47,
+        "discount": 0,
+        "predicted_hold_next30": 12.469821957202326,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 12.469821957202326,
+            "expected_revenue": 366613
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 12.618892828012502,
+            "expected_revenue": 333896
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 13.035183836494632,
+            "expected_revenue": 325749
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 13.035183836494632,
+            "expected_revenue": 306588
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 13.665322992168745,
+            "expected_revenue": 301320
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 13.913510975621621,
+            "expected_revenue": 286340
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 15.097350960220739,
+            "expected_revenue": 288510
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 15.097350960220739,
+            "expected_revenue": 266317
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-002",
+        "stock": 81,
+        "sales30": 14,
+        "sales60": 19,
+        "discount": 0,
+        "predicted_hold_next30": 8.853809705808068,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 8.853809705808068,
+            "expected_revenue": 221345
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 9.0495757772656,
+            "expected_revenue": 203615
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 9.587636484364639,
+            "expected_revenue": 203737
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 9.587636484364639,
+            "expected_revenue": 191753
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 10.220935268904277,
+            "expected_revenue": 191643
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 10.93824353097136,
+            "expected_revenue": 191419
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 11.821289324635734,
+            "expected_revenue": 192096
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 11.821289324635734,
+            "expected_revenue": 177319
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-003",
+        "stock": 124,
+        "sales30": 14,
+        "sales60": 30,
+        "discount": 0,
+        "predicted_hold_next30": 7.454784127405682,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 7.454784127405682,
+            "expected_revenue": 186370
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 7.751116370247776,
+            "expected_revenue": 174400
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 8.447948636323728,
+            "expected_revenue": 179519
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 8.447948636323728,
+            "expected_revenue": 168959
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 9.081247420863368,
+            "expected_revenue": 170273
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 9.861623912186031,
+            "expected_revenue": 172578
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 11.443124358499455,
+            "expected_revenue": 185951
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 11.443124358499455,
+            "expected_revenue": 171647
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-004",
+        "stock": 161,
+        "sales30": 8,
+        "sales60": 13,
+        "discount": 0,
+        "predicted_hold_next30": 13.585843587008641,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 13.585843587008641,
+            "expected_revenue": 339646
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 13.915206235975221,
+            "expected_revenue": 313092
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 14.432490095988816,
+            "expected_revenue": 306690
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 14.432490095988816,
+            "expected_revenue": 288650
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 15.065788880528455,
+            "expected_revenue": 282484
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 15.448881810524341,
+            "expected_revenue": 270355
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 16.513116224305396,
+            "expected_revenue": 268338
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 16.513116224305396,
+            "expected_revenue": 247697
+          }
+        ]
+      },
+      {
+        "sku": "TP-CR-001",
+        "stock": 47,
+        "sales30": 22,
+        "sales60": 41,
+        "discount": 0,
+        "predicted_hold_next30": 9.900064382037614,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 9.900064382037614,
+            "expected_revenue": 242552
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 10.053086285073586,
+            "expected_revenue": 221671
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 10.648350581764198,
+            "expected_revenue": 221752
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 10.648350581764198,
+            "expected_revenue": 208708
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 11.079428936406316,
+            "expected_revenue": 203585
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 11.69149537690942,
+            "expected_revenue": 200509
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 12.451302821746847,
+            "expected_revenue": 198287
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 12.451302821746847,
+            "expected_revenue": 183034
+          }
+        ]
+      },
+      {
+        "sku": "TP-CP-001",
+        "stock": 19,
+        "sales30": 8,
+        "sales60": 18,
+        "discount": 0,
+        "predicted_hold_next30": 2.1993149180474427,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 2.1993149180474427,
+            "expected_revenue": 60261
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 2.3523368210834157,
+            "expected_revenue": 58009
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 2.542329951640511,
+            "expected_revenue": 59211
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 2.542329951640511,
+            "expected_revenue": 55728
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 2.542329951640511,
+            "expected_revenue": 52245
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 2.6129882467782917,
+            "expected_revenue": 50117
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 2.671239944924258,
+            "expected_revenue": 47575
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 2.671239944924258,
+            "expected_revenue": 43915
+          }
+        ]
+      },
+      {
+        "sku": "TP-RV-001",
+        "stock": 30,
+        "sales30": 7,
+        "sales60": 9,
+        "discount": 0,
+        "predicted_hold_next30": 3.4915391035255925,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 3.4915391035255925,
+            "expected_revenue": 95668
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 3.6445610065615663,
+            "expected_revenue": 89875
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 3.8960874528968614,
+            "expected_revenue": 90740
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 3.8960874528968614,
+            "expected_revenue": 85402
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 3.8960874528968614,
+            "expected_revenue": 80065
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 4.049262319977415,
+            "expected_revenue": 77665
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 4.404004153982721,
+            "expected_revenue": 78435
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 4.404004153982721,
+            "expected_revenue": 72402
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "minute": 1200,
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "stock": 55,
+        "sales30": 16,
+        "sales60": 41,
+        "discount": 0,
+        "predicted_hold_next30": 11.518300959922385,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 11.518300959922385,
+            "expected_revenue": 338638
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 11.83304167823603,
+            "expected_revenue": 313102
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 12.23414248342571,
+            "expected_revenue": 305731
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 12.23414248342571,
+            "expected_revenue": 287747
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 12.511305356020152,
+            "expected_revenue": 275874
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 12.845520688091348,
+            "expected_revenue": 264361
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 13.610809539241298,
+            "expected_revenue": 260103
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 13.610809539241298,
+            "expected_revenue": 240095
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-002",
+        "stock": 65,
+        "sales30": 16,
+        "sales60": 30,
+        "discount": 0,
+        "predicted_hold_next30": 8.917643026645436,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 8.917643026645436,
+            "expected_revenue": 222941
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 8.9513884795562,
+            "expected_revenue": 201406
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 9.48944918665524,
+            "expected_revenue": 201651
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 9.48944918665524,
+            "expected_revenue": 189789
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 10.122747971194878,
+            "expected_revenue": 189802
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 10.84005623326196,
+            "expected_revenue": 189701
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 11.595248340878632,
+            "expected_revenue": 188423
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 11.595248340878632,
+            "expected_revenue": 173929
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-003",
+        "stock": 122,
+        "sales30": 2,
+        "sales60": 16,
+        "discount": 0,
+        "predicted_hold_next30": 10.986663562307607,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 10.986663562307607,
+            "expected_revenue": 274667
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 11.65737202860788,
+            "expected_revenue": 262291
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 12.354204294683834,
+            "expected_revenue": 262527
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 12.354204294683834,
+            "expected_revenue": 247084
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 13.065167601212586,
+            "expected_revenue": 244972
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 13.845544092535249,
+            "expected_revenue": 242297
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 15.29919085280097,
+            "expected_revenue": 248612
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 15.29919085280097,
+            "expected_revenue": 229488
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-004",
+        "stock": 152,
+        "sales30": 9,
+        "sales60": 17,
+        "discount": 0,
+        "predicted_hold_next30": 14.402472907960494,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 14.402472907960494,
+            "expected_revenue": 360062
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 14.740814762886647,
+            "expected_revenue": 331668
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 15.258098622900242,
+            "expected_revenue": 324235
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 15.258098622900242,
+            "expected_revenue": 305162
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 15.89139740743988,
+            "expected_revenue": 297964
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 16.27449033743577,
+            "expected_revenue": 284804
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 17.274786975601582,
+            "expected_revenue": 280715
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 17.274786975601582,
+            "expected_revenue": 259122
+          }
+        ]
+      },
+      {
+        "sku": "TP-CR-001",
+        "stock": 32,
+        "sales30": 15,
+        "sales60": 37,
+        "discount": 0,
+        "predicted_hold_next30": 10.028119057952962,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 10.028119057952962,
+            "expected_revenue": 245689
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 10.346810808492403,
+            "expected_revenue": 228147
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 10.942075105183015,
+            "expected_revenue": 227869
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 10.942075105183015,
+            "expected_revenue": 214465
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 11.113393219785591,
+            "expected_revenue": 204209
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 11.544419195298051,
+            "expected_revenue": 197987
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 12.008913855513255,
+            "expected_revenue": 191242
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 12.008913855513255,
+            "expected_revenue": 176531
+          }
+        ]
+      },
+      {
+        "sku": "TP-CP-001",
+        "stock": 19,
+        "sales30": 0,
+        "sales60": 8,
+        "discount": 0,
+        "predicted_hold_next30": 3.8285209087994265,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 3.8285209087994265,
+            "expected_revenue": 104901
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 3.8622663617101938,
+            "expected_revenue": 95243
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 4.052259492267288,
+            "expected_revenue": 94377
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 4.052259492267288,
+            "expected_revenue": 88826
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 4.052259492267288,
+            "expected_revenue": 83274
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 4.122917787405069,
+            "expected_revenue": 79078
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 4.1811694855510355,
+            "expected_revenue": 74467
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 4.1811694855510355,
+            "expected_revenue": 68738
+          }
+        ]
+      },
+      {
+        "sku": "TP-RV-001",
+        "stock": 30,
+        "sales30": 0,
+        "sales60": 7,
+        "discount": 0,
+        "predicted_hold_next30": 6.771606092175702,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 6.771606092175702,
+            "expected_revenue": 185542
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 6.848095713508026,
+            "expected_revenue": 168874
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 7.099622159843323,
+            "expected_revenue": 165350
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 7.099622159843323,
+            "expected_revenue": 155624
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 7.099622159843323,
+            "expected_revenue": 145897
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 7.252797026923876,
+            "expected_revenue": 139109
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 7.54360108531395,
+            "expected_revenue": 134352
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 7.54360108531395,
+            "expected_revenue": 124017
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "minute": 1230,
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "stock": 39,
+        "sales30": 16,
+        "sales60": 32,
+        "discount": 0,
+        "predicted_hold_next30": 14.355972486987337,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 14.355972486987337,
+            "expected_revenue": 422066
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 14.670713205300983,
+            "expected_revenue": 388187
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 15.063507837414248,
+            "expected_revenue": 376437
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 15.063507837414248,
+            "expected_revenue": 354294
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 15.34067071000869,
+            "expected_revenue": 338262
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 15.584427034650782,
+            "expected_revenue": 320728
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 16.287165832923048,
+            "expected_revenue": 311248
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 16.287165832923048,
+            "expected_revenue": 287306
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 16.34858108620575,
+            "expected_revenue": 264357
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 16.580800332929535,
+            "expected_revenue": 243738
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-002",
+        "stock": 48,
+        "sales30": 17,
+        "sales60": 33,
+        "discount": 0,
+        "predicted_hold_next30": 10.526761709698688,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 10.526761709698688,
+            "expected_revenue": 263169
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 10.560507162609452,
+            "expected_revenue": 237611
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 10.953301794722718,
+            "expected_revenue": 232758
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 10.953301794722718,
+            "expected_revenue": 219066
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 11.464817698171485,
+            "expected_revenue": 214965
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 12.182125960238567,
+            "expected_revenue": 213187
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 12.584070567576077,
+            "expected_revenue": 204491
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 12.584070567576077,
+            "expected_revenue": 188761
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 12.645485820858779,
+            "expected_revenue": 173875
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 13.124414458787648,
+            "expected_revenue": 164055
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-003",
+        "stock": 114,
+        "sales30": 8,
+        "sales60": 10,
+        "discount": 0,
+        "predicted_hold_next30": 13.29501988435974,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 13.29501988435974,
+            "expected_revenue": 332375
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 13.965728350660012,
+            "expected_revenue": 314229
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 14.587292427141252,
+            "expected_revenue": 309980
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 14.587292427141252,
+            "expected_revenue": 291746
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 15.22059121168089,
+            "expected_revenue": 285386
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 16.000967703003553,
+            "expected_revenue": 280017
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 17.36611897510858,
+            "expected_revenue": 282199
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 17.36611897510858,
+            "expected_revenue": 260492
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 17.427534228391284,
+            "expected_revenue": 239629
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 17.906462866320158,
+            "expected_revenue": 223831
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-004",
+        "stock": 145,
+        "sales30": 7,
+        "sales60": 16,
+        "discount": 0,
+        "predicted_hold_next30": 16.98552035774921,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 16.98552035774921,
+            "expected_revenue": 424638
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 17.323862212675362,
+            "expected_revenue": 389787
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 17.684290733870494,
+            "expected_revenue": 375791
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 17.684290733870494,
+            "expected_revenue": 353686
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 18.317589518410145,
+            "expected_revenue": 343455
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 18.700682448406027,
+            "expected_revenue": 327262
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 19.518316186715666,
+            "expected_revenue": 317173
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 19.518316186715666,
+            "expected_revenue": 292775
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 19.549181571154204,
+            "expected_revenue": 268801
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 20.21324848734425,
+            "expected_revenue": 252666
+          }
+        ]
+      },
+      {
+        "sku": "TP-CR-001",
+        "stock": 8,
+        "sales30": 24,
+        "sales60": 39,
+        "discount": 0,
+        "predicted_hold_next30": 6.491142546427428,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 6.491142546427428,
+            "expected_revenue": 159033
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 6.809834296966871,
+            "expected_revenue": 150157
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 7.428870774454078,
+            "expected_revenue": 154706
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 7.428870774454078,
+            "expected_revenue": 145606
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 7.600188889056653,
+            "expected_revenue": 139653
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 7.731498720600367,
+            "expected_revenue": 132595
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 8,
+            "expected_revenue": 127400
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 8,
+            "expected_revenue": 117600
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 8,
+            "expected_revenue": 107800
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 8,
+            "expected_revenue": 98000
+          }
+        ]
+      },
+      {
+        "sku": "TP-CP-001",
+        "stock": 16,
+        "sales30": 3,
+        "sales60": 3,
+        "discount": 0,
+        "predicted_hold_next30": 6.296940270476775,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 6.296940270476775,
+            "expected_revenue": 172536
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 6.3734298918091,
+            "expected_revenue": 157169
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 6.5551168492897816,
+            "expected_revenue": 152669
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 6.5551168492897816,
+            "expected_revenue": 143688
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 6.5551168492897816,
+            "expected_revenue": 134708
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 6.625775144427562,
+            "expected_revenue": 127082
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 6.6840268425735285,
+            "expected_revenue": 119043
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 6.6840268425735285,
+            "expected_revenue": 109885
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 6.745442095856229,
+            "expected_revenue": 101654
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 7.224370733785098,
+            "expected_revenue": 98974
+          }
+        ]
+      },
+      {
+        "sku": "TP-RV-001",
+        "stock": 27,
+        "sales30": 3,
+        "sales60": 3,
+        "discount": 0,
+        "predicted_hold_next30": 7.546183406348464,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 7.546183406348464,
+            "expected_revenue": 206765
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 7.622673027680788,
+            "expected_revenue": 187975
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 7.8658933009396685,
+            "expected_revenue": 183197
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 7.8658933009396685,
+            "expected_revenue": 172420
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 7.8658933009396685,
+            "expected_revenue": 161644
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 8.01906816802022,
+            "expected_revenue": 153806
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 8.309872226410295,
+            "expected_revenue": 147999
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 8.309872226410295,
+            "expected_revenue": 136614
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 8.371287479692995,
+            "expected_revenue": 126155
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 8.850216117621864,
+            "expected_revenue": 121248
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "minute": 1260,
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "stock": 23,
+        "sales30": 16,
+        "sales60": 32,
+        "discount": 0,
+        "predicted_hold_next30": 7.960602295596903,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 7.960602295596903,
+            "expected_revenue": 234042
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 8.275343013910542,
+            "expected_revenue": 218966
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 8.779767588455584,
+            "expected_revenue": 219406
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 8.779767588455584,
+            "expected_revenue": 206500
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 8.951085703058158,
+            "expected_revenue": 197371
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 9.021743998195937,
+            "expected_revenue": 185667
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 9.541430384426112,
+            "expected_revenue": 182337
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 9.541430384426112,
+            "expected_revenue": 168311
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 9.602845637708814,
+            "expected_revenue": 155278
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 9.751685405844825,
+            "expected_revenue": 143350
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-002",
+        "stock": 41,
+        "sales30": 7,
+        "sales60": 24,
+        "discount": 0,
+        "predicted_hold_next30": 8.738409447363036,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 8.738409447363036,
+            "expected_revenue": 218460
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 8.7721549002738,
+            "expected_revenue": 197373
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 9.27657947481884,
+            "expected_revenue": 197127
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 9.27657947481884,
+            "expected_revenue": 185532
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 9.788095378267608,
+            "expected_revenue": 183527
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 10.414944632905586,
+            "expected_revenue": 182262
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 10.739244984749233,
+            "expected_revenue": 174513
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 10.739244984749233,
+            "expected_revenue": 161089
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 10.800660238031934,
+            "expected_revenue": 148509
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 11.19620939737303,
+            "expected_revenue": 139953
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-003",
+        "stock": 105,
+        "sales30": 9,
+        "sales60": 17,
+        "discount": 0,
+        "predicted_hold_next30": 11.030837486032699,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 11.030837486032699,
+            "expected_revenue": 275771
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 11.534927826478508,
+            "expected_revenue": 259536
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 12.194396923210498,
+            "expected_revenue": 259131
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 12.194396923210498,
+            "expected_revenue": 243888
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 12.827695707750136,
+            "expected_revenue": 240519
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 13.608072199072799,
+            "expected_revenue": 238141
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 14.713333109665328,
+            "expected_revenue": 239092
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 14.713333109665328,
+            "expected_revenue": 220700
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 14.77474836294803,
+            "expected_revenue": 203153
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 15.170297522289125,
+            "expected_revenue": 189629
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-004",
+        "stock": 138,
+        "sales30": 7,
+        "sales60": 14,
+        "discount": 0,
+        "predicted_hold_next30": 14.671631076353645,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 14.671631076353645,
+            "expected_revenue": 366791
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 15.009972931279798,
+            "expected_revenue": 337724
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 15.563618544130453,
+            "expected_revenue": 330727
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 15.563618544130453,
+            "expected_revenue": 311272
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 16.196917328670093,
+            "expected_revenue": 303692
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 16.58001025866598,
+            "expected_revenue": 290150
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 17.10694654957415,
+            "expected_revenue": 277988
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 17.10694654957415,
+            "expected_revenue": 256604
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 17.13781193401269,
+            "expected_revenue": 235645
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 17.86954518803435,
+            "expected_revenue": 223369
+          }
+        ]
+      },
+      {
+        "sku": "TP-CR-001",
+        "stock": 0,
+        "sales30": 8,
+        "sales60": 32,
+        "discount": 0,
+        "predicted_hold_next30": 0,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          }
+        ]
+      },
+      {
+        "sku": "TP-CP-001",
+        "stock": 16,
+        "sales30": 0,
+        "sales60": 3,
+        "discount": 0,
+        "predicted_hold_next30": 3.131031521906718,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 3.131031521906718,
+            "expected_revenue": 85790
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 3.2075211432390436,
+            "expected_revenue": 79097
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 3.389208100719725,
+            "expected_revenue": 78935
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 3.389208100719725,
+            "expected_revenue": 74291
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 3.389208100719725,
+            "expected_revenue": 69648
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 3.459866395857504,
+            "expected_revenue": 66360
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 3.51811809400347,
+            "expected_revenue": 62658
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 3.51811809400347,
+            "expected_revenue": 57838
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 3.579533347286171,
+            "expected_revenue": 53944
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 3.975082506627271,
+            "expected_revenue": 54459
+          }
+        ]
+      },
+      {
+        "sku": "TP-RV-001",
+        "stock": 27,
+        "sales30": 0,
+        "sales60": 3,
+        "discount": 0,
+        "predicted_hold_next30": 6.621214390305522,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 6.621214390305522,
+            "expected_revenue": 181421
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 6.697704011637846,
+            "expected_revenue": 165165
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 6.9409242848967265,
+            "expected_revenue": 161654
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 6.9409242848967265,
+            "expected_revenue": 152145
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 6.9409242848967265,
+            "expected_revenue": 142636
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 7.09409915197728,
+            "expected_revenue": 136065
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 7.512169701426083,
+            "expected_revenue": 133792
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 7.512169701426083,
+            "expected_revenue": 123500
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 7.5735849547087835,
+            "expected_revenue": 114134
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 7.969134114049881,
+            "expected_revenue": 109177
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "minute": 1290,
+    "rows": [
+      {
+        "sku": "TP-DN-001",
+        "stock": 2,
+        "sales30": 21,
+        "sales60": 37,
+        "discount": 0,
+        "predicted_hold_next30": 2,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 2,
+            "expected_revenue": 58800
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 2,
+            "expected_revenue": 52920
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 2,
+            "expected_revenue": 49980
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 2,
+            "expected_revenue": 47040
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 2,
+            "expected_revenue": 44100
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 2,
+            "expected_revenue": 41160
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 2,
+            "expected_revenue": 38220
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 2,
+            "expected_revenue": 35280
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 2,
+            "expected_revenue": 32340
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 2,
+            "expected_revenue": 29400
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-002",
+        "stock": 25,
+        "sales30": 16,
+        "sales60": 23,
+        "discount": 0,
+        "predicted_hold_next30": 8.408923044129953,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 8.408923044129953,
+            "expected_revenue": 210223
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 8.442668497040719,
+            "expected_revenue": 189960
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 8.89393427771601,
+            "expected_revenue": 188996
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 8.89393427771601,
+            "expected_revenue": 177879
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 9.064941031471019,
+            "expected_revenue": 169968
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 9.289179247959915,
+            "expected_revenue": 162561
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 9.814231898512693,
+            "expected_revenue": 159481
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 9.814231898512693,
+            "expected_revenue": 147213
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 9.875647151795395,
+            "expected_revenue": 135790
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 10.024486919931405,
+            "expected_revenue": 125306
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-003",
+        "stock": 100,
+        "sales30": 5,
+        "sales60": 14,
+        "discount": 0,
+        "predicted_hold_next30": 19.48859982767589,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 19.48859982767589,
+            "expected_revenue": 487215
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 19.992690168121708,
+            "expected_revenue": 449836
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 20.599000470983956,
+            "expected_revenue": 437729
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 20.599000470983956,
+            "expected_revenue": 411980
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 21.15155034586937,
+            "expected_revenue": 396592
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 22.085506758543158,
+            "expected_revenue": 386496
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 23.314093408825666,
+            "expected_revenue": 378854
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 23.314093408825666,
+            "expected_revenue": 349711
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 23.37550866210837,
+            "expected_revenue": 321413
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 23.771057821449464,
+            "expected_revenue": 297138
+          }
+        ]
+      },
+      {
+        "sku": "TP-DN-004",
+        "stock": 134,
+        "sales30": 4,
+        "sales60": 11,
+        "discount": 0,
+        "predicted_hold_next30": 18.52408007442152,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 18.52408007442152,
+            "expected_revenue": 463102
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 18.862421929347672,
+            "expected_revenue": 424404
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 19.484678446945484,
+            "expected_revenue": 414049
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 19.484678446945484,
+            "expected_revenue": 389694
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 20.037228321830906,
+            "expected_revenue": 375698
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 20.971184734504686,
+            "expected_revenue": 366996
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 22.19490973418122,
+            "expected_revenue": 360667
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 22.19490973418122,
+            "expected_revenue": 332924
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 22.225775118619758,
+            "expected_revenue": 305604
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 22.57604985465614,
+            "expected_revenue": 282201
+          }
+        ]
+      },
+      {
+        "sku": "TP-CR-001",
+        "stock": 0,
+        "sales30": 0,
+        "sales60": 8,
+        "discount": 0,
+        "predicted_hold_next30": 0,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 0,
+            "expected_revenue": 0
+          }
+        ]
+      },
+      {
+        "sku": "TP-CP-001",
+        "stock": 12,
+        "sales30": 4,
+        "sales60": 4,
+        "discount": 0,
+        "predicted_hold_next30": 3.660339438777937,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 3.660339438777937,
+            "expected_revenue": 100293
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 3.6940848916887026,
+            "expected_revenue": 91096
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 3.8226130552996347,
+            "expected_revenue": 89029
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 3.8226130552996347,
+            "expected_revenue": 83792
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 3.8226130552996347,
+            "expected_revenue": 78555
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 3.8932713504374155,
+            "expected_revenue": 74673
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 3.9515230485833817,
+            "expected_revenue": 70377
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 3.9515230485833817,
+            "expected_revenue": 64963
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 4.012938301866083,
+            "expected_revenue": 60475
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 4.40848746120718,
+            "expected_revenue": 60396
+          }
+        ]
+      },
+      {
+        "sku": "TP-RV-001",
+        "stock": 25,
+        "sales30": 2,
+        "sales60": 2,
+        "discount": 0,
+        "predicted_hold_next30": 6.785757359508076,
+        "candidates": [
+          {
+            "discount": 0,
+            "expected_sales_next30": 6.785757359508076,
+            "expected_revenue": 185930
+          },
+          {
+            "discount": 10,
+            "expected_sales_next30": 6.862246980840402,
+            "expected_revenue": 169223
+          },
+          {
+            "discount": 15,
+            "expected_sales_next30": 7.052308460229537,
+            "expected_revenue": 164248
+          },
+          {
+            "discount": 20,
+            "expected_sales_next30": 7.052308460229537,
+            "expected_revenue": 154587
+          },
+          {
+            "discount": 25,
+            "expected_sales_next30": 7.052308460229537,
+            "expected_revenue": 144925
+          },
+          {
+            "discount": 30,
+            "expected_sales_next30": 7.122966755367318,
+            "expected_revenue": 136619
+          },
+          {
+            "discount": 35,
+            "expected_sales_next30": 7.664145348031387,
+            "expected_revenue": 136498
+          },
+          {
+            "discount": 40,
+            "expected_sales_next30": 7.664145348031387,
+            "expected_revenue": 125999
+          },
+          {
+            "discount": 45,
+            "expected_sales_next30": 7.725560601314088,
+            "expected_revenue": 116424
+          },
+          {
+            "discount": 50,
+            "expected_sales_next30": 8.121109760655184,
+            "expected_revenue": 111259
+          }
+        ]
+      }
+    ]
+  }
+]

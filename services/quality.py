@@ -47,7 +47,7 @@ def weather_check(day, weather, trusted_demo=False):
         if not trusted_demo:
             raise ValueError('Forecast nhập cần issued_at có múi giờ, không sau 06:00; tên JMA không thay thế timestamp.')
         return {'status': 'WARN', 'source': source, 'issued_at': None, 'age_hours': None,
-                'message': 'Demo V4 prior-day weather: chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
+                'message': 'Thời tiết lịch sử chưa xác minh thời điểm phát hành; chỉ dùng mô phỏng.'}
     issued = timestamp(issued)
     available = timestamp(weather.get('available_at') or issued.isoformat())
     if available < issued:
@@ -57,6 +57,15 @@ def weather_check(day, weather, trusted_demo=False):
     age = (c - issued).total_seconds() / 3600
     if age > POLICY['forecast_max_age_hours']:
         raise ValueError('Forecast quá cũ: vượt 48 giờ tại cutoff 06:00.')
+    provenance = weather.get('weather_provenance') or {}
+    if source == 'OPEN_METEO_ECMWF_SINGLE_RUN':
+        return {'status': 'WARN', 'source': source, 'issued_at': issued.isoformat(),
+                'available_at': available.isoformat(), 'age_hours': round(age, 2),
+                'message': 'Giờ khởi tạo lần chạy đã biết; giờ công bố/sẵn có lịch sử chỉ ước tính. Chỉ dùng mô phỏng.'}
+    if source == 'OPEN_METEO_FORECAST_SNAPSHOT' and provenance.get('timestamp_kind') == 'api_snapshot_captured':
+        return {'status': 'PASS', 'source': source, 'issued_at': issued.isoformat(),
+                'available_at': available.isoformat(), 'age_hours': round(age, 2),
+                'message': 'Đã chụp phản hồi API trước cutoff; API không cung cấp giờ phát hành chính xác của mô hình.'}
     return {'status': 'PASS', 'source': source, 'issued_at': issued.isoformat(), 'available_at': available.isoformat(),
             'age_hours': round(age, 2), 'message': 'Timestamp khai báo hợp lệ; chưa xác thực nhà cung cấp bên ngoài.'}
 

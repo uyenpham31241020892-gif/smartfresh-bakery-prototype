@@ -1,0 +1,16 @@
+{
+  "version": "JOINT_V4_V2",
+  "sellout_hold_threshold": 0.88,
+  "availability_2130_target": 0.8,
+  "min_net_gain_vnd": 500.0,
+  "max_changes": 3,
+  "cooldown_minutes": 30,
+  "step_pct": 10,
+  "early_caps": {
+    "19:30": 20,
+    "20:00": 25,
+    "20:30": 35,
+    "21:00": 40,
+    "21:30": 50
+  }
+}

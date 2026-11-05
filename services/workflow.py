@@ -1,5 +1,5 @@
 """Approval boundaries, revision control, inventory and transaction accounting."""
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 import json
 import hashlib
 import uuid
@@ -7,6 +7,7 @@ from .quality import build_snapshot, sales_quality, digest
 from .safety import Safety, GuardError
 from .identity import request_trace,actor,AccessError
 from .engine import SLOTS, END, LADDER, FLOORS, CAPS
+from .volume_scenario import VERSION as VOLUME_VERSION, MODEL_VERSION as VOLUME_MODEL, LEGACY_MODEL_VERSION, SCALE, PROFILES, profile_name
 
 
 def now():
@@ -16,15 +17,28 @@ def now():
 class Workflow:
     def __init__(self, engine, simulator, store):
         self.engine, self.simulator, self.store = engine, simulator, store
-        self.active_engine = lambda: self.engine
-        self.version_engine = lambda version: self.engine
+        self.active_engine = lambda: self.resolve_engine(VOLUME_MODEL)
+        self._volume_engine = None
+        self.version_engine = self.resolve_engine
         self.observed_history = lambda day: {}
         self.observed_outcomes = lambda day: {}
         self.safety = Safety(store,lambda version: self.version_engine(version) if version else self.active_engine())
 
+    def resolve_engine(self,version):
+        if version in (VOLUME_MODEL,LEGACY_MODEL_VERSION):
+            if not hasattr(self,'_operating_engines'):self._operating_engines={}
+            if version not in self._operating_engines:
+                from .volume_engine import VolumeEngine
+                self._operating_engines[version]=VolumeEngine(version)
+            return self._operating_engines[version]
+        if version!=self.engine.version:raise ValueError('Không tìm thấy phiên bản model của ca.')
+        return self.engine
+
     def create(self, day='2022-05-02', seed=42, mode='simulation', history=None, weather=None, source='V4 Validation market simulation · SIMULATED_NOT_AEON_POS', identifier=None,auto_run=False,engine_version=None,apply_closed_history=True,outcome_snapshot=None,provenance=None,operation_mode="assisted",market_version=None):
-        engine = self.version_engine(engine_version) if engine_version else self.active_engine()
         market_version=market_version or self.simulator.version
+        if mode=='simulation' and market_version!=VOLUME_VERSION:raise ValueError('Ca mới chỉ dùng cấu hình vận hành chính; nguồn cũ được giữ để xem lịch sử.')
+        if engine_version not in (None,VOLUME_MODEL):raise ValueError('Ca mới dùng model JOINT hiện hành. Ca cũ giữ nguyên trong lịch sử.')
+        engine = self.version_engine(engine_version) if engine_version else self.active_engine()
         market_hash=self.simulator.hash_for(market_version) if hasattr(self.simulator,'hash_for') else self.simulator.arrivals.hash
         if identifier:
             try:return self.store.get(identifier)
@@ -41,43 +55,56 @@ class Workflow:
         if mode not in ['simulation', 'live']:
             raise ValueError('Chế độ không hợp lệ.')
         trusted_demo_weather = weather is None
-        weather = weather or self.simulator.calendar.get(day)
+        weather = weather or (self.simulator.generated_weather(day) if mode=='simulation' and market_version==self.simulator.version else self.simulator.calendar.get(day))
         if weather is None:
             raise ValueError('Cần tải dự báo thời tiết có thời điểm phát hành cho ngày mục tiêu.')
-        if weather == self.simulator.calendar.get(day) or weather and weather.get('forecast_source')=='V4_BUNDLED_PRIOR_DAY_PROXY':
+        if weather == self.simulator.calendar.get(day) or weather and weather.get('forecast_source') in ('V4_BUNDLED_PRIOR_DAY_PROXY','GENERATED_PRIOR_DAY_PROXY','OPEN_METEO_JMA_GSM_PREVIOUS_DAY1') and mode=='simulation':
             trusted_demo_weather = True
         weather=dict(weather)
+        if engine.version==VOLUME_MODEL:weather['volume_scale']=SCALE
+        else:weather.pop('volume_scale',None)
         if mode=='simulation' and market_version==self.simulator.version:weather['price_response_scenario']='V4_ORIGINAL_RESPONSE_STRENGTH_0_6'
         else:weather.pop('price_response_scenario',None)
         if not getattr(engine,'legacy',True) and mode=='live' and weather.get('weather_provenance',{}).get('vintage_verified') is False:
-            raise ValueError('Thời tiết reanalysis chỉ dùng mô phỏng; vận hành thật cần forecast có issued_at trước quyết định.')
+            raise ValueError('Thời tiết lịch sử chưa xác minh giờ phát hành chỉ dùng mô phỏng; vận hành thật cần forecast có issued_at trước quyết định.')
         known = self.observed_history(day) if mode == 'live' and history is None else {}
-        visible = history if history is not None else known or self.simulator.history_before(day, seed=seed)
+        visible = history if history is not None else known or self.simulator.history_before(day, seed=seed,version=market_version)
         if any(k[0] >= day for k in visible):
             raise ValueError('Data leakage: lịch sử hiện tại/tương lai bị chặn, không tự bỏ qua.')
         visible = dict(visible)
         # Only closed local sessions released before the target date may override source history.
-        outcomes=outcome_snapshot if outcome_snapshot is not None else self.observed_outcomes(day) if mode=='live' else self.simulator.outcomes_before(day) if history is None else {}
+        outcomes=outcome_snapshot if outcome_snapshot is not None else self.observed_outcomes(day) if mode=='live' else self.simulator.outcomes_before(day,version=market_version) if history is None else {}
         closed=self.store.closed_before(day,mode,seed if mode=='simulation' else None) if apply_closed_history else []
         if mode=='simulation':
             closed=[s for s in closed if s.get('simulator_version')==market_version and s.get('simulator_hash')==market_hash]
         for old in closed:
             if old['day'] < day:
+                if old['model_version']!=engine.version:continue
                 for sku, p in old['products'].items():
                     visible[(old['day'], sku)] = p['sold']
+                    old_plan=next((item for item in old.get('plan',[]) if item['sku']==sku),{})
                     outcomes[(old['day'],sku)]={'date':old['day'],'sku_code':sku,'prepared_qty':p['prepared'],'sold_qty':p['sold'],
-                        'waste_qty':p['stock'],'stockout':int(p['stock']==0),'discounted_qty':sum(t['qty'] for t in old['ledger'] if t['sku']==sku and t['discount']>0),
+                        'waste_qty':p['stock'],'stockout':int(p['stock']==0 or bool(p.get('stockout_intervals')) or p.get('stockout_since') is not None),
+                        'selected_forecast':old_plan.get('v4_plan',{}).get('selected_forecast'),
                         'observation_scale':1,
+                        'incremental_promo_qty_estimated':p.get('incremental_promo_qty_estimated',0),
                         'sold_to_2130':sum(t['qty'] for t in old['ledger'] if t['sku']==sku and t['minute']<1290),
                         'source_session_id':old['id']}
         outcomes={k:v for k,v in outcomes.items() if k[0]<day}
+        market_closed=self.store.closed_recent(day,mode,seed,engine.version,market_hash) if mode=='simulation' and market_version==self.simulator.version else []
+        market_context=self.simulator.market_context(day,seed,market_closed) if mode=='simulation' and market_version==self.simulator.version else None
         previous_day=str((datetime.fromisoformat(day)-timedelta(days=1)).date())
         if 'lag1_waste_qty' in engine.manifest['COLS'] and any((previous_day,sku) not in outcomes for sku in engine.master):
             raise ValueError('Model M2 mới cần sổ kết quả bán/tồn hủy ngày trước cho đủ SKU; không tự coi dữ liệu thiếu là 0.')
         lineage = dict(provenance or {'type':'bundled_demo' if history is None and not known else 'session_or_observed',
                                      'source':source, 'availability':'date_only_unverified'})
         lineage['history_origin'] = 'provided_history' if history is not None else 'observed_local_history' if known else 'V4_observed_history_before_decision'
-        lineage['weather_origin'] = 'bundled_V4_lagged_weather' if trusted_demo_weather else 'provided_forecast_declared_timestamps'
+        lineage['weather_origin'] = ('generated_prior_day_proxy' if weather.get('forecast_source')=='GENERATED_PRIOR_DAY_PROXY' else
+            'bundled_V4_lagged_weather' if trusted_demo_weather else
+            'open_meteo_jma_fixed_lead_unverified' if weather.get('forecast_source')=='OPEN_METEO_JMA_GSM_PREVIOUS_DAY1' else
+            'open_meteo_snapshot_captured' if weather.get('forecast_source')=='OPEN_METEO_FORECAST_SNAPSHOT' else
+            'open_meteo_single_run_availability_unverified' if weather.get('forecast_source')=='OPEN_METEO_ECMWF_SINGLE_RUN' else
+            'provided_forecast_declared_timestamps')
         lineage['closed_session_ids'] = [c['id'] for c in closed]
         lineage['seed'] = seed if mode=='simulation' else None
         # Validate before model invocation; features are computed deterministically, then bound to the snapshot.
@@ -96,7 +123,7 @@ class Workflow:
              'minute': 360, 'phase': 'plan_pending', 'created': now(), 'model_version': engine.version,
              'data_quality':quality, 'feature_snapshot_id':quality['snapshot_id'], 'input_hash': input_hash, 'input_history': input_history, 'model_hashes': engine.manifest['native_model_hashes'],
              'prediction_origin':origin, 'weather': weather, 'source': source, 'plan': plans, 'products': {}, 'ledger': [], 'decisions': [],
-             'pending': None, 'keys': [], 'simulator_version': market_version if mode == 'simulation' else None,
+             'pending': None, 'keys': [], 'market_context':market_context, 'simulator_version': market_version if mode == 'simulation' else None,
              'simulator_hash':market_hash if mode=='simulation' else None,'auto_run':bool(auto_run and mode=='simulation'),
              'input_outcomes':input_outcomes,'history_source':'uploaded_or_observed' if history is not None or known else 'seeded_demo_history',
              'day_context':{'lag1_day':str((datetime.fromisoformat(day)-timedelta(days=1)).date()),
@@ -123,19 +150,32 @@ class Workflow:
         if old['phase']!='closed':
             raise ValueError('Cần chốt ngày hiện tại trước khi lập kế hoạch hôm sau.')
         day=str((datetime.fromisoformat(old['day'])+timedelta(days=1)).date())
+        if weather is None and old['mode']=='simulation' and str(old.get('weather',{}).get('forecast_source','')).startswith('OPEN_METEO_'):
+            provenance=old['weather'].get('weather_provenance') or {}
+            if provenance.get('latitude') is not None and provenance.get('longitude') is not None:
+                from .weather_api import fetch_weather
+                weather=fetch_weather(day,provenance['latitude'],provenance['longitude'])
         history={(r['date'],r['sku']):r['sold'] for r in old['input_history']}
         for sku,p in old['products'].items():
             history[(old['day'],sku)]=p['sold']
         scale=1
         outcomes={(r['date'],r['sku_code']):{**r,'observation_scale':r.get('observation_scale',scale)} for r in old.get('input_outcomes',[])}
         for sku,p in old['products'].items():
+            old_plan=next((item for item in old.get('plan',[]) if item['sku']==sku),{})
             outcomes[(old['day'],sku)]=dict(date=old['day'],sku_code=sku,prepared_qty=p['prepared'],sold_qty=p['sold'],
-                waste_qty=p['stock'],stockout=int(p['stock']==0),discounted_qty=sum(t['qty'] for t in old['ledger'] if t['sku']==sku and t['discount']>0),
+                waste_qty=p['stock'],stockout=int(p['stock']==0 or bool(p.get('stockout_intervals')) or p.get('stockout_since') is not None),
+                selected_forecast=old_plan.get('v4_plan',{}).get('selected_forecast'),
                 observation_scale=1,
+                incremental_promo_qty_estimated=p.get('incremental_promo_qty_estimated',0),
                 sold_to_2130=sum(t['qty'] for t in old['ledger'] if t['sku']==sku and t['minute']<1290),source_session_id=old['id'])
+        migrating=old['mode']=='simulation' and old.get('simulator_version')!=self.simulator.version
         return self.create(day=day,seed=old['seed'],mode=old['mode'],history=history,weather=weather,
-                           source='Kế hoạch sau chốt ca '+sid,auto_run=old.get('auto_run',False),identifier='next-'+sid,
-                           apply_closed_history=False,outcome_snapshot=outcomes,provenance={'type':'own_completed_branch','parent_session':sid,'availability':'date_only_unverified'},market_version=old.get('simulator_version'))
+                           source='Kế hoạch sau chốt ca '+sid,auto_run=old.get('auto_run',False),
+                           identifier=('next-v2-' if migrating else 'next-')+sid,
+                           apply_closed_history=False,outcome_snapshot=outcomes,
+                           provenance={'type':'own_completed_branch','parent_session':sid,'availability':'date_only_unverified',
+                                       'market_transition':f"{old.get('simulator_version')} -> {self.simulator.version}" if migrating else None},
+                           market_version=self.simulator.version if old['mode']=='simulation' else old.get('simulator_version'))
 
     def mutate(self, sid, revision, action, payload=None, key=None):
         try:
@@ -161,6 +201,8 @@ class Workflow:
                 raise ValueError('Dữ liệu đã thay đổi. Hãy tải lại trước khi xác nhận.')
             if s['phase'] == 'closed':
                 raise ValueError('Ngày đã chốt; hãy tạo ca mới.')
+            if s.get('model_version')==VOLUME_MODEL and s.get('model_hashes')!=self.version_engine(VOLUME_MODEL).manifest['native_model_hashes']:
+                raise ValueError('Bundle ×10 đã đổi sau khi tạo ca. Tạo ca mới để tránh trộn model cũ và mới.')
             getattr(self, 'do_' + action)(s, payload)
             s['revision'] += 1
             if key:
@@ -177,6 +219,9 @@ class Workflow:
         if set(overrides) - {p['sku'] for p in s['plan']}:
             raise ValueError('SKU không hợp lệ.')
         reason=payload.get('reason','')
+        supply_policy=payload.get('supply_policy','joint')
+        if supply_policy not in ('joint','seasonal_baseline'):
+            raise ValueError('Chính sách cung ứng không hợp lệ.')
         if not isinstance(reason,str) or len(reason)>2000:raise ValueError('Lý do phải là văn bản tối đa 2.000 ký tự.')
         reason=reason.strip();decisions=[]
         for p in s['plan']:
@@ -191,6 +236,7 @@ class Workflow:
             decisions.append({'sku':p['sku'],'recommended_quantity':p['prepared'],'recommended_floor':p['floor'],
                               'approved_quantity':qty,'below_recommended_floor':below,'difference_from_recommendation':qty-p['prepared']})
         for p,d in zip(s['plan'],decisions):p['approved']=d['approved_quantity']
+        s['supply_policy']=supply_policy
         s['production_approval']={'policy':'GD9.2-soft-recommended-floor-v1','actor':actor.get(),'reason':reason,'at':now(),
                                   'rows':decisions,'below_floor_skus':[d['sku'] for d in decisions if d['below_recommended_floor']],
                                   'note':'V4 giữ nguyên kế hoạch AI. Manager chỉnh với lý do, đúng mẻ 4 và công suất mô phỏng V4; không phải công suất AEON đã xác minh.'}
@@ -206,7 +252,7 @@ class Workflow:
         for p in s['plan']:
             spec=self.version_engine(s['model_version']).master[p['sku']]
             qty=p['approved'];original=p.get('v4_plan')
-            if original and qty==p['prepared']:
+            if original and qty==p['prepared'] and s.get('supply_policy')!='seasonal_baseline':
                 initial=original['initial_qty'];refills=original['production_batches']
             else:
                 import math
@@ -219,7 +265,9 @@ class Workflow:
                 prepared=initial,stock=initial,shelf_inventory=min(initial,int(spec['shelf_capacity_units_assumed'])),backroom_inventory=max(0,initial-int(spec['shelf_capacity_units_assumed'])),observed_intervals=[],sold=0,revenue=0,discount=0,lost=0,price_version=0,
                 unit_cost=int(p['features'].get('known_unit_production_cost_vnd') or spec['unit_production_cost_vnd_assumed']),
                 markdown_cost=0,disposal_cost_per_unit=int(spec['unit_disposal_cost_vnd_assumed']),price_changes=0,
-                refills=[dict(b,received=False) for b in refills],price_channel='eink')
+                refills=[dict(b,received=False,conditional=bool(s['mode']=='simulation' and b.get('conditional')),
+                              ordered=not bool(s['mode']=='simulation' and b.get('conditional')))
+                         for b in refills],price_channel='eink')
         s['minute']=480;s['phase']='running';s['v4_proposal_counts']={};s['v4_proposal_cache']={}
 
     def proposals(self, s):
@@ -244,7 +292,7 @@ class Workflow:
                     intervals=list(p.get('stockout_intervals',[]))
                     if p.get('stockout_since') is not None:intervals.append({'start':p['stockout_since'],'end':s['minute']})
                     out_minutes=(sum(15 for i in p['observed_intervals'] if s['minute']-60<=i['minute']<s['minute'] and i['censored']) if 'observed_intervals' in p and s['mode']=='simulation' else sum(max(0,min(s['minute'],i['end'])-max(s['minute']-60,i['start'])) for i in intervals))
-                    kwargs['observed_context']={'morning_features':plan['features'],'daily_count':s.get('v4_proposal_counts',{}).get(sku,0),'baseline_announced_2100_pct':0 if s['minute']>=1260 else None,'shelf_inventory':p.get('shelf_inventory',min(p['stock'],int(active.master[sku]['shelf_capacity_units_assumed']))),'backroom_inventory':p.get('backroom_inventory',max(0,p['stock']-int(active.master[sku]['shelf_capacity_units_assumed']))),'observed_buyers_last30':len({tx.get('customer_id') or tx['transaction_id'] for tx in s['ledger'] if tx['sku']==sku and s['minute']-30<=tx['minute']<s['minute']}),'observed_stockout_last60_minutes':out_minutes}
+                    kwargs['observed_context']={'morning_features':plan['features'],'daily_count':p.get('price_changes',0),'last_price_change_minute':p.get('last_price_change_minute',-9999),'markdown_cost':350 if p.get('price_channel','eink')=='sticker' else 0,'baseline_announced_2100_pct':0 if s['minute']>=1260 else None,'shelf_inventory':p.get('shelf_inventory',min(p['stock'],int(active.master[sku]['shelf_capacity_units_assumed']))),'backroom_inventory':p.get('backroom_inventory',max(0,p['stock']-int(active.master[sku]['shelf_capacity_units_assumed']))),'observed_buyers_last30':len({tx.get('customer_id') or tx['transaction_id'] for tx in s['ledger'] if tx['sku']==sku and s['minute']-30<=tx['minute']<s['minute']}),'observed_stockout_last60_minutes':out_minutes,**self.price_history(s,sku)}
                 cache_key=sku+':'+str(s['minute'])+':'+str(p['stock'])+':'+str(p['discount'])
                 r=s.get('v4_proposal_cache',{}).get(cache_key)
                 if r is None:r=active.price(sku, j, p['stock'], p.get('planned_total',p['prepared']), p['discount'], s30, s60, p['forecast'], s['weather'],as_of=s['minute'],**kwargs)
@@ -261,11 +309,101 @@ class Workflow:
                 'feature_snapshot_id':digest({'m2':s.get('feature_snapshot_id'),'minute':s['minute'],'ledger':s['ledger'],
                     'stock':s['products'],'model':s['model_hashes']}), 'sales_quality':sales_quality(s), 'origin':'MANUAL_RULE' if gate=='manual' else 'AI_M1'}
 
+    def price_history(self,s,sku):
+        """Prior closed sessions only, same source/seed/model and weekday group."""
+        chosen=self.store.closed_recent(s['day'],s['mode'],s['seed'] if s['mode']=='simulation' else None,
+                                        s['model_version'],s.get('simulator_hash'),weekend_group=bool(
+                                            s['weather'].get('is_weekend') or s['weather'].get('is_public_holiday')))
+        values=[]
+        for old in chosen:
+            product=old['products'][sku]
+            intervals=list(product.get('stockout_intervals',[]))
+            if product.get('stockout_since') is not None:
+                intervals.append(dict(start=product['stockout_since'],end=1320))
+            if any(i['start']<s['minute']+30 and i['end']>s['minute'] for i in intervals):continue
+            # A different historic price is not an observed zero at today's price.
+            window=[t for t in old['ledger'] if t['sku']==sku and s['minute']<=t['minute']<s['minute']+30]
+            historic_discount=0
+            for decision in old['decisions']:
+                if decision['minute']<=s['minute'] and decision['status']=='applied':
+                    row=next((r for r in decision['rows'] if r['sku']==sku),None)
+                    if row:historic_discount=row.get('approved',row['discount'])
+            if historic_discount!=s['products'][sku]['discount'] or any(t['discount']!=historic_discount for t in window):continue
+            values.append(sum(t['qty'] for t in window))
+        return dict(history_days=len(values),history_rate_next30=sum(values)/len(values) if values else None)
+
+    @staticmethod
+    def record_depromo(s):
+        for sku,p in s['products'].items():
+            windows={}
+            for proposal in s['decisions']:
+                for row in proposal['rows']:
+                    if row['sku']==sku and row.get('depromo_natural_next30') is not None:
+                        windows[proposal['minute']]=row
+            removed=0.;evidence=[]
+            for minute,row in sorted(windows.items()):
+                tx=[t for t in s['ledger'] if t['sku']==sku and minute<=t['minute']<minute+30 and t['discount']>0]
+                for tier in sorted({t['discount'] for t in tx}):
+                    sold=sum(t['qty'] for t in tx if t['discount']==tier)
+                    candidate=next((r for r in row['candidates'] if r['discount']==tier),None)
+                    if candidate is None:continue
+                    natural=row['depromo_natural_next30'];treated=candidate['expected_sales_next30']
+                    incremental=sold*max(0.,1-natural/treated) if treated>0 else 0.
+                    removed+=incremental;evidence.append(dict(minute=minute,discount=tier,sold=sold,natural_prediction=natural,treated_prediction=treated,incremental_estimate=incremental))
+            p['incremental_promo_qty_estimated']=min(p['sold'],removed)
+            p['organic_sales_estimated']=max(0.,p['sold']-removed)
+            p['depromo_evidence']=evidence
+
+    def order_refills(self,s,minute):
+        """Order only needed batches from observed POS before their lead-time cutoff."""
+        if s['mode']!='simulation' or s['model_version']!=VOLUME_MODEL or s.get('supply_policy')=='seasonal_baseline':return
+        import math
+        weights=PROFILES[profile_name(s['day'],bool(s['weather'].get('is_public_holiday')))]
+        def fraction(at):
+            return sum(weight for hour,weight in zip(range(8,22),weights) if hour*60<at)/sum(weights)
+        for sku,p in s['products'].items():
+            plan=next(row for row in s['plan'] if row['sku']==sku)
+            batch=int(self.version_engine(s['model_version']).master[sku]['batch_size_units_assumed'])
+            max_batch=int(self.version_engine(s['model_version']).master[sku]['max_batch_units_assumed'])//batch*batch
+            calibration=plan.get('v4_plan',{}).get('calibration',{})
+            forecast=max(float(plan.get('v4_plan',{}).get('selected_forecast') or plan['forecast']),
+                         float(calibration.get('anchor',0)))
+            for ready in ('14:00','17:00'):
+                group=[r for r in p['refills'] if r.get('conditional') and not r.get('ordered') and r['ready_time']==ready]
+                if not group:continue
+                order=int(group[0]['order_time'][:2])*60+int(group[0]['order_time'][3:])
+                if order>minute:continue
+                elapsed=max(.05,fraction(order))
+                censored=p.get('stockout_since') is not None or any(
+                    row['censored'] for row in p.get('observed_intervals',[]) if row['minute']<order)
+                pace=min(1.35*forecast,max(.65*forecast,p['sold']/elapsed))
+                if censored:pace=max(pace,forecast)
+                weight=min(.75,elapsed/(elapsed+.12))
+                projected=(1-weight)*forecast+weight*pace
+                # On ordinary days most demand arrives after 17:00. A slow
+                # morning is weak evidence for cutting the evening bake.
+                # Keep a bounded floor and still cancel unused headroom.
+                if ready=='17:00':
+                    day_off=profile_name(s['day'],bool(s['weather'].get('is_public_holiday')))!='weekday'
+                    projected=max(projected,forecast*(.80 if day_off else .86))
+                target=(projected*(fraction(1020)+.08) if ready=='14:00' else projected*1.04)
+                committed=p['prepared']+sum(r['qty'] for r in p['refills'] if r.get('ordered') and not r['received'])
+                needed=max(0,min(p['planned_total']-committed,math.ceil(target/batch)*batch-committed))
+                for row in group:
+                    amount=min(needed,max_batch);needed-=amount
+                    row['planned_qty']=row['qty'];row['qty']=amount;row['ordered']=True
+                    row['cancelled']=amount==0;row['ordered_at_minute']=order
+                while needed>0:
+                    amount=min(needed,max_batch);needed-=amount
+                    p['refills'].append(dict(ready_time=ready,order_time=group[0]['order_time'],
+                                             qty=amount,planned_qty=0,received=False,conditional=True,
+                                             ordered=True,cancelled=False,ordered_at_minute=order))
+
     def receive_refills(self,s,minute):
         for sku,p in s['products'].items():
             for refill in p.get('refills',[]):
                 h,m=map(int,refill['ready_time'].split(':'))
-                if not refill['received'] and h*60+m<=minute:
+                if not refill['received'] and refill.get('ordered',True) and h*60+m<=minute:
                     if p.get('stockout_since') is not None:
                         p.setdefault('stockout_intervals',[]).append({'start':p.pop('stockout_since'),'end':h*60+m})
                     p['prepared']+=refill['qty'];p['stock']+=refill['qty'];p['backroom_inventory']=p.get('backroom_inventory',0)+refill['qty'];refill['received']=True
@@ -290,6 +428,7 @@ class Workflow:
             if end%15==0:
                 for p in s['products'].values():
                     p.setdefault('observed_intervals',[]).append(dict(minute=end-15,censored=int(p['stock']==0)))
+            self.order_refills(s,end)
             self.receive_refills(s,end)
 
     def pricing_checkpoint(self,s):
@@ -302,10 +441,10 @@ class Workflow:
         # Do not auto-approve a price change or bypass manual/error review.
         unchanged=(len(proposal['rows'])==len(s['products']) and bool(proposal['rows'])
             and all(row.get('discount')==s['products'][row['sku']]['discount'] for row in proposal['rows']))
-        if (s['minute'] in (1200,1260) and proposal.get('origin')=='AI_M1'
+        if (proposal.get('origin')=='AI_M1'
                 and proposal.get('status')=='pending' and unchanged):
             proposal.update(status='auto_hold',requires_approval=False,review_required=False,
-                review_reason='OPTIONAL_CHECKPOINT_ALL_PRICES_UNCHANGED',approved_at=None,applied_at=None)
+                review_reason='ALL_PRICES_UNCHANGED',approved_at=None,applied_at=None)
             s['decisions'].append(proposal)
             s['pending']=None;s['phase']='running'
             return
@@ -404,6 +543,14 @@ class Workflow:
         if s.get('pending'):
             s['pending']['status']='superseded_refresh';s['decisions'].append(s['pending'])
         self.pricing_checkpoint(s)
+        if payload.get('manual_edit'):
+            if actor.get()['role']!='manager':raise AccessError('Chỉ Manager được chỉnh giá thủ công.')
+            if self.safety.price_gate(s)=='blocked':raise GuardError('Cần dữ liệu bán/tồn mới trước khi chỉnh giá.')
+            j=max(i for i,t in enumerate(SLOTS) if t<=s['minute'])
+            s['pending']=dict(id=uuid.uuid4().hex,minute=s['minute'],as_of_minute=s['minute'],
+                rows=self.safety.manual_rows(s,j),held_rows=[],status='pending',origin='MANUAL_RULE',
+                created=now(),requires_approval=True,review_required=True)
+            s['phase']='price_pending'
 
     @staticmethod
     def require_price_benefit(s,row,tier):
@@ -437,7 +584,8 @@ class Workflow:
         for row in s['pending']['rows']:
             current=s['products'][row['sku']]
             if row['approved']>current['discount']:
-                if current.get('price_changes',0)>=2:raise GuardError('V4: tối đa 2 lần đổi giá/SKU/ngày.')
+                limit=3 if s['model_version']==VOLUME_MODEL else 2
+                if current.get('price_changes',0)>=limit:raise GuardError(f'Tối đa {limit} lần đổi giá/SKU/ngày.')
                 if s['minute']-current.get('last_price_change_minute',-9999)<30:raise GuardError('Cần cách lần đổi giá trước ít nhất 30 phút.')
         for p in s['pending']['rows']:
             self.require_price_benefit(s,p,p['approved'])
@@ -524,6 +672,7 @@ class Workflow:
         if check['errors']:raise GuardError('Đối soát thất bại: '+'; '.join(check['errors']))
         s['phase'] = 'closed'
         s['closed'] = now()
+        if s['model_version']==VOLUME_MODEL:self.record_depromo(s)
 
     @staticmethod
     def assert_accounts(s):

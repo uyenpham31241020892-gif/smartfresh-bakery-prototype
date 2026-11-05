@@ -1,10 +1,10 @@
 'use strict';
 let historySession=null;
 function dayChainPanel(){
-  if(state.phase==='closed')return '<article class="panel" style="margin-top:20px"><div class="panel-head"><div><h2>Từ chốt ngày đến kế hoạch hôm sau</h2><p>Ghi nhận bán, tồn hủy và trạng thái hết hàng hôm nay; dùng lịch sử trước ngày mục tiêu và forecast mới.</p></div></div><div class="panel-body"><button class="primary" data-next-day>Tạo kế hoạch ngày kế tiếp</button><p class="muted" style="font-size:11px;margin-top:12px">M2 không dùng dữ liệu bán tương lai. Ngày ngoài lịch V4 cần nạp forecast thời tiết mới. Dữ liệu mô phỏng không được trộn vào tập học thật.</p></div></article>';
+  if(state.phase==='closed')return '<article class="panel" style="margin-top:20px"><div class="panel-head"><div><h2>Từ chốt ngày đến kế hoạch hôm sau</h2><p>Ghi nhận bán, tồn hủy và trạng thái hết hàng hôm nay; dùng lịch sử trước ngày mục tiêu và forecast mới.</p></div></div><div class="panel-body"><button class="primary" data-next-day>Tạo kế hoạch ngày kế tiếp</button><p class="muted" style="font-size:11px;margin-top:12px">POS V3 sinh lượt mua ×10 cho từng ngày 2022 từ lịch sử trước ngày và seed; không cần file sự kiện theo ngày. JOINT dùng số bán đã chốt làm đầu vào và chỉ đặt mẻ bổ sung sau khi quan sát sức bán; trọng số GBDT không tự train lại. Dữ liệu mô phỏng không được trộn vào tập học thật.</p></div></article>';
   const c=state.day_context;if(!c)return '';
   const rows=c.previous_day_outcomes||[];
-  return '<article class="panel" style="margin-top:20px"><div class="panel-head"><div><h2>Dữ liệu nào tạo ra kế hoạch '+dateVN(state.day)+'?</h2><p>Ngày trước: '+dateVN(c.lag1_day)+' · Cùng thứ tuần trước: '+dateVN(c.same_weekday_day)+' · '+c.past_closed_days+' ca quá khứ đã chốt.</p></div></div><div class="panel-body"><p>M2 đọc bán ngày trước, bán 7 ngày trước, trung bình 7/14 ngày, thứ, lịch và forecast thời tiết đúng ngày. M1 lấy chính dự báo đó cùng tồn hiện tại và sổ giao dịch trong ngày.</p>'+(rows.length?'<div class="table-scroll"><table><thead><tr><th>SKU</th><th>Bán hôm trước</th><th>Tồn hủy</th><th>Hết hàng</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.sku_code)+'</td><td>'+units(r.sold_qty)+'</td><td>'+units(r.waste_qty)+'</td><td>'+(r.stockout?'Có':'Không')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted" style="font-size:11px">Chưa có sổ tồn/hủy ngày trước trong chuỗi ca này; chỉ có lịch sử bán làm đầu vào.</p>')+'<p class="muted" style="font-size:11px;margin-top:12px">'+(c.inventory_features_active?'Model này đã được fit với đặc trưng tồn/hủy, hết hàng và lịch sử cùng thứ.':'Model gốc V4 chưa có đặc trưng tồn/hủy. Luồng học mới đã bổ sung các đặc trưng này; cần đủ dữ liệu, đạt kiểm tra và được duyệt trước khi sử dụng.')+'</p></div></article>';
+  return '<article class="panel" style="margin-top:20px"><div class="panel-head"><div><h2>Dữ liệu nào tạo ra kế hoạch '+dateVN(state.day)+'?</h2><p>Ngày trước: '+dateVN(c.lag1_day)+' · Cùng thứ tuần trước: '+dateVN(c.same_weekday_day)+' · '+c.past_closed_days+' ca quá khứ đã chốt.</p></div></div><div class="panel-body"><p>M2 đọc bán ngày trước, bán 7 ngày trước, trung bình 7/14 ngày, thứ, lịch và thời tiết ngày trước. M1 lấy tồn hiện tại và sổ giao dịch trong ngày. Trọng số JOINT đang cố định: ca sau dùng lịch sử mới làm đầu vào nhưng không tự train lại, nên không bảo đảm kết quả ngày càng tốt.</p>'+(rows.length?'<div class="table-scroll"><table><thead><tr><th>SKU</th><th>Bán hôm trước</th><th>Tồn hủy</th><th>Hết hàng</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.sku_code)+'</td><td>'+units(r.sold_qty)+'</td><td>'+units(r.waste_qty)+'</td><td>'+(r.stockout?'Có':'Không')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="muted" style="font-size:11px">Chưa có sổ tồn/hủy ngày trước trong chuỗi ca này; chỉ có lịch sử bán làm đầu vào.</p>')+'<p class="muted" style="font-size:11px;margin-top:12px">'+(c.inventory_features_active?'Model này đã được fit với đặc trưng tồn/hủy, hết hàng và lịch sử cùng thứ.':'Model gốc V4 chưa có đặc trưng tồn/hủy. Luồng học mới đã bổ sung các đặc trưng này; cần đủ dữ liệu, đạt kiểm tra và được duyệt trước khi sử dụng.')+'</p></div></article>';
 }
 function simulationStatus(){
   if(state.mode==='live')return '<div class="notice '+(state.sales_feed?.missing?'pink':'')+'">'+icon('database')+' Nguồn bán: giao dịch nhập từ tệp. '+(state.sales_feed?.missing?'Chưa nhận dữ liệu bán; không tự coi là bán bằng 0. ':'')+'<button class="small" data-fork-simulation>Tạo bản mô phỏng riêng</button></div>';
@@ -23,7 +23,7 @@ async function manualAdvance(target){
 }
 async function nextDay(){
   if(working)return;working=true;
-  try{const next=await api('/api/day-chain/'+state.id,{});currentView='m2';storeState(next);toast('Đã tạo kế hoạch ngày '+dateVN(next.day)+' từ lịch sử ca đã chốt và bối cảnh thời tiết khả dụng.')}catch(e){toast(e.message,true)}finally{working=false}
+  try{const next=await api('/api/day-chain/'+state.id,{});currentView='m2';storeState(next);toast('Đã tạo kế hoạch ngày '+dateVN(next.day)+' từ lịch sử ca đã chốt và POS mô phỏng liên tục.')}catch(e){toast(e.message,true)}finally{working=false}
 }
 document.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b||b.disabled)return;
@@ -37,7 +37,7 @@ document.addEventListener('click',async e=>{
     $('zero-confirm').onclick=async()=>{const reason=$('zero-reason').value.trim();if(!reason){toast('Cần lý do xác nhận.',true);return}$('modal').close();await act('confirm_zero_sales',{confirmed:true,reason})};
   }
   if(b.hasAttribute('data-simulator-report')){
-    try{const r=await api('/api/simulator');modal('Nguồn bán hàng mô phỏng V4','<p>'+esc(r.note)+'</p><p>Thời gian mẫu: 01/05–30/06/2022. Thị trường V4 có phản ứng giá theo giả định gốc; chọn Replay nếu muốn đối chiếu sổ cố định. Không phải kết quả closed-loop 62 ngày.</p><code>'+esc(r.sha256)+'</code>')}catch(err){toast(err.message,true)}
+    try{const r=await api('/api/simulator');modal('Nguồn POS mô phỏng','<p>'+esc(r.note)+'</p><p>POS sinh lượt mua theo từng cửa sổ thời gian cho các ngày 2022; cùng seed cho phép tái lập. Đây là kịch bản synthetic, chưa phải POS AEON.</p><code>'+esc(r.sha256)+'</code>')}catch(err){toast(err.message,true)}
   }
 });
 document.addEventListener('change',e=>{
@@ -53,7 +53,7 @@ setInterval(async()=>{
   if(state.id!==sid||working)return;
   const changed=fresh.revision!==state.revision||JSON.stringify(fresh.realtime)!==JSON.stringify(state.realtime);
   state=fresh;
-  const editing=document.activeElement?.matches('[data-discount],[data-qty],input,textarea,select');
+  const editing=document.activeElement?.matches('[data-discount],[data-qty],input,textarea,select')||Boolean(document.querySelector('#manual-price-section[open]'))||(typeof manualPriceOpen!=='undefined'&&manualPriceOpen);
   if(changed&&!$('modal').open&&!chatting&&!editing)render();
   if(typeof renderLiveSales==='function')renderLiveSales();
  }catch(e){toast(e.message,true)}finally{salesPollBusy=false}

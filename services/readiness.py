@@ -36,7 +36,10 @@ def health(store,learning):
             if result['database']:result['database']=all(set(columns)<={r[1] for r in db.execute('PRAGMA table_info('+table+')')} for table,columns in SCHEMA_CONTRACT.items())
     except (sqlite3.Error,OSError):pass
     try:
-        e=learning.active();result['model']=e.version;e.require_integrity();e.reload_if_needed();result['artifact_integrity']=True
+        e=learning.active();result['model']=e.version;e.require_integrity();e.reload_if_needed()
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL
+        simulation=learning.resolve(VOLUME_MODEL);simulation.require_integrity()
+        result['simulation_model']=simulation.version;result['artifact_integrity']=True
     except Exception:pass
     for name in PACKAGES:
         try:result['dependencies'][name]=importlib.metadata.version(name)
@@ -63,7 +66,7 @@ class Readiness:
         check('F_RECONCILIATION','Ca đã đóng và đối soát khớp',a['publishable'] if s['phase']=='closed' or a['errors'] else None,{'status':a['status'],'errors':a['errors'],'state_sha256':a['state_sha256']})
         with self.store.connect() as db:
             receipt=db.execute("SELECT payload FROM reconciliation_receipts WHERE session_id=? AND id=?",(sid,a['state_sha256'])).fetchone() if db.execute("SELECT 1 FROM sqlite_master WHERE name='reconciliation_receipts'").fetchone() else None
-            qa_path=self.root/'docs/V4_QA_RESULTS.json'
+            qa_path=self.root/('docs/JOINT_QA_RESULTS.json' if s['model_version']=='SMARTFRESH_V4_JOINT_V2' else 'docs/V4_QA_RESULTS.json')
         check('F_RECEIPT','Manager đã xác nhận snapshot đối soát',True if receipt else None,json.loads(receipt['payload']).get('actor') if receipt else 'Chưa có biên bản hiện hành.')
         supply=[p.get('supply',{}) for p in s['plan']]
         feasible=all(p.get('capacity_feasible',False) for p in supply) and all(p.get('approved',p['prepared'])<=p.get('supply',{}).get('capacity',0) for p in s['plan'])

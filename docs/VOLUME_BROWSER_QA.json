@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "browser": "Edge headless",
+  "javascript_errors": [],
+  "checks": [
+    "morning_tab_only",
+    "evening_tab_only_at_17",
+    "only_changed_price_cards",
+    "collapsed_manual_prices",
+    "manual_approval_then_apply_one_sku",
+    "registry_training_provenance",
+    "learning_view",
+    "mobile_render"
+  ]
+}

@@ -1,0 +1,2587 @@
+{
+  "period": "2022-05-01..2022-05-30",
+  "days": 30,
+  "note": "Generated POS V2 from past baseline; no real AEON POS, no model weight update, no future data fed to model.",
+  "rows": [
+    {
+      "day": "2022-05-01",
+      "weekday": "Sun",
+      "is_public_holiday": 1,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 2632,
+      "sold": 1925,
+      "waste": 707,
+      "base_intent": 1854,
+      "independent_prepared": 2632,
+      "incremental_promo_estimate": 114.55100124575102,
+      "stockout_skus": 0,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 608,
+          "sold": 473,
+          "waste": 135,
+          "base_intent": 473,
+          "quantile": 0.8305583756345177,
+          "lag1": 440.0,
+          "lag7": 480.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 376,
+          "sold": 276,
+          "waste": 100,
+          "base_intent": 258,
+          "quantile": 0.8221789264413519,
+          "lag1": 240.0,
+          "lag7": 230.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 432,
+          "sold": 274,
+          "waste": 158,
+          "base_intent": 261,
+          "quantile": 0.8221789264413519,
+          "lag1": 320.0,
+          "lag7": 300.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 404,
+          "sold": 269,
+          "waste": 135,
+          "base_intent": 257,
+          "quantile": 0.820920477137177,
+          "lag1": 280.0,
+          "lag7": 290.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 500,
+          "sold": 370,
+          "waste": 130,
+          "base_intent": 349,
+          "quantile": 0.8361967545638945,
+          "lag1": 320.0,
+          "lag7": 390.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 156,
+          "sold": 130,
+          "waste": 26,
+          "base_intent": 127,
+          "quantile": 0.8510362976406534,
+          "lag1": 90.0,
+          "lag7": 100.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 156,
+          "sold": 133,
+          "waste": 23,
+          "base_intent": 129,
+          "quantile": 0.8503448275862069,
+          "lag1": 200.0,
+          "lag7": 120.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-02",
+      "weekday": "Mon",
+      "is_public_holiday": 1,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1180,
+      "sold": 1180,
+      "waste": 0,
+      "base_intent": 1826,
+      "independent_prepared": 1252,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 240,
+          "sold": 240,
+          "waste": 0,
+          "base_intent": 457,
+          "quantile": 0.8305583756345177,
+          "lag1": 473.0,
+          "lag7": 170.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 176,
+          "sold": 176,
+          "waste": 0,
+          "base_intent": 282,
+          "quantile": 0.8221789264413519,
+          "lag1": 253.05355374963642,
+          "lag7": 110.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 188,
+          "sold": 188,
+          "waste": 0,
+          "base_intent": 273,
+          "quantile": 0.8221789264413519,
+          "lag1": 251.88513081946655,
+          "lag7": 160.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 196,
+          "sold": 196,
+          "waste": 0,
+          "base_intent": 257,
+          "quantile": 0.820920477137177,
+          "lag1": 240.47595136486058,
+          "lag7": 130.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 224,
+          "sold": 224,
+          "waste": 0,
+          "base_intent": 323,
+          "quantile": 0.8361967545638945,
+          "lag1": 342.76295447076797,
+          "lag7": 200.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 80,
+          "sold": 80,
+          "waste": 0,
+          "base_intent": 98,
+          "quantile": 0.8510362976406534,
+          "lag1": 122.4168253611086,
+          "lag7": 60.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 76,
+          "sold": 76,
+          "waste": 0,
+          "base_intent": 136,
+          "quantile": 0.8503448275862069,
+          "lag1": 126.8545829884089,
+          "lag7": 30.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-03",
+      "weekday": "Tue",
+      "is_public_holiday": 1,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1120,
+      "sold": 1120,
+      "waste": 0,
+      "base_intent": 1766,
+      "independent_prepared": 1116,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 244,
+          "sold": 244,
+          "waste": 0,
+          "base_intent": 436,
+          "quantile": 0.8305583756345177,
+          "lag1": 240.0,
+          "lag7": 160.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 168,
+          "sold": 168,
+          "waste": 0,
+          "base_intent": 241,
+          "quantile": 0.8221789264413519,
+          "lag1": 176.0,
+          "lag7": 100.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 180,
+          "sold": 180,
+          "waste": 0,
+          "base_intent": 272,
+          "quantile": 0.8221789264413519,
+          "lag1": 188.0,
+          "lag7": 70.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 200,
+          "sold": 200,
+          "waste": 0,
+          "base_intent": 244,
+          "quantile": 0.820920477137177,
+          "lag1": 196.0,
+          "lag7": 160.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 204,
+          "sold": 204,
+          "waste": 0,
+          "base_intent": 323,
+          "quantile": 0.8361967545638945,
+          "lag1": 224.0,
+          "lag7": 110.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 103,
+          "quantile": 0.8510362976406534,
+          "lag1": 80.0,
+          "lag7": 0.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 76,
+          "sold": 76,
+          "waste": 0,
+          "base_intent": 147,
+          "quantile": 0.8503448275862069,
+          "lag1": 76.0,
+          "lag7": 30.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-04",
+      "weekday": "Wed",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1000,
+      "sold": 733,
+      "waste": 267,
+      "base_intent": 744,
+      "independent_prepared": 976,
+      "incremental_promo_estimate": 61.37572849391592,
+      "stockout_skus": 2,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 240,
+          "sold": 220,
+          "waste": 20,
+          "base_intent": 208,
+          "quantile": 0.475,
+          "lag1": 244.0,
+          "lag7": 200.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 160,
+          "sold": 103,
+          "waste": 57,
+          "base_intent": 100,
+          "quantile": 0.4740596421471173,
+          "lag1": 168.0,
+          "lag7": 110.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 164,
+          "sold": 107,
+          "waste": 57,
+          "base_intent": 100,
+          "quantile": 0.4740596421471173,
+          "lag1": 180.0,
+          "lag7": 110.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 180,
+          "sold": 130,
+          "waste": 50,
+          "base_intent": 123,
+          "quantile": 0.47364015904572565,
+          "lag1": 200.0,
+          "lag7": 100.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 188,
+          "sold": 105,
+          "waste": 83,
+          "base_intent": 102,
+          "quantile": 0.475,
+          "lag1": 204.0,
+          "lag7": 110.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 8,
+          "sold": 8,
+          "waste": 0,
+          "base_intent": 42,
+          "quantile": 0.45,
+          "lag1": 48.0,
+          "lag7": 80.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 60,
+          "sold": 60,
+          "waste": 0,
+          "base_intent": 69,
+          "quantile": 0.45,
+          "lag1": 76.0,
+          "lag7": 80.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-05",
+      "weekday": "Thu",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 976,
+      "sold": 716,
+      "waste": 260,
+      "base_intent": 774,
+      "independent_prepared": 1064,
+      "incremental_promo_estimate": 61.08018143249511,
+      "stockout_skus": 2,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 244,
+          "sold": 224,
+          "waste": 20,
+          "base_intent": 215,
+          "quantile": 0.4768527918781726,
+          "lag1": 203.2440415586098,
+          "lag7": 160.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 160,
+          "sold": 106,
+          "waste": 54,
+          "base_intent": 101,
+          "quantile": 0.4740596421471173,
+          "lag1": 90.70294462939874,
+          "lag7": 140.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 168,
+          "sold": 87,
+          "waste": 81,
+          "base_intent": 84,
+          "quantile": 0.4740596421471173,
+          "lag1": 96.6494313062899,
+          "lag7": 130.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 168,
+          "sold": 120,
+          "waste": 48,
+          "base_intent": 117,
+          "quantile": 0.47364015904572565,
+          "lag1": 119.09816356739789,
+          "lag7": 70.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 196,
+          "sold": 139,
+          "waste": 57,
+          "base_intent": 132,
+          "quantile": 0.47873225152129817,
+          "lag1": 93.92969044438776,
+          "lag7": 130.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 16,
+          "sold": 16,
+          "waste": 0,
+          "base_intent": 27,
+          "quantile": 0.45,
+          "lag1": 8.0,
+          "lag7": 20.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 24,
+          "sold": 24,
+          "waste": 0,
+          "base_intent": 98,
+          "quantile": 0.45,
+          "lag1": 60.0,
+          "lag7": 40.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-06",
+      "weekday": "Fri",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1212,
+      "sold": 868,
+      "waste": 344,
+      "base_intent": 835,
+      "independent_prepared": 1260,
+      "incremental_promo_estimate": 68.90193173104572,
+      "stockout_skus": 0,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 264,
+          "sold": 207,
+          "waste": 57,
+          "base_intent": 199,
+          "quantile": 0.8305583756345177,
+          "lag1": 207.75078110384788,
+          "lag7": 240.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 184,
+          "sold": 150,
+          "waste": 34,
+          "base_intent": 142,
+          "quantile": 0.8221789264413519,
+          "lag1": 93.84834668455366,
+          "lag7": 170.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 192,
+          "sold": 89,
+          "waste": 103,
+          "base_intent": 86,
+          "quantile": 0.8221789264413519,
+          "lag1": 78.97785328445985,
+          "lag7": 140.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 200,
+          "sold": 113,
+          "waste": 87,
+          "base_intent": 109,
+          "quantile": 0.820920477137177,
+          "lag1": 109.28421704486094,
+          "lag7": 200.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 224,
+          "sold": 179,
+          "waste": 45,
+          "base_intent": 173,
+          "quantile": 0.8361967545638945,
+          "lag1": 125.05862044978254,
+          "lag7": 200.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 72,
+          "sold": 70,
+          "waste": 2,
+          "base_intent": 69,
+          "quantile": 0.8510362976406534,
+          "lag1": 16.0,
+          "lag7": 40.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 76,
+          "sold": 60,
+          "waste": 16,
+          "base_intent": 57,
+          "quantile": 0.8503448275862069,
+          "lag1": 24.0,
+          "lag7": 20.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-07",
+      "weekday": "Sat",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1952,
+      "sold": 1659,
+      "waste": 293,
+      "base_intent": 1618,
+      "independent_prepared": 1952,
+      "incremental_promo_estimate": 90.73742162728796,
+      "stockout_skus": 1,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 404,
+          "sold": 404,
+          "waste": 0,
+          "base_intent": 413,
+          "quantile": 0.8305583756345177,
+          "lag1": 191.697220291568,
+          "lag7": 440.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 272,
+          "sold": 217,
+          "waste": 55,
+          "base_intent": 210,
+          "quantile": 0.8221789264413519,
+          "lag1": 135.75059561429117,
+          "lag7": 240.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 300,
+          "sold": 249,
+          "waste": 51,
+          "base_intent": 232,
+          "quantile": 0.8221789264413519,
+          "lag1": 81.23849707054835,
+          "lag7": 320.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 280,
+          "sold": 202,
+          "waste": 78,
+          "base_intent": 191,
+          "quantile": 0.820920477137177,
+          "lag1": 104.6473001849224,
+          "lag7": 280.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 344,
+          "sold": 276,
+          "waste": 68,
+          "base_intent": 266,
+          "quantile": 0.8361967545638945,
+          "lag1": 161.77972482473243,
+          "lag7": 320.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 160,
+          "sold": 147,
+          "waste": 13,
+          "base_intent": 147,
+          "quantile": 0.8510362976406534,
+          "lag1": 68.12978211026974,
+          "lag7": 90.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 192,
+          "sold": 164,
+          "waste": 28,
+          "base_intent": 159,
+          "quantile": 0.8503448275862069,
+          "lag1": 55.85494817262217,
+          "lag7": 200.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-08",
+      "weekday": "Sun",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 2284,
+      "sold": 1890,
+      "waste": 394,
+      "base_intent": 1828,
+      "independent_prepared": 2484,
+      "incremental_promo_estimate": 108.33509309741879,
+      "stockout_skus": 1,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 576,
+          "sold": 470,
+          "waste": 106,
+          "base_intent": 454,
+          "quantile": 0.8305583756345177,
+          "lag1": 404.0,
+          "lag7": 473.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 328,
+          "sold": 328,
+          "waste": 0,
+          "base_intent": 332,
+          "quantile": 0.8221789264413519,
+          "lag1": 200.14759916539722,
+          "lag7": 253.05355374963642
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 328,
+          "sold": 278,
+          "waste": 50,
+          "base_intent": 272,
+          "quantile": 0.8221789264413519,
+          "lag1": 221.41118615690465,
+          "lag7": 251.88513081946655
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 328,
+          "sold": 258,
+          "waste": 70,
+          "base_intent": 244,
+          "quantile": 0.820920477137177,
+          "lag1": 184.14070396238742,
+          "lag7": 240.47595136486058
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 412,
+          "sold": 351,
+          "waste": 61,
+          "base_intent": 330,
+          "quantile": 0.8361967545638945,
+          "lag1": 254.5816670365557,
+          "lag7": 342.76295447076797
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 148,
+          "sold": 106,
+          "waste": 42,
+          "base_intent": 102,
+          "quantile": 0.8510362976406534,
+          "lag1": 146.757383432807,
+          "lag7": 122.4168253611086
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 164,
+          "sold": 99,
+          "waste": 65,
+          "base_intent": 94,
+          "quantile": 0.8503448275862069,
+          "lag1": 157.22403861866002,
+          "lag7": 126.8545829884089
+        }
+      ]
+    },
+    {
+      "day": "2022-05-09",
+      "weekday": "Mon",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1012,
+      "sold": 719,
+      "waste": 293,
+      "base_intent": 704,
+      "independent_prepared": 1032,
+      "incremental_promo_estimate": 65.88485893800753,
+      "stockout_skus": 2,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 228,
+          "sold": 165,
+          "waste": 63,
+          "base_intent": 155,
+          "quantile": 0.4768527918781726,
+          "lag1": 457.65618280602206,
+          "lag7": 240.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 172,
+          "sold": 98,
+          "waste": 74,
+          "base_intent": 96,
+          "quantile": 0.4740596421471173,
+          "lag1": 322.0337518134524,
+          "lag7": 176.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 164,
+          "sold": 113,
+          "waste": 51,
+          "base_intent": 107,
+          "quantile": 0.4740596421471173,
+          "lag1": 254.27964391946372,
+          "lag7": 188.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 184,
+          "sold": 114,
+          "waste": 70,
+          "base_intent": 109,
+          "quantile": 0.47364015904572565,
+          "lag1": 237.58313808895394,
+          "lag7": 196.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 208,
+          "sold": 173,
+          "waste": 35,
+          "base_intent": 168,
+          "quantile": 0.47873225152129817,
+          "lag1": 316.7639688115824,
+          "lag7": 224.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 16,
+          "sold": 16,
+          "waste": 0,
+          "base_intent": 25,
+          "quantile": 0.45,
+          "lag1": 101.35732472220057,
+          "lag7": 80.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 40,
+          "sold": 40,
+          "waste": 0,
+          "base_intent": 44,
+          "quantile": 0.45,
+          "lag1": 91.9908967409061,
+          "lag7": 76.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-10",
+      "weekday": "Tue",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 892,
+      "sold": 585,
+      "waste": 307,
+      "base_intent": 591,
+      "independent_prepared": 884,
+      "incremental_promo_estimate": 60.23171037019357,
+      "stockout_skus": 1,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 228,
+          "sold": 165,
+          "waste": 63,
+          "base_intent": 165,
+          "quantile": 0.475,
+          "lag1": 149.12338137378663,
+          "lag7": 244.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 148,
+          "sold": 102,
+          "waste": 46,
+          "base_intent": 98,
+          "quantile": 0.4740596421471173,
+          "lag1": 86.631534286465,
+          "lag7": 168.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 144,
+          "sold": 86,
+          "waste": 58,
+          "base_intent": 80,
+          "quantile": 0.4740596421471173,
+          "lag1": 100.13166617513025,
+          "lag7": 180.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 160,
+          "sold": 118,
+          "waste": 42,
+          "base_intent": 113,
+          "quantile": 0.47364015904572565,
+          "lag1": 102.28048399234447,
+          "lag7": 200.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 192,
+          "sold": 98,
+          "waste": 94,
+          "base_intent": 94,
+          "quantile": 0.475,
+          "lag1": 158.94807523426613,
+          "lag7": 204.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 16,
+          "sold": 12,
+          "waste": 4,
+          "base_intent": 12,
+          "quantile": 0.45,
+          "lag1": 16.0,
+          "lag7": 48.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 4,
+          "sold": 4,
+          "waste": 0,
+          "base_intent": 29,
+          "quantile": 0.45,
+          "lag1": 40.0,
+          "lag7": 76.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-11",
+      "weekday": "Wed",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 912,
+      "sold": 720,
+      "waste": 192,
+      "base_intent": 743,
+      "independent_prepared": 936,
+      "incremental_promo_estimate": 47.448319414246726,
+      "stockout_skus": 2,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 232,
+          "sold": 232,
+          "waste": 0,
+          "base_intent": 241,
+          "quantile": 0.475,
+          "lag1": 155.07728111816036,
+          "lag7": 203.2440415586098
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 140,
+          "sold": 110,
+          "waste": 30,
+          "base_intent": 105,
+          "quantile": 0.4740596421471173,
+          "lag1": 91.26748141497436,
+          "lag7": 90.70294462939874
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 144,
+          "sold": 69,
+          "waste": 75,
+          "base_intent": 66,
+          "quantile": 0.4740596421471173,
+          "lag1": 71.41165919804412,
+          "lag7": 96.6494313062899
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 148,
+          "sold": 116,
+          "waste": 32,
+          "base_intent": 112,
+          "quantile": 0.47364015904572565,
+          "lag1": 103.17349944406226,
+          "lag7": 119.09816356739789
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 164,
+          "sold": 112,
+          "waste": 52,
+          "base_intent": 104,
+          "quantile": 0.475,
+          "lag1": 88.2012365393245,
+          "lag7": 93.92969044438776
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 41,
+          "waste": 3,
+          "base_intent": 41,
+          "quantile": 0.45,
+          "lag1": 11.637131915240838,
+          "lag7": 8.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 40,
+          "sold": 40,
+          "waste": 0,
+          "base_intent": 74,
+          "quantile": 0.45,
+          "lag1": 4.0,
+          "lag7": 60.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-12",
+      "weekday": "Thu",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 856,
+      "sold": 754,
+      "waste": 102,
+      "base_intent": 800,
+      "independent_prepared": 944,
+      "incremental_promo_estimate": 62.52435648038395,
+      "stockout_skus": 1,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 224,
+          "sold": 223,
+          "waste": 1,
+          "base_intent": 214,
+          "quantile": 0.4768527918781726,
+          "lag1": 232.0,
+          "lag7": 207.75078110384788
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 140,
+          "sold": 103,
+          "waste": 37,
+          "base_intent": 96,
+          "quantile": 0.4740596421471173,
+          "lag1": 100.08929942966324,
+          "lag7": 93.84834668455366
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 132,
+          "sold": 113,
+          "waste": 19,
+          "base_intent": 110,
+          "quantile": 0.4740596421471173,
+          "lag1": 57.21645488546637,
+          "lag7": 78.97785328445985
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 152,
+          "sold": 139,
+          "waste": 13,
+          "base_intent": 134,
+          "quantile": 0.47364015904572565,
+          "lag1": 101.93637214286028,
+          "lag7": 109.28421704486094
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 164,
+          "sold": 136,
+          "waste": 28,
+          "base_intent": 127,
+          "quantile": 0.47873225152129817,
+          "lag1": 100.833448208081,
+          "lag7": 125.05862044978254
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 28,
+          "waste": 4,
+          "base_intent": 28,
+          "quantile": 0.45,
+          "lag1": 40.47610591968239,
+          "lag7": 16.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 12,
+          "sold": 12,
+          "waste": 0,
+          "base_intent": 91,
+          "quantile": 0.45,
+          "lag1": 40.0,
+          "lag7": 24.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-13",
+      "weekday": "Fri",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1272,
+      "sold": 917,
+      "waste": 355,
+      "base_intent": 881,
+      "independent_prepared": 1284,
+      "incremental_promo_estimate": 49.1276467295828,
+      "stockout_skus": 0,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 272,
+          "sold": 223,
+          "waste": 49,
+          "base_intent": 214,
+          "quantile": 0.8305583756345177,
+          "lag1": 209.53509860602315,
+          "lag7": 191.697220291568
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 200,
+          "sold": 131,
+          "waste": 69,
+          "base_intent": 128,
+          "quantile": 0.8221789264413519,
+          "lag1": 89.63707323835114,
+          "lag7": 135.75059561429117
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 164,
+          "sold": 98,
+          "waste": 66,
+          "base_intent": 94,
+          "quantile": 0.8221789264413519,
+          "lag1": 101.27304062888682,
+          "lag7": 81.23849707054835
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 204,
+          "sold": 135,
+          "waste": 69,
+          "base_intent": 129,
+          "quantile": 0.820920477137177,
+          "lag1": 129.68091774544712,
+          "lag7": 104.6473001849224
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 232,
+          "sold": 168,
+          "waste": 64,
+          "base_intent": 163,
+          "quantile": 0.8361967545638945,
+          "lag1": 122.81168626371797,
+          "lag7": 161.77972482473243
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 100,
+          "sold": 76,
+          "waste": 24,
+          "base_intent": 71,
+          "quantile": 0.8510362976406534,
+          "lag1": 26.537827037189853,
+          "lag7": 68.12978211026974
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 100,
+          "sold": 86,
+          "waste": 14,
+          "base_intent": 82,
+          "quantile": 0.8503448275862069,
+          "lag1": 12.0,
+          "lag7": 55.85494817262217
+        }
+      ]
+    },
+    {
+      "day": "2022-05-14",
+      "weekday": "Sat",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 1044,
+      "sold": 1044,
+      "waste": 0,
+      "base_intent": 1617,
+      "independent_prepared": 1048,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 272,
+          "sold": 272,
+          "waste": 0,
+          "base_intent": 367,
+          "quantile": null,
+          "lag1": 213.37604772783936,
+          "lag7": 404.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 156,
+          "sold": 156,
+          "waste": 0,
+          "base_intent": 220,
+          "quantile": null,
+          "lag1": 124.34703669159165,
+          "lag7": 200.14759916539722
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 144,
+          "sold": 144,
+          "waste": 0,
+          "base_intent": 222,
+          "quantile": null,
+          "lag1": 90.19105883245255,
+          "lag7": 221.41118615690465
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 156,
+          "sold": 156,
+          "waste": 0,
+          "base_intent": 215,
+          "quantile": null,
+          "lag1": 125.43576183287678,
+          "lag7": 184.14070396238742
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 188,
+          "sold": 188,
+          "waste": 0,
+          "base_intent": 296,
+          "quantile": null,
+          "lag1": 156.88604810757664,
+          "lag7": 254.5816670365557
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 64,
+          "sold": 64,
+          "waste": 0,
+          "base_intent": 131,
+          "quantile": null,
+          "lag1": 73.62895320658308,
+          "lag7": 146.757383432807
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 64,
+          "sold": 64,
+          "waste": 0,
+          "base_intent": 166,
+          "quantile": null,
+          "lag1": 84.0074468714971,
+          "lag7": 157.22403861866002
+        }
+      ]
+    },
+    {
+      "day": "2022-05-15",
+      "weekday": "Sun",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 960,
+      "sold": 960,
+      "waste": 0,
+      "base_intent": 1856,
+      "independent_prepared": 988,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 252,
+          "sold": 252,
+          "waste": 0,
+          "base_intent": 485,
+          "quantile": null,
+          "lag1": 272.0,
+          "lag7": 457.65618280602206
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 148,
+          "sold": 148,
+          "waste": 0,
+          "base_intent": 258,
+          "quantile": null,
+          "lag1": 156.0,
+          "lag7": 322.0337518134524
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 132,
+          "sold": 132,
+          "waste": 0,
+          "base_intent": 234,
+          "quantile": null,
+          "lag1": 144.0,
+          "lag7": 254.27964391946372
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 148,
+          "sold": 148,
+          "waste": 0,
+          "base_intent": 279,
+          "quantile": null,
+          "lag1": 156.0,
+          "lag7": 237.58313808895394
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 176,
+          "sold": 176,
+          "waste": 0,
+          "base_intent": 368,
+          "quantile": null,
+          "lag1": 188.0,
+          "lag7": 316.7639688115824
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 52,
+          "sold": 52,
+          "waste": 0,
+          "base_intent": 95,
+          "quantile": null,
+          "lag1": 64.0,
+          "lag7": 101.35732472220057
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 52,
+          "sold": 52,
+          "waste": 0,
+          "base_intent": 137,
+          "quantile": null,
+          "lag1": 64.0,
+          "lag7": 91.9908967409061
+        }
+      ]
+    },
+    {
+      "day": "2022-05-16",
+      "weekday": "Mon",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 828,
+      "sold": 676,
+      "waste": 152,
+      "base_intent": 738,
+      "independent_prepared": 1000,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 3,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 220,
+          "sold": 144,
+          "waste": 76,
+          "base_intent": 144,
+          "quantile": null,
+          "lag1": 252.0,
+          "lag7": 149.12338137378663
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 124,
+          "sold": 104,
+          "waste": 20,
+          "base_intent": 104,
+          "quantile": null,
+          "lag1": 148.0,
+          "lag7": 86.631534286465
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 108,
+          "sold": 108,
+          "waste": 0,
+          "base_intent": 114,
+          "quantile": null,
+          "lag1": 132.0,
+          "lag7": 100.13166617513025
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 136,
+          "sold": 89,
+          "waste": 47,
+          "base_intent": 89,
+          "quantile": null,
+          "lag1": 148.0,
+          "lag7": 102.28048399234447
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 152,
+          "sold": 152,
+          "waste": 0,
+          "base_intent": 189,
+          "quantile": null,
+          "lag1": 176.0,
+          "lag7": 158.94807523426613
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 35,
+          "waste": 9,
+          "base_intent": 35,
+          "quantile": null,
+          "lag1": 52.0,
+          "lag7": 16.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 44,
+          "sold": 44,
+          "waste": 0,
+          "base_intent": 63,
+          "quantile": null,
+          "lag1": 52.0,
+          "lag7": 40.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-17",
+      "weekday": "Tue",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 816,
+      "sold": 643,
+      "waste": 173,
+      "base_intent": 643,
+      "independent_prepared": 988,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 0,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 216,
+          "sold": 199,
+          "waste": 17,
+          "base_intent": 199,
+          "quantile": null,
+          "lag1": 144.0,
+          "lag7": 155.07728111816036
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 124,
+          "sold": 93,
+          "waste": 31,
+          "base_intent": 93,
+          "quantile": null,
+          "lag1": 104.0,
+          "lag7": 91.26748141497436
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 108,
+          "sold": 78,
+          "waste": 30,
+          "base_intent": 78,
+          "quantile": null,
+          "lag1": 108.0,
+          "lag7": 71.41165919804412
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 132,
+          "sold": 118,
+          "waste": 14,
+          "base_intent": 118,
+          "quantile": null,
+          "lag1": 89.0,
+          "lag7": 103.17349944406226
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 148,
+          "sold": 118,
+          "waste": 30,
+          "base_intent": 118,
+          "quantile": null,
+          "lag1": 152.0,
+          "lag7": 88.2012365393245
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 9,
+          "waste": 35,
+          "base_intent": 9,
+          "quantile": null,
+          "lag1": 35.0,
+          "lag7": 11.637131915240838
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 44,
+          "sold": 28,
+          "waste": 16,
+          "base_intent": 28,
+          "quantile": null,
+          "lag1": 44.0,
+          "lag7": 4.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-18",
+      "weekday": "Wed",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 832,
+      "sold": 689,
+      "waste": 143,
+      "base_intent": 735,
+      "independent_prepared": 964,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 1,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 224,
+          "sold": 197,
+          "waste": 27,
+          "base_intent": 197,
+          "quantile": null,
+          "lag1": 199.0,
+          "lag7": 232.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 124,
+          "sold": 122,
+          "waste": 2,
+          "base_intent": 122,
+          "quantile": null,
+          "lag1": 93.0,
+          "lag7": 100.08929942966324
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 108,
+          "sold": 89,
+          "waste": 19,
+          "base_intent": 89,
+          "quantile": null,
+          "lag1": 78.0,
+          "lag7": 57.21645488546637
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 132,
+          "sold": 98,
+          "waste": 34,
+          "base_intent": 98,
+          "quantile": null,
+          "lag1": 118.0,
+          "lag7": 101.93637214286028
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 152,
+          "sold": 100,
+          "waste": 52,
+          "base_intent": 100,
+          "quantile": null,
+          "lag1": 118.0,
+          "lag7": 100.833448208081
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 35,
+          "waste": 9,
+          "base_intent": 35,
+          "quantile": null,
+          "lag1": 9.0,
+          "lag7": 40.47610591968239
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 94,
+          "quantile": null,
+          "lag1": 28.0,
+          "lag7": 40.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-19",
+      "weekday": "Thu",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 824,
+      "sold": 770,
+      "waste": 54,
+      "base_intent": 830,
+      "independent_prepared": 968,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 3,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 216,
+          "sold": 214,
+          "waste": 2,
+          "base_intent": 214,
+          "quantile": null,
+          "lag1": 197.0,
+          "lag7": 209.53509860602315
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 124,
+          "sold": 117,
+          "waste": 7,
+          "base_intent": 117,
+          "quantile": null,
+          "lag1": 122.0,
+          "lag7": 89.63707323835114
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 112,
+          "sold": 112,
+          "waste": 0,
+          "base_intent": 112,
+          "quantile": null,
+          "lag1": 89.0,
+          "lag7": 101.27304062888682
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 128,
+          "sold": 128,
+          "waste": 0,
+          "base_intent": 142,
+          "quantile": null,
+          "lag1": 98.0,
+          "lag7": 129.68091774544712
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 152,
+          "sold": 129,
+          "waste": 23,
+          "base_intent": 129,
+          "quantile": null,
+          "lag1": 100.0,
+          "lag7": 122.81168626371797
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 22,
+          "waste": 22,
+          "base_intent": 22,
+          "quantile": null,
+          "lag1": 35.0,
+          "lag7": 26.537827037189853
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 94,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 12.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-20",
+      "weekday": "Fri",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 832,
+      "sold": 815,
+      "waste": 17,
+      "base_intent": 879,
+      "independent_prepared": 960,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 5,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 216,
+          "sold": 214,
+          "waste": 2,
+          "base_intent": 214,
+          "quantile": null,
+          "lag1": 214.0,
+          "lag7": 213.37604772783936
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 128,
+          "sold": 128,
+          "waste": 0,
+          "base_intent": 132,
+          "quantile": null,
+          "lag1": 117.0,
+          "lag7": 124.34703669159165
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 112,
+          "sold": 112,
+          "waste": 0,
+          "base_intent": 114,
+          "quantile": null,
+          "lag1": 112.0,
+          "lag7": 90.19105883245255
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 128,
+          "sold": 128,
+          "waste": 0,
+          "base_intent": 161,
+          "quantile": null,
+          "lag1": 128.0,
+          "lag7": 125.43576183287678
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 148,
+          "sold": 148,
+          "waste": 0,
+          "base_intent": 152,
+          "quantile": null,
+          "lag1": 129.0,
+          "lag7": 156.88604810757664
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 44,
+          "sold": 44,
+          "waste": 0,
+          "base_intent": 65,
+          "quantile": null,
+          "lag1": 22.0,
+          "lag7": 73.62895320658308
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 56,
+          "sold": 41,
+          "waste": 15,
+          "base_intent": 41,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 84.0074468714971
+        }
+      ]
+    },
+    {
+      "day": "2022-05-21",
+      "weekday": "Sat",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 812,
+      "sold": 812,
+      "waste": 0,
+      "base_intent": 1610,
+      "independent_prepared": 968,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 216,
+          "sold": 216,
+          "waste": 0,
+          "base_intent": 406,
+          "quantile": null,
+          "lag1": 214.0,
+          "lag7": 272.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 213,
+          "quantile": null,
+          "lag1": 128.0,
+          "lag7": 156.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 112,
+          "sold": 112,
+          "waste": 0,
+          "base_intent": 215,
+          "quantile": null,
+          "lag1": 112.0,
+          "lag7": 144.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 209,
+          "quantile": null,
+          "lag1": 128.0,
+          "lag7": 156.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 148,
+          "sold": 148,
+          "waste": 0,
+          "base_intent": 253,
+          "quantile": null,
+          "lag1": 148.0,
+          "lag7": 188.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 40,
+          "sold": 40,
+          "waste": 0,
+          "base_intent": 141,
+          "quantile": null,
+          "lag1": 44.0,
+          "lag7": 64.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 173,
+          "quantile": null,
+          "lag1": 41.0,
+          "lag7": 64.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-22",
+      "weekday": "Sun",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 780,
+      "sold": 780,
+      "waste": 0,
+      "base_intent": 1891,
+      "independent_prepared": 1044,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 208,
+          "sold": 208,
+          "waste": 0,
+          "base_intent": 468,
+          "quantile": null,
+          "lag1": 216.0,
+          "lag7": 252.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 120,
+          "sold": 120,
+          "waste": 0,
+          "base_intent": 320,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 148.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 108,
+          "sold": 108,
+          "waste": 0,
+          "base_intent": 223,
+          "quantile": null,
+          "lag1": 112.0,
+          "lag7": 132.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 120,
+          "sold": 120,
+          "waste": 0,
+          "base_intent": 269,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 148.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 140,
+          "sold": 140,
+          "waste": 0,
+          "base_intent": 391,
+          "quantile": null,
+          "lag1": 148.0,
+          "lag7": 176.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 36,
+          "sold": 36,
+          "waste": 0,
+          "base_intent": 90,
+          "quantile": null,
+          "lag1": 40.0,
+          "lag7": 52.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 130,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 52.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-23",
+      "weekday": "Mon",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 748,
+      "sold": 688,
+      "waste": 60,
+      "base_intent": 749,
+      "independent_prepared": 1032,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 4,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 200,
+          "sold": 165,
+          "waste": 35,
+          "base_intent": 165,
+          "quantile": null,
+          "lag1": 208.0,
+          "lag7": 144.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 116,
+          "sold": 94,
+          "waste": 22,
+          "base_intent": 94,
+          "quantile": null,
+          "lag1": 120.0,
+          "lag7": 104.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 104,
+          "sold": 104,
+          "waste": 0,
+          "base_intent": 126,
+          "quantile": null,
+          "lag1": 108.0,
+          "lag7": 108.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 116,
+          "sold": 113,
+          "waste": 3,
+          "base_intent": 113,
+          "quantile": null,
+          "lag1": 120.0,
+          "lag7": 89.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 136,
+          "sold": 136,
+          "waste": 0,
+          "base_intent": 161,
+          "quantile": null,
+          "lag1": 140.0,
+          "lag7": 152.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 32,
+          "waste": 0,
+          "base_intent": 33,
+          "quantile": null,
+          "lag1": 36.0,
+          "lag7": 35.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 44,
+          "sold": 44,
+          "waste": 0,
+          "base_intent": 57,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 44.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-24",
+      "weekday": "Tue",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 752,
+      "sold": 628,
+      "waste": 124,
+      "base_intent": 649,
+      "independent_prepared": 1016,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 2,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 204,
+          "sold": 169,
+          "waste": 35,
+          "base_intent": 169,
+          "quantile": null,
+          "lag1": 165.0,
+          "lag7": 199.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 116,
+          "sold": 95,
+          "waste": 21,
+          "base_intent": 95,
+          "quantile": null,
+          "lag1": 94.0,
+          "lag7": 93.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 104,
+          "sold": 83,
+          "waste": 21,
+          "base_intent": 83,
+          "quantile": null,
+          "lag1": 104.0,
+          "lag7": 78.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 120,
+          "sold": 120,
+          "waste": 0,
+          "base_intent": 138,
+          "quantile": null,
+          "lag1": 113.0,
+          "lag7": 118.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 132,
+          "sold": 103,
+          "waste": 29,
+          "base_intent": 103,
+          "quantile": null,
+          "lag1": 136.0,
+          "lag7": 118.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 14,
+          "waste": 18,
+          "base_intent": 14,
+          "quantile": null,
+          "lag1": 32.0,
+          "lag7": 9.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 44,
+          "sold": 44,
+          "waste": 0,
+          "base_intent": 47,
+          "quantile": null,
+          "lag1": 44.0,
+          "lag7": 28.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-25",
+      "weekday": "Wed",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 752,
+      "sold": 681,
+      "waste": 71,
+      "base_intent": 719,
+      "independent_prepared": 1056,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 3,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 200,
+          "sold": 185,
+          "waste": 15,
+          "base_intent": 185,
+          "quantile": null,
+          "lag1": 169.0,
+          "lag7": 197.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 116,
+          "sold": 90,
+          "waste": 26,
+          "base_intent": 90,
+          "quantile": null,
+          "lag1": 95.0,
+          "lag7": 122.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 104,
+          "sold": 97,
+          "waste": 7,
+          "base_intent": 97,
+          "quantile": null,
+          "lag1": 83.0,
+          "lag7": 89.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 120,
+          "sold": 120,
+          "waste": 0,
+          "base_intent": 124,
+          "quantile": null,
+          "lag1": 120.0,
+          "lag7": 98.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 132,
+          "sold": 109,
+          "waste": 23,
+          "base_intent": 109,
+          "quantile": null,
+          "lag1": 103.0,
+          "lag7": 100.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 32,
+          "waste": 0,
+          "base_intent": 45,
+          "quantile": null,
+          "lag1": 14.0,
+          "lag7": 35.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 69,
+          "quantile": null,
+          "lag1": 44.0,
+          "lag7": 48.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-26",
+      "weekday": "Thu",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 748,
+      "sold": 736,
+      "waste": 12,
+      "base_intent": 820,
+      "independent_prepared": 1076,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 6,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 196,
+          "sold": 196,
+          "waste": 0,
+          "base_intent": 199,
+          "quantile": null,
+          "lag1": 185.0,
+          "lag7": 214.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 112,
+          "sold": 112,
+          "waste": 0,
+          "base_intent": 115,
+          "quantile": null,
+          "lag1": 90.0,
+          "lag7": 117.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 104,
+          "sold": 92,
+          "waste": 12,
+          "base_intent": 92,
+          "quantile": null,
+          "lag1": 97.0,
+          "lag7": 112.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 126,
+          "quantile": null,
+          "lag1": 120.0,
+          "lag7": 128.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 132,
+          "sold": 132,
+          "waste": 0,
+          "base_intent": 149,
+          "quantile": null,
+          "lag1": 109.0,
+          "lag7": 129.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 32,
+          "waste": 0,
+          "base_intent": 41,
+          "quantile": null,
+          "lag1": 32.0,
+          "lag7": 22.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 98,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 48.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-27",
+      "weekday": "Fri",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 752,
+      "sold": 752,
+      "waste": 0,
+      "base_intent": 889,
+      "independent_prepared": 1120,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 196,
+          "sold": 196,
+          "waste": 0,
+          "base_intent": 231,
+          "quantile": null,
+          "lag1": 196.0,
+          "lag7": 214.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 112,
+          "sold": 112,
+          "waste": 0,
+          "base_intent": 128,
+          "quantile": null,
+          "lag1": 112.0,
+          "lag7": 128.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 104,
+          "sold": 104,
+          "waste": 0,
+          "base_intent": 124,
+          "quantile": null,
+          "lag1": 92.0,
+          "lag7": 112.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 133,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 128.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 132,
+          "sold": 132,
+          "waste": 0,
+          "base_intent": 160,
+          "quantile": null,
+          "lag1": 132.0,
+          "lag7": 148.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 36,
+          "sold": 36,
+          "waste": 0,
+          "base_intent": 60,
+          "quantile": null,
+          "lag1": 32.0,
+          "lag7": 44.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 53,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 41.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-28",
+      "weekday": "Sat",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 736,
+      "sold": 736,
+      "waste": 0,
+      "base_intent": 1585,
+      "independent_prepared": 1160,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 192,
+          "sold": 192,
+          "waste": 0,
+          "base_intent": 338,
+          "quantile": null,
+          "lag1": 196.0,
+          "lag7": 216.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 108,
+          "sold": 108,
+          "waste": 0,
+          "base_intent": 237,
+          "quantile": null,
+          "lag1": 112.0,
+          "lag7": 124.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 100,
+          "sold": 100,
+          "waste": 0,
+          "base_intent": 257,
+          "quantile": null,
+          "lag1": 104.0,
+          "lag7": 112.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 205,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 124.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 132,
+          "sold": 132,
+          "waste": 0,
+          "base_intent": 256,
+          "quantile": null,
+          "lag1": 132.0,
+          "lag7": 148.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 32,
+          "waste": 0,
+          "base_intent": 138,
+          "quantile": null,
+          "lag1": 36.0,
+          "lag7": 40.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 154,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 48.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-29",
+      "weekday": "Sun",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 728,
+      "sold": 728,
+      "waste": 0,
+      "base_intent": 1893,
+      "independent_prepared": 1188,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 7,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 188,
+          "sold": 188,
+          "waste": 0,
+          "base_intent": 500,
+          "quantile": null,
+          "lag1": 192.0,
+          "lag7": 208.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 108,
+          "sold": 108,
+          "waste": 0,
+          "base_intent": 286,
+          "quantile": null,
+          "lag1": 108.0,
+          "lag7": 120.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 100,
+          "sold": 100,
+          "waste": 0,
+          "base_intent": 259,
+          "quantile": null,
+          "lag1": 100.0,
+          "lag7": 108.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 281,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 120.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 128,
+          "sold": 128,
+          "waste": 0,
+          "base_intent": 372,
+          "quantile": null,
+          "lag1": 132.0,
+          "lag7": 140.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 32,
+          "waste": 0,
+          "base_intent": 93,
+          "quantile": null,
+          "lag1": 32.0,
+          "lag7": 36.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 102,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 48.0
+        }
+      ]
+    },
+    {
+      "day": "2022-05-30",
+      "weekday": "Mon",
+      "is_public_holiday": 0,
+      "model_version": "SMARTFRESH_V4_JOINT_V2",
+      "seed": 42,
+      "prepared": 724,
+      "sold": 693,
+      "waste": 31,
+      "base_intent": 780,
+      "independent_prepared": 1256,
+      "incremental_promo_estimate": 0.0,
+      "stockout_skus": 5,
+      "skus": [
+        {
+          "sku": "TP-DN-001",
+          "prepared": 188,
+          "sold": 158,
+          "waste": 30,
+          "base_intent": 158,
+          "quantile": null,
+          "lag1": 188.0,
+          "lag7": 165.0
+        },
+        {
+          "sku": "TP-DN-002",
+          "prepared": 104,
+          "sold": 104,
+          "waste": 0,
+          "base_intent": 120,
+          "quantile": null,
+          "lag1": 108.0,
+          "lag7": 94.0
+        },
+        {
+          "sku": "TP-DN-003",
+          "prepared": 100,
+          "sold": 100,
+          "waste": 0,
+          "base_intent": 110,
+          "quantile": null,
+          "lag1": 100.0,
+          "lag7": 104.0
+        },
+        {
+          "sku": "TP-DN-004",
+          "prepared": 124,
+          "sold": 124,
+          "waste": 0,
+          "base_intent": 127,
+          "quantile": null,
+          "lag1": 124.0,
+          "lag7": 113.0
+        },
+        {
+          "sku": "TP-CR-001",
+          "prepared": 128,
+          "sold": 128,
+          "waste": 0,
+          "base_intent": 185,
+          "quantile": null,
+          "lag1": 128.0,
+          "lag7": 136.0
+        },
+        {
+          "sku": "TP-CP-001",
+          "prepared": 32,
+          "sold": 31,
+          "waste": 1,
+          "base_intent": 31,
+          "quantile": null,
+          "lag1": 32.0,
+          "lag7": 32.0
+        },
+        {
+          "sku": "TP-RV-001",
+          "prepared": 48,
+          "sold": 48,
+          "waste": 0,
+          "base_intent": 49,
+          "quantile": null,
+          "lag1": 48.0,
+          "lag7": 44.0
+        }
+      ]
+    }
+  ]
+}

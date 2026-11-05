@@ -7,12 +7,15 @@ import json
 
 
 @lru_cache(maxsize=1)
-def bundle():
+def bundle(scale=1):
  from .engine import DATA,read_csv,clean
  master={r['sku_code']:clean(r) for r in read_csv(DATA/'sku_master.csv')}
  rows=[]
  for item in read_csv(DATA/'development_observed.csv'):
   r=clean(item);m=master[r['sku_code']]
+  if scale==10:
+   from .volume_scenario import scaled
+   r=scaled(r)
   rows.append(dict(date=r['date'],sku=r['sku_code'],name=m['product_name_reference'],price=m['unit_price_vnd_reference'],prepared=r['prepared_qty'],sold=r['sold_qty'],stock=r['waste_qty'],revenue=r['revenue_vnd'],production_cost=r['production_cost_vnd_assumed'],disposal_cost=r['disposal_cost_vnd_assumed'],markdown_cost=r.get('markdown_operations_cost_vnd_assumed',0),intervals=[]))
  return {'rows':rows}
 
@@ -30,10 +33,11 @@ def metrics(rows):
  return result
 
 
-def report(day,days=30):
+def report(day,days=30,scale=10):
+ if scale not in (1,10):raise ValueError('Invalid baseline scale')
  if days not in (7,30,90,180):raise ValueError('Invalid baseline range')
  end=min(date.fromisoformat(day)-timedelta(days=1),date(2022,6,30));start=end-timedelta(days=days-1)
- rows=[r for r in bundle()['rows'] if start.isoformat()<=r['date']<=end.isoformat()]
+ rows=[r for r in bundle(scale)['rows'] if start.isoformat()<=r['date']<=end.isoformat()]
  grouped={}
  for r in rows:grouped.setdefault(r['date'],[]).append(r)
  def products(source):
@@ -52,14 +56,14 @@ def report(day,days=30):
  dates=dict(day=end-timedelta(days=1),week=end-timedelta(days=7),month=date(year,month,min(end.day,calendar.monthrange(year,month)[1])) )
  current=metrics(last) if last else None;comparisons={}
  for name,when in dates.items():
-  items=[r for r in bundle()['rows'] if r['date']==when.isoformat() and r['date']<day]
+  items=[r for r in bundle(scale)['rows'] if r['date']==when.isoformat() and r['date']<day]
   previous=metrics(items) if items else None
   comparisons[name]=dict(day=when.isoformat(),previous=previous,previous_products=products(items),
    changes={k:change(current.get(k) if current else None,previous.get(k) if previous else None) for k in METRICS},revenue_bridge=revenue_bridge(current,previous))
- return dict(source='V4_DEVELOPMENT_BASELINE_OBSERVED_PROXY_NOT_AEON_POS',days=days,start_day=start.isoformat(),end_day=end.isoformat(),
+ return dict(source='V4_BASELINE_X'+str(scale)+'_SIMULATED_NOT_AEON_POS',volume_scale=scale,days=days,start_day=start.isoformat(),end_day=end.isoformat(),
   rows=daily,closed_days=len(grouped),summary=metrics(rows),selected_metrics=metrics(last) if last else None,
   products=products(last),period_products=products(rows),current_status='closed' if last else 'invalid',
   as_of_minute=1320,revision=0,comparisons=comparisons,hourly=[],pricing_checks=[],scenario_price_check=None,
-  note='Lịch sử baseline quan sát từ bộ nguồn V4, Jan–Jun 2022. Dữ liệu proxy, giá khảo sát tham chiếu; không phải doanh thu AEON đã xác minh. '
+  note='Baseline mô phỏng ×'+str(scale)+': chuẩn bị, bán, tồn và tổng tiền nhân cùng tỷ lệ; giá đơn vị giữ nguyên. Nguồn V4 Jan–Jun 2022, không phải doanh thu AEON đã xác minh. '
        'Hiển thị riêng với ca tương tác V4, không cộng vào POS hoặc dùng để tuyên bố hiệu quả AI so baseline. Ngày thiếu để trống.',
   price_effect_note='Giá vốn đơn vị, phí hủy và phí markdown lấy từ sổ baseline của bộ V4; tồn là hàng còn cuối ngày, chưa xác nhận hủy. Tổng tồn nhiều ngày không phải tồn tại một thời điểm.')

@@ -72,8 +72,8 @@ def change(current, previous):
 
 
 def report(store, sid, days=30, selected=None):
-    if days not in (7, 30, 90):
-        raise ValueError('Chọn lịch sử 7, 30 hoặc 90 ngày.')
+    if days not in (7, 30, 63, 90):
+        raise ValueError('Chọn lịch sử 7, 30, 63 hoặc 90 ngày.')
     selected = selected or store.get(sid)
     end = date.fromisoformat(selected['day'])
     start = end - timedelta(days=days-1)

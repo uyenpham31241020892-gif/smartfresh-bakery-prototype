@@ -12,19 +12,35 @@ def number(n):
 
 def prepare(state,component,evidence):
     facts={};used=[]
+    joint=state['model_version']=='SMARTFRESH_V4_JOINT_V2'
+    reasons={
+        'SELLOUT_GATE_88':'Khả năng tự bán hết đạt ngưỡng 88%, giữ giá.',
+        'PROTECT_STOCK_UNTIL_2130':'Giữ giá để bảo vệ khả năng còn hàng phục vụ tới 21:30.',
+        'RESERVE_FINAL_CLEARANCE':'Giữ lượt đổi giá cuối cho mốc 21:30.',
+        'MAX_APPLIED_CHANGES':'Đã đủ số lần đổi giá trong ngày.',
+        'COOLDOWN':'Chưa đủ 30 phút từ lần đổi giá trước.',
+        'NO_STOCK':'Đã hết hàng.',
+        'NO_POSITIVE_NET_GAIN':'Chưa có mức giảm mang lại lợi ích ròng đủ lớn so với giữ giá.',
+        'POSITIVE_INCREMENTAL_NET_GAIN':'Giá trị bánh dự kiến cứu được lớn hơn tiền bán hớ và phí đổi giá.'}
     for p in state['plan']:
         sku=p['sku'];e=evidence(sku);used.append(dict(tool='get_model_evidence',sku=sku))
         if component=='m2':
             m=e['m2'];s=m.get('supply') or {};f=m.get('features') or {};plan=m.get('v4_plan') or {}
             refs='; '.join(b['ready_time']+': '+number(b['qty'])+' bánh' for b in plan.get('production_batches',[])) or 'không có'
-            text=f"### {p['name']} · Đề xuất {number(m['prepared'])} bánh cả ngày\n- Lịch sử V4: bán ngày trước {number(f.get('sold_calendar_lag1'))}, cùng thứ tuần trước {number(f.get('sold_calendar_lag7'))}; trung bình 7 ngày quan sát {number(f.get('sold_last7_observed_mean'))}.\n- Model dự báo gốc Q50: {number(m['forecast'])}; nhánh bundle Q75 {number(s.get('q75'))}, Q90 {number(s.get('q90'))}. Adapter V4 chọn theo thứ/nhóm SKU, làm tròn mẻ 4 và trần công suất {number(s.get('capacity'))}. Tên Q75/Q90 không thay cho coverage thực đo.\n- Đầu ngày: {number(plan.get('initial_qty'))} bánh; refill: {refs}. Tổng đề xuất khác lượng đã làm thực tế.\n- Mưa ngày trước {number(f.get('prior_day_rain_mm'))} mm; nhiệt độ {number(f.get('prior_day_temp_c'))} °C. Manager kiểm tra rồi duyệt; mục tiêu phục vụ 21:30 không phải bảo đảm."
-            options=['Kế hoạch đầu ngày và hai đợt refill giúp cân đối cung ứng trong ca.','Manager có thể điều chỉnh đúng mẻ/công suất và ghi lý do.']
+            selection=('Phân vị chọn Q'+number(100*plan['selected_quantile'])+'; dự báo tương ứng '+number(plan['selected_forecast'])+' bánh') if joint else 'Adapter V4 chọn sản lượng theo thứ và nhóm SKU'
+            text=f"### {p['name']} · Đề xuất {number(m['prepared'])} bánh cả ngày\n- Lịch sử đầu vào: bán ngày trước {number(f.get('sold_calendar_lag1'))}, cùng thứ tuần trước {number(f.get('sold_calendar_lag7'))}; trung bình 7 ngày {number(f.get('sold_last7_observed_mean'))}.\n- {selection}. Làm tròn theo mẻ 4; công suất {number(s.get('capacity'))} bánh.\n- Đầu ngày {number(plan.get('initial_qty'))} bánh; bổ sung {refs}. Đây là kế hoạch, chưa phải lượng đã làm thực tế."
+            if joint:text+=f"\n- Đã khử {number(plan.get('depromo_removed_last7',0))} bánh bán tăng thêm do khuyến mãi ước tính trong 7 ngày đầu vào."
+            options=['Kiểm tra sản lượng và hai đợt bổ sung trước khi duyệt.','Điều chỉnh đúng kích thước mẻ và công suất nếu cần.']
         else:
             m=e.get('m1')
             if not m:continue
-            hold=m.get('predicted_hold_next30');policy=m.get('pricing_policy') or {}
-            text=f"### {p['name']} · {'Giữ giá' if m['discount']==m['previous'] else 'Đề xuất giảm '+number(m['discount'])+'%'}\n- Tồn {number(m['stock'])} bánh; bán {number(m['sales30'])}/30 phút và {number(m['sales60'])}/60 phút.\n- Giá lúc lập đề xuất giảm {number(m['previous'])}%; giá đề xuất {number(m['new_price'])}đ. Model dự báo bán 30 phút nếu giữ giá: {number(hold)} bánh.\n- V4 so lượng bán dự kiến giữa các mức và lợi ích ròng với HOLD. Đây là kỳ vọng của model, chưa phải số bán thêm thực đo. Kết quả 0 là HOLD, không tăng giá trở lại.\n- Trần hiện tại {number(m['cap'])}%, không tăng giá, cách ít nhất 30 phút và tối đa 2 lần đổi/SKU/ngày. Duyệt rồi Áp dụng mới cập nhật price_version và ACK POS/E-ink mô phỏng."
-            options=['So tồn và sức bán riêng từng món trước khi duyệt.','Manager đổi mức khác đề xuất cần lý do, vẫn qua các ràng buộc V4.']
+            policy=m.get('pricing_policy') or {};hold=m.get('predicted_hold_next30')
+            text=f"### {p['name']} · {'Giữ giá' if m['discount']==m['previous'] else 'Đề xuất giảm '+number(m['discount'])+'%'}\n- Tồn {number(m['stock'])} bánh; bán {number(m['sales30'])}/30 phút và {number(m['sales60'])}/60 phút.\n- Giá hiện hành giảm {number(m['previous'])}%; giá đề xuất {number(m['new_price'])}đ. Nếu giữ giá, dự kiến bán {number(hold)} bánh trong 30 phút tới."
+            if joint:
+                text+=f"\n- {reasons.get(policy.get('reason'),'Đối chiếu tồn kho và sức bán trước khi duyệt.')} Xác suất tự bán hết ở giá niêm yết ước tính {number(100*policy.get('sellout_probability_list',0))}%."
+                if m['discount']>m['previous']:text+=f" Lợi ích ròng dự kiến so với giữ giá: {number(policy.get('net_gain'))}đ."
+            text+=f"\n- Trần đề xuất tại mốc này {number(m['cap'])}%; cách ít nhất 30 phút và tối đa {3 if joint else 2} lần đổi/SKU/ngày. Duyệt rồi Áp dụng mới đổi giá."
+            options=['Đối chiếu lượng tồn và sức bán của từng món.','Quản lý chỉnh khác đề xuất cần ghi lý do.']
         facts[sku]=dict(text=text,commentary_options=options)
     actions=['Theo dõi tồn và sức bán tại checkpoint tiếp theo.','Đối chiếu kết quả cuối ca để lập kế hoạch ngày sau.']
     return dict(day=state['day'],minute=state['minute'],component=component,phase=state['phase'],facts=facts,actions=actions,financial_context=estimate(state['products'],closed=state.get('phase')=='closed'),evidence_delivery='SERVER_EXECUTED_READ_ONLY_TOOLS_BEFORE_GENERATION',tools_executed=used)

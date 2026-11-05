@@ -1,7 +1,7 @@
 /* GD5 quality is returned by backend gates; UI never grants a PASS itself. */
 let importLog=[];
 function qualityPanel(){
-  const q=state.data_quality||{}, w=q.weather||{}, lineage=q.lineage||{};
+  const q=state.data_quality||{}, w=q.weather||{}, lineage=q.lineage||{}, weatherMeta=state.weather?.weather_provenance||{};
   const tag=v=>badge(v||'Chưa có',v==='PASS'?'green':'amber');
   const line=(k,v)=>'<div class="setting-line"><span>'+esc(k)+'</span><strong style="overflow-wrap:anywhere;max-width:65%">'+esc(v??'Chưa xác minh')+'</strong></div>';
   return '<article class="panel gd5-quality"><div class="panel-head"><div><h2>Chất lượng & nguồn dữ liệu</h2><p>Giai đoạn 5 · Nhóm A + B06</p></div>'+tag(q.status)+'</div><div class="panel-body">'+
@@ -9,7 +9,10 @@ function qualityPanel(){
     line('Thời điểm dự báo M2',q.prediction_as_of)+line('Ghi snapshot vào máy',q.recorded_at)+line('Nguồn',lineage.source||state.source)+
     line('Loại nguồn',lineage.type)+line('Nguồn lịch sử',lineage.history_origin)+line('Nguồn thời tiết',lineage.weather_origin)+line('Import ID',lineage.import_id)+line('SHA-256 tệp nhập',lineage.file_sha256)+
     line('Feature snapshot ID',state.feature_snapshot_id)+line('Model',q.model_version)+line('Hash đặc trưng',q.feature_hash)+
-    '<h3 style="margin-top:20px">Dự báo thời tiết '+tag(w.status)+'</h3>'+line('Nguồn khai báo',w.source)+line('Phát hành',w.issued_at)+
+    '<h3 style="margin-top:20px">Dự báo thời tiết '+tag(w.status)+'</h3>'+line('Nguồn khai báo',w.source)+line(weatherMeta.timestamp_kind==='api_snapshot_captured'?'Chụp từ API':weatherMeta.timestamp_kind==='model_initialization'?'Khởi tạo lần chạy':'Phát hành',w.issued_at)+
+    (weatherMeta.target_date_forecast?line('Ngày mục tiêu: mưa / nhiệt độ',weatherMeta.target_date_forecast.precipitation_sum_mm+' mm / '+weatherMeta.target_date_forecast.temperature_2m_max_c+'°C'):'')+
+    (weatherMeta.target_date_forecast?line('Ngày thời tiết dùng cho M2',state.weather.weather_reference_date):'')+
+    (weatherMeta.timestamp_kind==='model_initialization'?'<p>Giờ công bố lịch sử chưa được API xác nhận; thời điểm sẵn có là ước tính, chỉ dùng mô phỏng.</p>':'')+
     line('Sẵn có',w.available_at)+line('Tuổi tại 06:00 (giờ)',w.age_hours)+'<p>'+esc(w.message||'Ca cũ chưa có metadata GD5.')+'</p>'+
     '<h3 style="margin-top:20px">Độ mới lịch sử theo SKU</h3><div class="table-scroll"><table><thead><tr><th>SKU</th><th>Ngày mới nhất</th><th>Cách ngày dự báo</th><th>Thiếu trong 7 ngày</th><th>Kiểm tra</th></tr></thead><tbody>'+
     (q.history||[]).map(r=>'<tr><td>'+esc(r.sku)+'</td><td>'+esc(r.last_date)+'</td><td>'+esc(r.gap_days)+' ngày</td><td>'+r.missing_last7.length+'</td><td>'+tag(r.status)+'</td></tr>').join('')+'</tbody></table></div>'+

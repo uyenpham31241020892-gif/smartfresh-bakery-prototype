@@ -15,7 +15,10 @@ from datetime import datetime, date
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-MODELS_DIR = BASE_DIR / "artifacts_build" / "models"
+REPOSITORY_ROOT = BASE_DIR.parents[1]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
+MODELS_DIR = REPOSITORY_ROOT / "models" / "joint"
 M2_BUNDLE_PATH = MODELS_DIR / "m2_forecast_bundle.joblib"
 M1_BUNDLE_PATH = MODELS_DIR / "m1_pricing_q_bundle.joblib"
 LOOKUP_PATH = MODELS_DIR / "operational_lookup.json"
@@ -86,11 +89,6 @@ class M1Preprocessor:
 
 def _load_artifacts():
     global _M2_BUNDLE, _M1_BUNDLE, _OPERATIONAL_LOOKUP, _POLICY_CONFIG
-    import __main__
-    if not hasattr(__main__, "M2Preprocessor"):
-        __main__.M2Preprocessor = M2Preprocessor
-    if not hasattr(__main__, "M1Preprocessor"):
-        __main__.M1Preprocessor = M1Preprocessor
     if _M2_BUNDLE is None and M2_BUNDLE_PATH.exists():
         _M2_BUNDLE = joblib.load(M2_BUNDLE_PATH)
     if _M1_BUNDLE is None and M1_BUNDLE_PATH.exists():
@@ -136,187 +134,28 @@ def gate(event, as_of, known_skus, seen_ids, expected_price_version, max_age_min
     except (ValueError, TypeError, KeyError):
         return "QUARANTINE_SCHEMA"
 
-# --- Prepare (M2) ---
+# --- Joint operating policy: preserve the selected preprocessors and artifact IO. ---
+from services.joint_policy import depromo_features, prepare as joint_prepare, pricing as joint_pricing
+
+_LAST_PRICE_EVIDENCE = {}
+JOINT_POLICY = True
+
+def prepare_features(morning_features, completed_own_branch_history):
+    return depromo_features(morning_features, completed_own_branch_history)
+
 def prepare(morning_features, completed_own_branch_history):
     _load_artifacts()
-    sku = morning_features["sku_code"]
-    spec = _OPERATIONAL_LOOKUP.get(sku, {}) if _OPERATIONAL_LOOKUP else {}
+    if _M2_BUNDLE is None:raise ValueError('Missing M2 bundle')
+    sku=morning_features['sku_code']
+    return joint_prepare(morning_features,completed_own_branch_history,_M2_BUNDLE,_OPERATIONAL_LOOKUP[sku])
 
-    batch_size = int(spec.get("batch_size_units_assumed", 4))
-    max_batch = int(spec.get("max_batch_units_assumed", 100))
-    daily_cap = int(_clean_num(morning_features.get("operational_daily_capacity_units"), spec.get("daily_capacity_units_assumed", 100)))
-    lead_min = int(_clean_num(morning_features.get("operational_lead_minutes"), spec.get("production_lead_time_minutes_assumed", 120)))
-    last_ready = spec.get("last_production_ready_time_assumed", "19:30")
-
-    weekday_iso = int(_clean_num(morning_features.get("weekday_iso"), 1))
-    
-    # Không khử nhiễu lượng bán ngày hôm trước nữa, lấy số thô để M2 "tham lam" hơn
-    if _M2_BUNDLE is not None:
-        preprocessor = _M2_BUNDLE["preprocessor"]
-        vec = preprocessor.transform_row(morning_features, sku, spec)
-        try:
-            q50 = float(_M2_BUNDLE["model"].predict([vec])[0])
-        except:
-            q50 = 20.0
-        try:
-            q75 = float(_M2_BUNDLE.get("model_q75", _M2_BUNDLE["model"]).predict([vec])[0])
-            if q75 <= q50: q75 = q50 * 1.15
-        except:
-            q75 = q50 * 1.15
-        try:
-            q90 = float(_M2_BUNDLE.get("model_q90", _M2_BUNDLE["model"]).predict([vec])[0])
-            if q90 <= q75: q90 = q75 * 1.15
-        except:
-            q90 = q75 * 1.15
-    else:
-        recent = [r["sold_qty"] for r in completed_own_branch_history[-7:]] if completed_own_branch_history else [16]
-        q50 = sum(recent) / len(recent)
-        q75, q90 = q50 * 1.15, q50 * 1.30
-
-    is_slow_sku = sku in ("TP-CP-001", "TP-RV-001")
-    is_hot_sku = sku in ("TP-DN-001", "TP-CR-001")
-
-    # BƠM MẠNH SẢN LƯỢNG M2 Ở V4
-    if is_slow_sku:
-        if weekday_iso in (2, 3):
-            planned_raw = q50  # V4: q50 cho SKU bán chậm ngày giữa tuần
-        else:
-            planned_raw = 0.5 * q50 + 0.5 * q75 + 1.0  # Nâng buffer
-        total_qty = int(math.ceil(planned_raw / batch_size) * batch_size) # Quay lại math.ceil
-    else:
-        if weekday_iso in (2, 3):
-            planned_raw = 0.70 * q50 + 0.30 * q75 + 1.0
-        elif weekday_iso in (1, 4, 5):
-            planned_raw = q75 + (2.0 if is_hot_sku else 1.0)
-        else: # Cuối tuần - Bung nóc!
-            planned_raw = q90 + (3.5 if is_hot_sku else 2.0)
-        total_qty = int(math.ceil(planned_raw / batch_size) * batch_size)
-
-    total_qty = min(daily_cap, max(batch_size, total_qty))
-
-    initial = max(batch_size, math.ceil(total_qty * 0.4 / batch_size) * batch_size)
-    initial = min(total_qty, initial)
-    remaining = total_qty - initial
-
-    first_rem = (remaining // (2 * batch_size)) * batch_size
-    batch_qtys = [first_rem, remaining - first_rem]
-    production_batches = []
-
-    for ready, b_qty in zip(("14:00", "17:00"), batch_qtys):
-        if ready > last_ready:
-            continue
-        while b_qty > 0:
-            n = min(b_qty, max_batch)
-            b_qty -= n
-            ready_h, ready_m = map(int, ready.split(":"))
-            ready_minutes = ready_h * 60 + ready_m
-            order_minutes = ready_minutes - lead_min
-            order_time = "06:00" if order_minutes < 0 else f"{order_minutes // 60:02d}:{order_minutes % 60:02d}"
-            production_batches.append({
-                "qty": n,
-                "order_time": order_time,
-                "ready_time": ready
-            })
-
-    return {
-        "initial_qty": initial,
-        "production_batches": production_batches,
-        "policy_status": "SMARTFRESH_V4_PROFIT_MAXIMIZING"
-    }
-
-# --- Markdown (M1) ---
 def markdown(observed_state, as_of):
     _load_artifacts()
-    features = observed_state.get("model_features", {})
-    price_ctx = observed_state.get("price_context", {})
-
-    sku = features.get("sku_code", "")
-    inv = float(_clean_num(features.get("inventory_at_decision"), 0.0))
-    if inv <= 0: return 0
-
-    cur_discount = float(_clean_num(price_ctx.get("current_discount_pct"), 0.0))
-    list_price = float(_clean_num(price_ctx.get("list_price_vnd"), 25000.0))
-    cur_date = as_of[:10]
-    cur_time = as_of[11:16] if len(as_of) >= 16 else str(features.get("time", "19:30"))
-
-    tracker_key = (cur_date, sku)
-    daily_count = _DAILY_CHANGE_TRACKER.get(tracker_key, 0)
-    if daily_count >= 2: return 0
-
-    baseline_floor = features.get("baseline_announced_2100_pct")
-    floor_pct = float(baseline_floor) if baseline_floor not in (None, "") else 0.0
-
-    # Rule C Cooldown Guard:
-    if cur_time == "21:00" and floor_pct > 0:
-        return 0
-
-    max_allowed_d = 40 if cur_time < "20:30" else 50
-    menu = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-    candidates = [d for d in menu if d >= cur_discount and d >= floor_pct and d <= max_allowed_d]
-    if len(candidates) <= 1: return 0
-
-    spec = _OPERATIONAL_LOOKUP.get(sku, {}) if _OPERATIONAL_LOOKUP else {}
-    sticker_cost = float(spec.get("markdown_action_cost_vnd_assumed", 350))
-    disp_cost = float(spec.get("unit_disposal_cost_vnd_assumed", 150))
-
-    if _M1_BUNDLE is None: return 0
-    model = _M1_BUNDLE["model"]
-    preprocessor = _M1_BUNDLE["preprocessor"]
-    
-    vec_hold = preprocessor.transform_row(features, cur_discount, sku, spec)
-    sales_hold_30m = min(inv, max(0.0, float(model.predict([vec_hold])[0])))
-
-    mins_left = float(_clean_num(features.get("minutes_to_close"), 60.0))
-    pace = float(_clean_num(features.get("sales_pace_units_per_minute"), 0.0))
-    rem_mins_after_30 = max(0.0, mins_left - 30.0)
-    
-    # Nới lỏng suy giảm tốc độ mua (để P_sellout thấp hơn một chút, dễ kích hoạt M1)
-    decay_factor = 0.90 if cur_time < "20:30" else 0.70
-    
-    continuation_sales = max(sales_hold_30m * (rem_mins_after_30 / 30.0) * decay_factor, pace * rem_mins_after_30 * decay_factor)
-    expected_eod_sales_hold = min(inv, sales_hold_30m + continuation_sales)
-    expected_eod_waste_hold = max(0.0, inv - expected_eod_sales_hold)
-    sellout_prob_hold = expected_eod_sales_hold / max(1.0, inv)
-
-    # NỚI LỎNG CỔNG CHẶN TRONG V4: Xác suất tự bán hết >= 88% mới chặn!
-    if cur_time < "21:00":
-        if sellout_prob_hold >= 0.88 or expected_eod_waste_hold < 1.0:
-            return 0
-
-    best_action = 0
-    best_net_gain = 0.0
-    cur_price = list_price * (1.0 - cur_discount / 100.0)
-    
-    # Hạ cực thấp tiền phạt rủi ro M1
-    q25_penalty = 0.05 
-    min_net_gain = 500.0 
-
-    for cand_d in candidates:
-        if cand_d == cur_discount: continue
-
-        vec_cand = preprocessor.transform_row(features, cand_d, sku, spec)
-        pred_sales_30m = max(0.0, float(model.predict([vec_cand])[0]))
-        conservative_sales_30m = min(inv, max(0.0, pred_sales_30m - q25_penalty))
-
-        delta_sales_30m = max(0.0, conservative_sales_30m - sales_hold_30m)
-        if delta_sales_30m <= 0.1: continue
-
-        saved_waste_units = min(delta_sales_30m, expected_eod_waste_hold)
-        cannibalized_units = max(0.0, delta_sales_30m - saved_waste_units)
-
-        cand_price = list_price * (1.0 - cand_d / 100.0)
-        price_drop = cur_price - cand_price
-
-        net_gain = (saved_waste_units * (cand_price + disp_cost) 
-                    - (sales_hold_30m + cannibalized_units) * price_drop 
-                    - sticker_cost)
-
-        if net_gain > max(min_net_gain, best_net_gain):
-            best_net_gain = net_gain
-            best_action = cand_d
-
-    if best_action > cur_discount:
-        _DAILY_CHANGE_TRACKER[tracker_key] = daily_count + 1
-        return best_action
-
-    return 0
+    if _M1_BUNDLE is None:raise ValueError('Missing M1 bundle')
+    features=observed_state['model_features'];sku=features['sku_code']
+    context=dict(observed_state.get('price_context',{}))
+    context.setdefault('daily_count',_DAILY_CHANGE_TRACKER.get((as_of[:10],sku),0))
+    result=joint_pricing(features,context,_M1_BUNDLE,_OPERATIONAL_LOOKUP[sku],_POLICY_CONFIG)
+    _LAST_PRICE_EVIDENCE[(as_of,sku)]=result
+    # Proposing or rejecting a price does not consume an applied-change allowance.
+    return result['action']

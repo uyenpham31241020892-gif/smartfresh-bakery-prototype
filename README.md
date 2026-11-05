@@ -49,8 +49,8 @@ Train/tune/promotion một model khác không được bật: quyết định nh
 
 1. Chọn **Ca mới**, ngày **02/05/2022**, chế độ **Mô phỏng V4**, nguồn **Thị trường V4 có phản ứng giá giả định gốc** (mặc định). Để tự điều khiển, bỏ chọn tự bán sau xác nhận; hoặc tạm dừng đồng hồ sau khi mở ca.
 2. Mở **Kế hoạch sản lượng**. Đọc giải thích từng món, tổng cả ngày và lịch đầu ngày/refill. Có thể sửa một lượng đúng bội số 4 trong công suất mẫu, ghi lý do rồi **Duyệt kế hoạch**. Ví dụ 48/52, không nhập 50 nếu mẻ là 4.
-3. Nhấn **Xác nhận đã chuẩn bị**. App chỉ đưa lượng đầu ngày của V4 vào tồn lúc 08:00. Phần refill được nhận vào tồn lúc 14:00 và 17:00. “Tổng đề xuất cả ngày” khác “Đã chuẩn bị đến hiện tại”.
-4. Chạy đồng hồ hoặc chuyển đến 14:00/17:00 để xem refill và sổ bán. Thử vào Giao dịch & theo dõi để kiểm tra số bán/tồn nguyên.
+3. Nhấn **Xác nhận đã chuẩn bị**. App chỉ đưa lượng đầu ngày vào tồn lúc 08:00. Tổng kế hoạch là trần được duyệt; mẻ 14:00/17:00 chỉ được đặt khi nhịp POS đã quan sát lúc 12:00/15:00 cho thấy cần bổ sung. “Tổng đề xuất cả ngày” khác “Đã chuẩn bị đến hiện tại”.
+4. Chạy đồng hồ hoặc chuyển đến 14:00/17:00 để xem mẻ thực đặt và sổ bán. Thử vào Giao dịch & theo dõi để kiểm tra số bán/tồn nguyên.
 5. Tới **19:30**, mở **Giảm giá cuối ngày**. M1 V4 đánh giá tại 19:30, 20:00, 20:30, 21:00, 21:30. HOLD là giữ giá đang có, không tăng về niêm yết. Không có mức giảm mới thì không bắt buộc duyệt.
 6. Muốn tự quyết: chọn **Manager tự quyết · Manual** ngay đầu trang, ghi lý do. Mở “Điều chỉnh của quản lý” ở từng món, chọn mức cần thiết. Chọn kênh **E-ink** cho sản phẩm trong quầy hoặc **tem** cho hàng đóng hộp phù hợp thực tế demo.
 7. Nhấn **Duyệt thay đổi giá**, ghi lý do nếu khác gợi ý; sau đó **Áp dụng giá đã duyệt**. Duyệt chưa làm đổi giá. Sau Áp dụng mới đổi `price_version` và ghi `SIMULATED_ACK`.
@@ -76,12 +76,12 @@ Chưa kết nối dịch vụ thì app và M1/M2 vẫn chạy; lời giải thí
 ## 5. Dữ liệu nào được dùng?
 
 - Model/adapter/config: nguyên byte V4 trong bộ `Data (evaluated)/TRAINED_TESTED` được cung cấp; ba hash quan trọng ở `docs/MIGRATION_V4.md`.
-- Mẫu chạy tương tác: **Validation 01/05–30/06/2022**, morning features, lịch sử quan sát và sự kiện thị trường thuộc cùng bộ V4. Luồng thị trường gốc cố định và seed được lưu truy vết; có thêm lựa chọn Replay POS để đối chiếu sổ cố định.
+- POS mô phỏng V3 chạy xuyên ngày từ **01/05/2022**, gồm giai đoạn validation tháng 5–6 và giai đoạn đánh giá sau test tháng 7–8. Mỗi ca lưu ngữ cảnh thị trường đầu ngày để tái lập; ca V2 cũ vẫn giữ phiên bản nguồn đã ghim.
 - Lịch sử: quan sát trước ngày quyết định trong cùng bộ nguồn V4; ca tự chạy đã chốt có thể bổ sung lịch sử riêng, không dùng dữ liệu tương lai.
 - Drift reference: feature **Fit** V4, 777 SKU-ngày, tới 30/04/2022. Chỉ dùng để giám sát, không làm target hay tune trong app.
 - `reference/v4`: bảng kết quả V4 62 ngày và ledger của lượt đánh giá đã khóa, **chỉ đọc để tham chiếu**. Không đưa scorer/nhu cầu ẩn vào model input. Bộ kết quả tháng 7–8/2022 ghi đúng là **Post-Test Development Iteration**.
 
-Mặc định giữ khả năng mô phỏng phản ứng giá: worker riêng đọc sự kiện Validation V4 và dùng quy tắc gốc `min(1, 0.6 × sku_response × (discount/50)^0.9)`. Worker chỉ trả lượt yêu cầu mua trong khoảng thời gian vừa trôi qua; không trả dòng khách tương lai hoặc response draw cho model. Đây là giả định mô phỏng của nguồn V4, không phải phản ứng khách AEON đã đo. Lựa chọn **Replay POS** chỉ có giao dịch quan sát, có thể bị che khuất bởi tồn; riêng lựa chọn đó không sinh thêm khách khi giảm giá. Hai nguồn tách version/hash, không trộn khi nối ca/báo cáo. Một ca tương tác không phải chạy lại closed-loop test và không được ép cho ra đúng 140.133.307đ lãi góp của toàn bộ 62 ngày. Các nhánh Baseline/M1/M2 trong bảng tham chiếu đều thuộc lượt đánh giá V4, không phải model cũ được nạp vào app.
+POS mô phỏng V3 sinh nhu cầu nền riêng theo SKU, có biến động qua ngày và giới hạn đỉnh cuối tuần quá lớn trong dữ liệu tham chiếu, sau đó thêm cơ hội mua nhạy giá khi đã áp dụng giảm giá. Worker chỉ trả sự kiện trong khoảng thời gian đã trôi qua. Các giới hạn cuối tuần, hệ số phản ứng giá và điều chỉnh khi baseline bị hết hàng là giả định của kịch bản, chưa được hiệu chỉnh bằng POS AEON. Nguồn Replay POS V4 vẫn dành cho việc đối chiếu ca cũ; không được coi là nguồn mua phát sinh liên tục. Một ca tương tác không phải chạy lại closed-loop test hoặc kết quả tham chiếu V4.
 
 ## 6. Nhập dữ liệu và lỗi thiếu/sai
 
@@ -90,7 +90,9 @@ Trong Dữ liệu đầu vào, tải mẫu History/Weather/Morning features V4/T
 - Lịch sử phải trước ngày mục tiêu, đúng 7 SKU, số không âm; nên kèm `prepared_qty` và `censored_demand_flag` để dựng lag/censor V4. Không suy lượng cầu đầy đủ từ lượng bán đã hết hàng.
 - Morning features: đủ 7 SKU không trùng, đúng ngày/cutoff 06:00 có múi giờ. Trường lag thiếu chỉ được nhận theo đúng cờ missing và giá trị fallback đã khai báo trong hợp đồng V4; không tùy tiện đổi mọi ô trống thành 0.
 - Ngoài ngày mẫu: cần morning features đầy đủ và thời tiết có `issued_at`/nguồn/thời điểm sẵn có hợp lệ. App chặn nếu thiếu, không chuyển về data/model cũ.
+- Khi tạo ca mô phỏng, chọn **Lấy thời tiết từ Open-Meteo** và nhập tọa độ cửa hàng. Với năm 2022, ứng dụng lấy mưa/nhiệt độ từ [Previous Runs API](https://open-meteo.com/en/docs/previous-runs-api) của JMA GSM tại **độ trễ dự báo cố định 24 giờ**, có dữ liệu từ 2018. API không trả chính xác giờ công bố từng bản chạy; ứng dụng để `issued_at=null`, đánh dấu `vintage_verified=false` và chỉ cho mô phỏng. Từ giữa tháng 3/2024, ca lịch sử có thể dùng [Single Runs API](https://open-meteo.com/en/docs/single-runs-api) theo giờ khởi tạo model, nhưng giờ sẵn có thực tế vẫn là ước tính. Ca đang diễn ra chỉ dùng snapshot API chụp trước 06:00.
 - File chứa nhãn/nhu cầu ẩn/tương lai bị cách ly. Thời tiết mẫu là dữ liệu ngày trước phục vụ mô phỏng; cảnh báo chưa xác minh forecast là thông tin nguồn, không phải lỗi tải model.
+- POS mô phỏng V3 sinh lượt mua liên tục cho mọi ngày từ lịch sử có sẵn, không phụ thuộc file sự kiện từng ngày. Ca **01/07–31/08/2022** được chạy và chốt sẵn; mục **Báo cáo hiệu quả → Lịch sử theo ngày** hiển thị 62 ngày này khi mở ca **01/09/2022**. JOINT được đối chứng với baseline cùng thứ đã nhân ×10 trên đúng cùng POS; kết quả tại `docs/JOINT_TWO_MONTH_V3_EVALUATION.json` và `docs/JOINT_TWO_MONTH_AUDIT.md`. Bản Rolling-7 cũ là thử nghiệm bị loại vì baseline tự suy giảm khi hết hàng.
 - Giao dịch nhập phải đúng SKU/phút ca, không vượt tồn. Tệp đã xác nhận cùng hash bị chặn nhập trùng.
 - Sau lỗi hard rule, xem An toàn & sự cố để xử lý incident; không chỉ bấm đổi lại Assisted khi sự cố chưa đóng.
 

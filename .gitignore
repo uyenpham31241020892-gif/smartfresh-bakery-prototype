@@ -17,3 +17,5 @@ reference/drive_v9/models/
 .venv-v606/
 v606/local_config.json
 v606/*submission*.json
+
+.test_tmp_*

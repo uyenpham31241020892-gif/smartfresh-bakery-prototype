@@ -224,6 +224,10 @@ function previewHTML(){
   preview.warnings.forEach(w=>html+='<div class="notice">'+esc(w)+'</div>');
   html+='<div class="notice pink"><b>'+(preview.transaction_rows?'Nhập giao dịch vào ca đang mở':'Tạo ca mới từ dữ liệu')+'</b> · '+(preview.transaction_rows?'Không tạo ca mới. Dữ liệu giao dịch được ghi vào ca '+esc(state.day)+'.':'Khi xác nhận, hệ thống tạo ca dữ liệu nhập mới, còn ca hiện tại vẫn được giữ trong lịch sử.')+'</div>';
   if(preview.ai_column_mapping)html+='<div class="notice pink">GPT đã đề nghị ánh xạ cột: '+esc(JSON.stringify(preview.ai_column_mapping))+'. Kiểm tra bản xem trước trước khi xác nhận.</div>';
+  if(!preview.transaction_rows&&!preview.weather)html+='<div class="notice"><b>Thiếu weather.csv</b> · Có thể lấy dự báo Open-Meteo lúc xác nhận. Chọn đúng tọa độ cửa hàng; API chỉ cung cấp bản chụp hợp lệ trước 06:00 ngày mục tiêu.</div>'+
+    '<label class="simulation-check"><input id="import-weather-api" type="checkbox">Lấy thời tiết từ Open-Meteo</label>'+
+    '<div class="form-row"><label class="field">Vĩ độ cửa hàng<input id="import-latitude" type="number" min="-90" max="90" step="any"></label>'+
+    '<label class="field">Kinh độ cửa hàng<input id="import-longitude" type="number" min="-180" max="180" step="any"></label></div>';
   preview.tables.forEach(t=>{
     html+='<h3 style="margin:12px 0">'+esc(t.name)+' · '+t.rows+' dòng</h3><div class="table-scroll"><table><thead><tr>'+t.columns.slice(0,6).map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+t.sample.map(r=>'<tr>'+t.columns.slice(0,6).map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
   });
@@ -322,12 +326,30 @@ function reject(kind){
   $('confirm-reject').onclick=async()=>{const reason=$('reject-reason').value.trim();if(!reason){toast('Cần lý do từ chối.',true);return;}$('modal').close();await act(kind==='plan'?'plan_reject':'price_reject',{reason,...(kind==='price'?{proposal_id:state.pending.id}:{})});};
 }
 function newSession(){
-  modal('Bắt đầu ca vận hành','<p>Tạo ca riêng và giữ nguyên lịch sử của những ca trước.</p><form id="new-form"><label class="field">Ngày vận hành<input id="new-day" type="date" min="2022-05-01" max="2022-06-30" value="'+state.day+'" required></label><div class="form-row"><label class="field">Chế độ<select id="new-mode"><option value="simulation">Mô phỏng V4</option><option value="live">Nhận giao dịch từ tệp</option></select></label><label class="field">Seed mô phỏng<input id="new-seed" type="number" min="0" max="2147483647" value="'+state.seed+'" required></label></div><label class="field">Nguồn mô phỏng<select id="new-market">'+(meta.simulation_scenarios||[]).map(x=>'<option value="'+esc(x.version)+'">'+esc(x.label)+'</option>').join('')+'</select></label><label class="simulation-check"><input id="new-auto" type="checkbox" checked>Tự bán sau xác nhận chuẩn bị (chỉ ca mô phỏng)</label><p>Chọn ngày trong 01/05–30/06/2022 để dùng nguồn mô phỏng V4: thị trường có phản ứng giá theo giả định gốc, hoặc replay POS quan sát riêng. Seed được lưu truy vết; luồng sự kiện gốc V4 cố định. Để chạy ngày mới, tải lịch sử và thời tiết qua mục Dữ liệu đầu vào.</p><div class="modal-actions"><button type="button" data-close="modal">Quay lại</button><button class="primary" type="submit">Tạo kế hoạch bằng AI '+icon('spark')+'</button></div></form>');
-  $('new-form').onsubmit=async e=>{e.preventDefault();if(working)return;working=true;try{const s=await api('/api/sessions',{day:$('new-day').value,seed:Number($('new-seed').value),mode:$('new-mode').value,auto_run:$('new-auto').checked,market_version:$('new-market').value});$('modal').close();currentView='m2';preview=null;storeState(s);toast('M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true)}finally{working=false}};
+  modal('Bắt đầu ca vận hành','<p>M2 lập sản lượng theo thứ; M1 theo dõi sức bán và giảm giá cuối ngày khi có lợi. Quy mô sản lượng mới đã là cấu hình mặc định.</p><form id="new-form"><label class="field">Ngày vận hành<input id="new-day" type="date" min="2022-05-01" max="2022-08-31" value="'+state.day+'" required></label><div class="form-row"><label class="field">Nguồn giao dịch<select id="new-mode"><option value="simulation">POS tự động · dữ liệu mô phỏng</option><option value="live">Nhận giao dịch từ tệp</option></select></label><label class="field">Seed dữ liệu<input id="new-seed" type="number" min="0" max="2147483647" value="'+state.seed+'" required></label></div><label class="simulation-check"><input id="new-auto" type="checkbox" checked>Tự bán sau xác nhận chuẩn bị</label><p></p><div class="modal-actions"><button type="button" data-close="modal">Quay lại</button><button class="primary" type="submit">Tạo kế hoạch bằng AI '+icon('spark')+'</button></div></form>');
+  $('new-form').querySelector('p').textContent='POS V3 sinh lượt mua ×10 liên tục, giới hạn biên độ cuối tuần theo giả định kịch bản và biến động theo ngày. Thời tiết API năm 2022 chỉ dùng mô phỏng vì không có giờ phát hành chính xác từng lần chạy.';
+  $('new-day').removeAttribute('max');
+  $('new-day').value=state.day<'2022-09-01'?'2022-09-01':state.day;
+  $('new-form').querySelector('.modal-actions').insertAdjacentHTML('beforebegin',
+    '<label class="simulation-check"><input id="new-weather-api" type="checkbox">Lấy thời tiết từ Open-Meteo theo ngày mục tiêu</label>'+
+    '<div class="form-row"><label class="field">Vĩ độ cửa hàng<input id="new-latitude" type="number" min="-90" max="90" step="any" placeholder="Ví dụ 10.7769"></label>'+
+    '<label class="field">Kinh độ cửa hàng<input id="new-longitude" type="number" min="-180" max="180" step="any" placeholder="Ví dụ 106.7009"></label></div>'+
+    '<p class="muted">Mô hình dùng mưa và nhiệt độ của ngày trước; API cũng lưu dự báo ngày mục tiêu. Ngày ngoài bộ mẫu cần lịch sử bán và sổ tồn/hủy ngày trước cho đủ SKU.</p>');
+  $('new-form').onsubmit=async e=>{
+    e.preventDefault();if(working)return;working=true;
+    try{
+      const weather_api=$('new-weather-api').checked;
+      const latitude=$('new-latitude').value,longitude=$('new-longitude').value;
+      if(weather_api&&(!latitude||!longitude))throw Error('Cần nhập vĩ độ và kinh độ cửa hàng.');
+      const s=await api('/api/sessions',{day:$('new-day').value,seed:Number($('new-seed').value),mode:$('new-mode').value,
+        auto_run:$('new-auto').checked,weather_api,latitude:weather_api?Number(latitude):null,longitude:weather_api?Number(longitude):null});
+      $('modal').close();currentView='m2';preview=null;storeState(s);toast('M2 đã tạo kế hoạch mới.');
+    }catch(error){toast(error.message,true)}finally{working=false}
+  };
 }
 const featureNames={lag1_sales:'Bán ngày trước',lag7_sales:'Bán 7 ngày trước',rolling7_sales:'Trung bình bán 7 ngày',rolling14_sales:'Trung bình bán 14 ngày',rolling7_std:'Biến động bán 7 ngày',rain_forecast_proxy:'Lượng mưa dự báo',temp_forecast_jma:'Nhiệt độ dự báo',weekday:'Thứ trong tuần',is_weekend:'Ngày cuối tuần',is_holiday:'Ngày lễ',festival_nonpublic:'Sự kiện trong lịch',ref_mean_train_only:'Trung bình khóa từ train',history_days:'Số ngày lịch sử',dayofyear:'Ngày trong năm',month:'Tháng',weekday_sin:'Chu kỳ thứ (sin)',weekday_cos:'Chu kỳ thứ (cos)',calendar_month_trend:'Xu hướng theo tháng'};
 async function explain(sku){
- if(state.model_version==='SMARTFRESH_V4_LOCKED'){
+ if(state.model_version?.startsWith('SMARTFRESH_V4_')){
   const p=state.plan.find(p=>p.sku===sku);drawer('V4 model evidence',m2Chain(p)+'<p>M2/M1 V4 đọc feature trước quyết định; không có SHAP được tính trong app.</p><pre>'+esc(JSON.stringify(p.features,null,2))+'</pre>');return;
  }
 
@@ -377,9 +399,13 @@ async function uploadFile(file){
 }
 async function confirmImport(){
   if(working || !preview || !preview.valid)return;
+  const weather_api=!!$('import-weather-api')?.checked;
+  const latitude=$('import-latitude')?.value,longitude=$('import-longitude')?.value;
+  if(weather_api&&(!latitude||!longitude)){toast('Cần nhập vĩ độ và kinh độ cửa hàng.',true);return}
   if(!window.confirm(preview.transaction_rows?'Xác nhận ghi giao dịch vào ca đang mở?':'Xác nhận tạo CA MỚI từ dữ liệu đã xem trước? Ca đang mở sẽ được giữ trong lịch sử.'))return;
   working=true;
-  try{const s=await api('/api/imports/'+preview.import_id+'/confirm',{session_id:state.id,revision:state.revision,seed:state.seed});const isTx=preview.transaction_rows>0;preview=null;currentView=isTx?'ledger':'m2';storeState(s);refreshQuality();toast(isTx?'Đã nhập giao dịch và cập nhật trạng thái.':'Đã nhập dữ liệu. M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true);if(currentView==='data')await refreshQuality()}finally{working=false}
+  try{const s=await api('/api/imports/'+preview.import_id+'/confirm',{session_id:state.id,revision:state.revision,seed:state.seed,
+    weather_api,latitude:weather_api?Number(latitude):null,longitude:weather_api?Number(longitude):null});const isTx=preview.transaction_rows>0;preview=null;currentView=isTx?'ledger':'m2';storeState(s);refreshQuality();toast(isTx?'Đã nhập giao dịch và cập nhật trạng thái.':'Đã nhập dữ liệu. M2 đã tạo kế hoạch mới.')}catch(e){toast(e.message,true);if(currentView==='data')await refreshQuality()}finally{working=false}
 }
 function bindGeminiModels(){
   if(!$('gemini-catalog'))$('ai-model').parentElement.insertAdjacentHTML('afterend','<div id="gemini-catalog"><button type="button" id="check-gemini-models" class="small">Kiểm tra key &amp; tải model</button><p class="muted">Kiểm tra quyền liệt kê model trước khi gọi AI. Danh sách không bảo đảm model miễn phí hoặc có quota sinh nội dung.</p><div id="gemini-model-options"></div><p id="gemini-diagnostic" role="status" style="white-space:pre-wrap"></p></div>');
@@ -460,8 +486,9 @@ async function init(){
   if(views[requestedView])currentView=requestedView;
   try{
     const sid=localStorage.getItem('smartfresh-session');
-    const result=await Promise.all([api('/api/state'+(sid?'?session_id='+sid:'')),api('/api/metadata'),api('/api/history')]);
-    state=result[0];meta=result[1];history=result[2];storeState(state);if(currentView==='data')refreshQuality();if(currentView==='safety')loadSafety();if(currentView==='monitoring')loadMonitoring();
+    const [available,latest,metadata,dayHistory]=await Promise.all([api('/api/sessions'),api('/api/state'),api('/api/metadata'),api('/api/history')]);
+    state=sid&&available.some(s=>s.id===sid)?await api('/api/state?session_id='+encodeURIComponent(sid)):latest;
+    meta=metadata;history=dayHistory;storeState(state);if(currentView==='data')refreshQuality();if(currentView==='safety')loadSafety();if(currentView==='monitoring')loadMonitoring();
   }catch(e){
     if(localStorage.getItem('smartfresh-session')){localStorage.removeItem('smartfresh-session');try{const r=await Promise.all([api('/api/state'),api('/api/metadata'),api('/api/history')]);state=r[0];meta=r[1];history=r[2];storeState(state);return}catch(_){}}
     $('view').innerHTML='<div class="notice">'+esc(e.message)+'</div><button onclick="location.reload()">Thử tải lại</button>';toast(e.message,true);

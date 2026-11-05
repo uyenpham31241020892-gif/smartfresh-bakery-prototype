@@ -1,0 +1,362 @@
+{
+  "period": "2022-07-01..2022-08-31",
+  "simulator_version": "AEON_GENERATED_POS_V3",
+  "baseline_policy": "SEASONAL_SAME_WEEKDAY_CENSOR_AWARE_X10_STATIC_BAKES",
+  "market_equal": true,
+  "gates": {
+    "july": true,
+    "august": true,
+    "all": true
+  },
+  "passed": true,
+  "base_intent_range": [
+    623,
+    1187
+  ],
+  "joint_sold_range": [
+    640,
+    1185
+  ],
+  "online_factor_range": [
+    0.9289381212998312,
+    1.0369420790809323
+  ],
+  "periods": {
+    "july": {
+      "joint": {
+        "days": 31,
+        "prepared": 29916,
+        "sold": 28174,
+        "stock": 1742,
+        "sell_through_pct": 94.18,
+        "revenue_vnd": 723845045,
+        "contribution_vnd": 360778041,
+        "stockout_sku_days": 63,
+        "preparation_base_mae": 62.77
+      },
+      "seasonal_baseline": {
+        "days": 31,
+        "prepared": 30020,
+        "sold": 27981,
+        "stock": 2039,
+        "sell_through_pct": 93.21,
+        "revenue_vnd": 716345685,
+        "contribution_vnd": 352210119,
+        "stockout_sku_days": 66,
+        "preparation_base_mae": 68.19
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 196,
+          "sku_days": 217,
+          "coverage_pct": 90.32
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 178,
+          "sku_days": 217,
+          "coverage_pct": 82.03
+        }
+      },
+      "days_with_less_waste": 17,
+      "days_with_more_waste": 13,
+      "days_with_higher_revenue": 24,
+      "joint_minus_baseline": {
+        "prepared": -104,
+        "sold": 193,
+        "stock": -297,
+        "revenue_vnd": 7499360,
+        "contribution_vnd": 8567922,
+        "stockout_sku_days": -3,
+        "preparation_base_mae": -5.42
+      }
+    },
+    "august": {
+      "joint": {
+        "days": 31,
+        "prepared": 28392,
+        "sold": 26687,
+        "stock": 1705,
+        "sell_through_pct": 93.99,
+        "revenue_vnd": 686642060,
+        "contribution_vnd": 342385726,
+        "stockout_sku_days": 65,
+        "preparation_base_mae": 55.71
+      },
+      "seasonal_baseline": {
+        "days": 31,
+        "prepared": 29220,
+        "sold": 26802,
+        "stock": 2418,
+        "sell_through_pct": 91.72,
+        "revenue_vnd": 685209725,
+        "contribution_vnd": 330588869,
+        "stockout_sku_days": 59,
+        "preparation_base_mae": 84.29
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 188,
+          "sku_days": 217,
+          "coverage_pct": 86.64
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 183,
+          "sku_days": 217,
+          "coverage_pct": 84.33
+        }
+      },
+      "days_with_less_waste": 25,
+      "days_with_more_waste": 6,
+      "days_with_higher_revenue": 17,
+      "joint_minus_baseline": {
+        "prepared": -828,
+        "sold": -115,
+        "stock": -713,
+        "revenue_vnd": 1432335,
+        "contribution_vnd": 11796857,
+        "stockout_sku_days": 6,
+        "preparation_base_mae": -28.58
+      }
+    },
+    "all": {
+      "joint": {
+        "days": 62,
+        "prepared": 58308,
+        "sold": 54861,
+        "stock": 3447,
+        "sell_through_pct": 94.09,
+        "revenue_vnd": 1410487105,
+        "contribution_vnd": 703163767,
+        "stockout_sku_days": 128,
+        "preparation_base_mae": 59.24
+      },
+      "seasonal_baseline": {
+        "days": 62,
+        "prepared": 59240,
+        "sold": 54783,
+        "stock": 4457,
+        "sell_through_pct": 92.48,
+        "revenue_vnd": 1401555410,
+        "contribution_vnd": 682798988,
+        "stockout_sku_days": 125,
+        "preparation_base_mae": 76.24
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 384,
+          "sku_days": 434,
+          "coverage_pct": 88.48
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 361,
+          "sku_days": 434,
+          "coverage_pct": 83.18
+        }
+      },
+      "days_with_less_waste": 42,
+      "days_with_more_waste": 19,
+      "days_with_higher_revenue": 41,
+      "joint_minus_baseline": {
+        "prepared": -932,
+        "sold": 78,
+        "stock": -1010,
+        "revenue_vnd": 8931695,
+        "contribution_vnd": 20364779,
+        "stockout_sku_days": 3,
+        "preparation_base_mae": -17.0
+      }
+    },
+    "july_first_half": {
+      "joint": {
+        "days": 16,
+        "prepared": 15348,
+        "sold": 14586,
+        "stock": 762,
+        "sell_through_pct": 95.04,
+        "revenue_vnd": 376168695,
+        "contribution_vnd": 189987223,
+        "stockout_sku_days": 37,
+        "preparation_base_mae": 49.25
+      },
+      "seasonal_baseline": {
+        "days": 16,
+        "prepared": 15364,
+        "sold": 14476,
+        "stock": 888,
+        "sell_through_pct": 94.22,
+        "revenue_vnd": 371993805,
+        "contribution_vnd": 185672253,
+        "stockout_sku_days": 43,
+        "preparation_base_mae": 50.88
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 100,
+          "sku_days": 112,
+          "coverage_pct": 89.29
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 86,
+          "sku_days": 112,
+          "coverage_pct": 76.79
+        }
+      },
+      "days_with_less_waste": 8,
+      "days_with_more_waste": 7,
+      "days_with_higher_revenue": 12,
+      "joint_minus_baseline": {
+        "prepared": -16,
+        "sold": 110,
+        "stock": -126,
+        "revenue_vnd": 4174890,
+        "contribution_vnd": 4314970,
+        "stockout_sku_days": -6,
+        "preparation_base_mae": -1.63
+      }
+    },
+    "july_second_half": {
+      "joint": {
+        "days": 15,
+        "prepared": 14568,
+        "sold": 13588,
+        "stock": 980,
+        "sell_through_pct": 93.27,
+        "revenue_vnd": 347676350,
+        "contribution_vnd": 170790818,
+        "stockout_sku_days": 26,
+        "preparation_base_mae": 77.2
+      },
+      "seasonal_baseline": {
+        "days": 15,
+        "prepared": 14656,
+        "sold": 13505,
+        "stock": 1151,
+        "sell_through_pct": 92.15,
+        "revenue_vnd": 344351880,
+        "contribution_vnd": 166537866,
+        "stockout_sku_days": 23,
+        "preparation_base_mae": 86.67
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 96,
+          "sku_days": 105,
+          "coverage_pct": 91.43
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 92,
+          "sku_days": 105,
+          "coverage_pct": 87.62
+        }
+      },
+      "days_with_less_waste": 9,
+      "days_with_more_waste": 6,
+      "days_with_higher_revenue": 12,
+      "joint_minus_baseline": {
+        "prepared": -88,
+        "sold": 83,
+        "stock": -171,
+        "revenue_vnd": 3324470,
+        "contribution_vnd": 4252952,
+        "stockout_sku_days": 3,
+        "preparation_base_mae": -9.47
+      }
+    },
+    "august_first_half": {
+      "joint": {
+        "days": 16,
+        "prepared": 14628,
+        "sold": 13777,
+        "stock": 851,
+        "sell_through_pct": 94.18,
+        "revenue_vnd": 354276520,
+        "contribution_vnd": 177003446,
+        "stockout_sku_days": 36,
+        "preparation_base_mae": 51.69
+      },
+      "seasonal_baseline": {
+        "days": 16,
+        "prepared": 15100,
+        "sold": 13864,
+        "stock": 1236,
+        "sell_through_pct": 91.81,
+        "revenue_vnd": 354330500,
+        "contribution_vnd": 170957292,
+        "stockout_sku_days": 32,
+        "preparation_base_mae": 80.19
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 97,
+          "sku_days": 112,
+          "coverage_pct": 86.61
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 95,
+          "sku_days": 112,
+          "coverage_pct": 84.82
+        }
+      },
+      "days_with_less_waste": 13,
+      "days_with_more_waste": 3,
+      "days_with_higher_revenue": 7,
+      "joint_minus_baseline": {
+        "prepared": -472,
+        "sold": -87,
+        "stock": -385,
+        "revenue_vnd": -53980,
+        "contribution_vnd": 6046154,
+        "stockout_sku_days": 4,
+        "preparation_base_mae": -28.5
+      }
+    },
+    "august_second_half": {
+      "joint": {
+        "days": 15,
+        "prepared": 13764,
+        "sold": 12910,
+        "stock": 854,
+        "sell_through_pct": 93.8,
+        "revenue_vnd": 332365540,
+        "contribution_vnd": 165382280,
+        "stockout_sku_days": 29,
+        "preparation_base_mae": 60.0
+      },
+      "seasonal_baseline": {
+        "days": 15,
+        "prepared": 14120,
+        "sold": 12938,
+        "stock": 1182,
+        "sell_through_pct": 91.63,
+        "revenue_vnd": 330879225,
+        "contribution_vnd": 159631577,
+        "stockout_sku_days": 27,
+        "preparation_base_mae": 88.67
+      },
+      "shelf_at_2130": {
+        "joint": {
+          "sku_days_with_stock_at_2130": 91,
+          "sku_days": 105,
+          "coverage_pct": 86.67
+        },
+        "seasonal_baseline": {
+          "sku_days_with_stock_at_2130": 88,
+          "sku_days": 105,
+          "coverage_pct": 83.81
+        }
+      },
+      "days_with_less_waste": 12,
+      "days_with_more_waste": 3,
+      "days_with_higher_revenue": 10,
+      "joint_minus_baseline": {
+        "prepared": -356,
+        "sold": -28,
+        "stock": -328,
+        "revenue_vnd": 1486315,
+        "contribution_vnd": 5750703,
+        "stockout_sku_days": 2,
+        "preparation_base_mae": -28.67
+      }
+    }
+  }
+}

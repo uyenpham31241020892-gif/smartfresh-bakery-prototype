@@ -1,0 +1,261 @@
+{
+  "period": "2022-07-01..2022-08-31",
+  "seed": 42,
+  "market_equal": true,
+  "online_factor_min": 0.9125,
+  "online_factor_max": 1.0,
+  "days_using_prior_closed_sessions": 61,
+  "periods": {
+    "july": {
+      "joint": {
+        "days": 31,
+        "prepared": 41256,
+        "sold": 37804,
+        "stock": 3452,
+        "sell_through_pct": 91.63,
+        "revenue_vnd": 967011655,
+        "contribution_vnd": 467288847,
+        "stockout_sku_days": 58,
+        "preparation_base_mae": 124.0
+      },
+      "rolling7": {
+        "days": 31,
+        "prepared": 25132,
+        "sold": 23892,
+        "stock": 1240,
+        "sell_through_pct": 95.07,
+        "revenue_vnd": 618879355,
+        "contribution_vnd": 313311247,
+        "stockout_sku_days": 143,
+        "preparation_base_mae": 473.68
+      },
+      "joint_minus_rolling7": {
+        "prepared": 16124,
+        "sold": 13912,
+        "stock": 2212,
+        "revenue_vnd": 348132300,
+        "contribution_vnd": 153977600,
+        "stockout_sku_days": -85,
+        "preparation_base_mae": -349.68
+      }
+    },
+    "august": {
+      "joint": {
+        "days": 31,
+        "prepared": 38296,
+        "sold": 34762,
+        "stock": 3534,
+        "sell_through_pct": 90.77,
+        "revenue_vnd": 887035890,
+        "contribution_vnd": 422715906,
+        "stockout_sku_days": 56,
+        "preparation_base_mae": 124.45
+      },
+      "rolling7": {
+        "days": 31,
+        "prepared": 21852,
+        "sold": 21302,
+        "stock": 550,
+        "sell_through_pct": 97.48,
+        "revenue_vnd": 554940420,
+        "contribution_vnd": 289667532,
+        "stockout_sku_days": 164,
+        "preparation_base_mae": 435.68
+      },
+      "joint_minus_rolling7": {
+        "prepared": 16444,
+        "sold": 13460,
+        "stock": 2984,
+        "revenue_vnd": 332095470,
+        "contribution_vnd": 133048374,
+        "stockout_sku_days": -108,
+        "preparation_base_mae": -311.23
+      }
+    },
+    "all": {
+      "joint": {
+        "days": 62,
+        "prepared": 79552,
+        "sold": 72566,
+        "stock": 6986,
+        "sell_through_pct": 91.22,
+        "revenue_vnd": 1854047545,
+        "contribution_vnd": 890004753,
+        "stockout_sku_days": 114,
+        "preparation_base_mae": 124.23
+      },
+      "rolling7": {
+        "days": 62,
+        "prepared": 46984,
+        "sold": 45194,
+        "stock": 1790,
+        "sell_through_pct": 96.19,
+        "revenue_vnd": 1173819775,
+        "contribution_vnd": 602978779,
+        "stockout_sku_days": 307,
+        "preparation_base_mae": 454.68
+      },
+      "joint_minus_rolling7": {
+        "prepared": 32568,
+        "sold": 27372,
+        "stock": 5196,
+        "revenue_vnd": 680227770,
+        "contribution_vnd": 287025974,
+        "stockout_sku_days": -193,
+        "preparation_base_mae": -330.45
+      }
+    },
+    "july_first_half": {
+      "joint": {
+        "days": 16,
+        "prepared": 20880,
+        "sold": 19009,
+        "stock": 1871,
+        "sell_through_pct": 91.04,
+        "revenue_vnd": 485990030,
+        "contribution_vnd": 233175768,
+        "stockout_sku_days": 30,
+        "preparation_base_mae": 127.25
+      },
+      "rolling7": {
+        "days": 16,
+        "prepared": 13820,
+        "sold": 12939,
+        "stock": 881,
+        "sell_through_pct": 93.63,
+        "revenue_vnd": 333823170,
+        "contribution_vnd": 165709928,
+        "stockout_sku_days": 68,
+        "preparation_base_mae": 428.75
+      },
+      "joint_minus_rolling7": {
+        "prepared": 7060,
+        "sold": 6070,
+        "stock": 990,
+        "revenue_vnd": 152166860,
+        "contribution_vnd": 67465840,
+        "stockout_sku_days": -38,
+        "preparation_base_mae": -301.5
+      }
+    },
+    "july_second_half": {
+      "joint": {
+        "days": 15,
+        "prepared": 20376,
+        "sold": 18795,
+        "stock": 1581,
+        "sell_through_pct": 92.24,
+        "revenue_vnd": 481021625,
+        "contribution_vnd": 234113079,
+        "stockout_sku_days": 28,
+        "preparation_base_mae": 120.53
+      },
+      "rolling7": {
+        "days": 15,
+        "prepared": 11312,
+        "sold": 10953,
+        "stock": 359,
+        "sell_through_pct": 96.83,
+        "revenue_vnd": 285056185,
+        "contribution_vnd": 147601319,
+        "stockout_sku_days": 75,
+        "preparation_base_mae": 521.6
+      },
+      "joint_minus_rolling7": {
+        "prepared": 9064,
+        "sold": 7842,
+        "stock": 1222,
+        "revenue_vnd": 195965440,
+        "contribution_vnd": 86511760,
+        "stockout_sku_days": -47,
+        "preparation_base_mae": -401.07
+      }
+    },
+    "august_first_half": {
+      "joint": {
+        "days": 16,
+        "prepared": 19552,
+        "sold": 17628,
+        "stock": 1924,
+        "sell_through_pct": 90.16,
+        "revenue_vnd": 449257410,
+        "contribution_vnd": 211977526,
+        "stockout_sku_days": 28,
+        "preparation_base_mae": 132.06
+      },
+      "rolling7": {
+        "days": 16,
+        "prepared": 11464,
+        "sold": 11094,
+        "stock": 370,
+        "sell_through_pct": 96.77,
+        "revenue_vnd": 288711905,
+        "contribution_vnd": 149476637,
+        "stockout_sku_days": 78,
+        "preparation_base_mae": 412.69
+      },
+      "joint_minus_rolling7": {
+        "prepared": 8088,
+        "sold": 6534,
+        "stock": 1554,
+        "revenue_vnd": 160545505,
+        "contribution_vnd": 62500889,
+        "stockout_sku_days": -50,
+        "preparation_base_mae": -280.63
+      }
+    },
+    "august_second_half": {
+      "joint": {
+        "days": 15,
+        "prepared": 18744,
+        "sold": 17134,
+        "stock": 1610,
+        "sell_through_pct": 91.41,
+        "revenue_vnd": 437778480,
+        "contribution_vnd": 210738380,
+        "stockout_sku_days": 28,
+        "preparation_base_mae": 116.33
+      },
+      "rolling7": {
+        "days": 15,
+        "prepared": 10388,
+        "sold": 10208,
+        "stock": 180,
+        "sell_through_pct": 98.27,
+        "revenue_vnd": 266228515,
+        "contribution_vnd": 140190895,
+        "stockout_sku_days": 86,
+        "preparation_base_mae": 460.2
+      },
+      "joint_minus_rolling7": {
+        "prepared": 8356,
+        "sold": 6926,
+        "stock": 1430,
+        "revenue_vnd": 171549965,
+        "contribution_vnd": 70547485,
+        "stockout_sku_days": -58,
+        "preparation_base_mae": -343.87
+      }
+    },
+    "previous_july_policy": {
+      "days": 31,
+      "prepared": 42564,
+      "sold": 37969,
+      "stock": 4595,
+      "sell_through_pct": 89.2,
+      "revenue_vnd": 967022535,
+      "contribution_vnd": 451203157,
+      "stockout_sku_days": 46,
+      "preparation_base_mae": 165.68
+    },
+    "july_joint_minus_previous": {
+      "prepared": -1308,
+      "sold": -165,
+      "stock": -1143,
+      "revenue_vnd": -10880,
+      "contribution_vnd": 16085690,
+      "stockout_sku_days": 12,
+      "preparation_base_mae": -41.68
+    }
+  }
+}

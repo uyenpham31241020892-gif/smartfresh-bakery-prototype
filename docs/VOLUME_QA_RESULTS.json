@@ -1,0 +1,32 @@
+{
+  "passed": 42,
+  "failed": 0,
+  "scope": [
+    "test_volume_scenario",
+    "test_checkpoint_review",
+    "test_v4",
+    "test_m1_contract"
+  ],
+  "additional_contract_checks_passed": 2,
+  "browser": {
+    "passed": true,
+    "browser": "Edge headless",
+    "javascript_errors": [],
+    "checks": [
+      "morning_tab_only",
+      "evening_tab_only_at_17",
+      "only_changed_price_cards",
+      "collapsed_manual_prices",
+      "manual_approval_then_apply_one_sku",
+      "registry_training_provenance",
+      "learning_view",
+      "mobile_render"
+    ]
+  },
+  "legacy_full_suite_collection_errors": [
+    "test_day_loop: removed OUTCOME_FEATURES/outcome_features",
+    "test_learning: removed weather",
+    "test_evaluation_gd8: imports legacy test_learning"
+  ],
+  "adapter_sha256": "7e3289e6191df19232c0f49d557e5eb8e00ccab80feadb21d02a4d7b04cc065d"
+}

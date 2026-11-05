@@ -12,6 +12,11 @@ WEATHER=['forecast_rain_mm_previous_day1','forecast_temperature_max_c_previous_d
 DAILY=['date','sku_code','prepared_qty','sold_qty','waste_qty','stockout','discounted_qty']+WEATHER
 PROMO=['date','sku_code','slot','discount_pct','incremental_promo_qty','measurement_method','experiment_id']+WEATHER
 
+def weather(row: dict) -> dict:
+    """Extract the weather / calendar fields from a learning row dict.
+    Returns a dict suitable for passing as *weather* to Workflow.create()."""
+    return {k: row[k] for k in WEATHER if k in row}
+
 def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,allow_nan=False).encode()).hexdigest()
 class Learning:
     def __init__(self,store,frozen,directory=None):
@@ -25,11 +30,26 @@ class Learning:
             CREATE TABLE IF NOT EXISTS v4_checkpoints(id TEXT PRIMARY KEY,payload TEXT);''')
             db.execute('INSERT OR IGNORE INTO model_active VALUES(1,?)',(MODEL_VERSION,))
             current=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()['version']
-            if current!=MODEL_VERSION:raise ValueError('Database chứa phiên bản ngoài V4; không trộn workspace cũ.')
+            from .volume_scenario import MODEL_VERSION as OPERATING_MODEL,LEGACY_MODEL_VERSION
+            if current not in (MODEL_VERSION,OPERATING_MODEL,LEGACY_MODEL_VERSION):raise ValueError('Database chứa phiên bản không được hỗ trợ.')
+            self.resolve(OPERATING_MODEL).require_integrity()
+            if current!=OPERATING_MODEL:
+                db.execute('UPDATE model_active SET version=? WHERE id=1',(OPERATING_MODEL,))
+                db.execute('INSERT INTO audit(action,detail) VALUES (?,?)',('MODEL_DEFAULT_UPGRADED',json.dumps(dict(previous=current,current=OPERATING_MODEL,reason='User requested joint policy as primary configuration; historical sessions retain pinned versions'))))
     def resolve(self,version):
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL, LEGACY_MODEL_VERSION
+        if version in (VOLUME_MODEL,LEGACY_MODEL_VERSION):
+            with self.lock:
+                if not hasattr(self,'operating_engines'):self.operating_engines={}
+                if version not in self.operating_engines:
+                    from .volume_engine import VolumeEngine
+                    self.operating_engines[version]=VolumeEngine(version)
+                return self.operating_engines[version]
         if version!=MODEL_VERSION:raise ValueError('Không nạp phiên bản/data cũ trong workspace V4.')
         return self.frozen
-    def active(self):return self.frozen
+    def active(self):
+        from .volume_scenario import MODEL_VERSION as OPERATING_MODEL
+        return self.resolve(OPERATING_MODEL)
     def rows(self,kind,origin):
         with self.store.read() as db:return [json.loads(r['payload']) for r in db.execute('SELECT payload FROM learning_rows WHERE kind=? AND origin=? ORDER BY row_key',(kind,origin))]
     def history_before(self,day):return {(r['date'],r['sku_code']):r['sold_qty'] for r in self.rows('m2','real') if r['date']<day}
@@ -89,6 +109,12 @@ class Learning:
                         raise ValueError('Đối soát: chuẩn bị = bán + hủy, stockout phải là 0/1.')
                     if r['discounted_qty'] > r['sold_qty']:
                         raise ValueError('Số bán giảm giá không được vượt tổng bán.')
+                    if 'incremental_promo_qty_estimated' in source:
+                        incremental=float(source['incremental_promo_qty_estimated'])
+                        if not math.isfinite(incremental) or not 0<=incremental<=r['discounted_qty']:
+                            raise ValueError('Lượng kích cầu ước tính phải nằm trong lượng bán giảm giá.')
+                        r['incremental_promo_qty_estimated']=incremental
+                        r['organic_sales_estimated']=r['sold_qty']-incremental
                     r['eligible'] = not r['stockout'] and r['sold_qty'] < r['prepared_qty'] and r['discounted_qty'] == 0
                     key = (r['date'], r['sku_code'])
                 else:
@@ -134,17 +160,53 @@ class Learning:
         return report
 
     def collect(self, s):
+        if s['mode']=='simulation':return self.collect_simulation(s)
         if s['phase'] != 'closed' or s['mode'] != 'live' or s.get('minute') != 1320:
             raise ValueError('Chỉ thu kết quả từ ca dữ liệu thật đã chốt.')
         records = []
         for sku, p in s['products'].items():
             records.append({'date': s['day'], 'sku_code': sku, 'prepared_qty': p['prepared'], 'sold_qty': p['sold'],
-                            'waste_qty': p['stock'], 'stockout': int(p['stock'] == 0),
+                            'waste_qty': p['stock'], 'stockout': int(p['stock'] == 0 or bool(p.get('stockout_intervals')) or p.get('stockout_since') is not None),
+                            'incremental_promo_qty_estimated':p.get('incremental_promo_qty_estimated',0),
                             'discounted_qty': sum(t['qty'] for t in s['ledger'] if t['sku'] == sku and t['discount'] > 0),
                             **{k: s['weather'].get(k) for k in WEATHER}})
         if any(r['issued_at'] is None for r in records):
             raise ValueError('Ca thiếu thời điểm phát hành dự báo; bổ sung qua tệp kết quả thực tế.')
         return self.ingest('closed-' + s['id'] + '.csv', pd.DataFrame(records).to_csv(index=False).encode(), 'm2', 'real', True)
+
+    def collect_simulation(self,s):
+        """Observed POS labels only; no unserved requests or future oracle input."""
+        from .volume_scenario import VERSION,LEGACY_VOLUME_VERSION
+        if s['phase']!='closed' or s['minute']!=1320 or s.get('simulator_version') not in (VERSION,LEGACY_VOLUME_VERSION):
+            raise ValueError('Chỉ thu dữ liệu mô phỏng ×10 đã chốt.')
+        records=[]
+        for sku,p in s['products'].items():
+            plan=next(r for r in s['plan'] if r['sku']==sku)
+            records.append(('m2',sku,dict(date=s['day'],sku_code=sku,features=plan['features'],
+                prepared_qty=p['prepared'],sold_qty=p['sold'],waste_qty=p['stock'],
+                incremental_promo_qty_estimated=p.get('incremental_promo_qty_estimated',0),organic_sales_estimated=p.get('organic_sales_estimated',p['sold']),
+                censored=bool(p.get('stockout_intervals') or p.get('stockout_since') is not None or any(i['censored'] for i in p.get('observed_intervals',[]))),
+                label_available_at=s['day']+'T22:00:00+07:00')))
+        seen=set()
+        for proposal in s['decisions']:
+            minute=proposal['minute']
+            if minute in seen or not 1170<=minute<=1290 or proposal['status'] not in ('applied','auto_hold','rejected','shadow_only'):continue
+            seen.add(minute)
+            for row in proposal['rows']:
+                if not row.get('model_features'):continue
+                transactions=[t for t in s['ledger'] if t['sku']==row['sku'] and minute<=t['minute']<minute+30]
+                discounts={t['discount'] for t in transactions}
+                actual=row.get('approved',row['previous']) if proposal['status']=='applied' else row['previous']
+                if discounts and discounts!={actual}:continue  # mixed-price window is not one action label
+                records.append(('m1_window',row['sku']+':'+str(minute),dict(date=s['day'],sku_code=row['sku'],
+                    features=row['model_features'],action_discount_pct=actual,sold_next30_observed=sum(t['qty'] for t in transactions),
+                    censored=any(i['censored'] for i in s['products'][row['sku']].get('observed_intervals',[]) if minute<=i['minute']<minute+30),
+                    label_available_at=s['day']+f'T{(minute+30)//60:02}:{(minute+30)%60:02}:00+07:00')))
+        with self.store.connect() as db:
+            for kind,key,row in records:
+                row.update(source_session_id=s['id'],model_version=s['model_version'],simulator_hash=s['simulator_hash'],seed=s['seed'],volume_scale=10,origin='simulation_x10',eligible_for_real_training=False)
+                db.execute('INSERT OR IGNORE INTO learning_rows VALUES (?,?,?,?)',(kind,'simulation_x10',s['id']+':'+key,json.dumps(row)))
+        return dict(rows=len(records),origin='simulation_x10',auto_retrained=False,note='POS đã chốt dùng cho vòng train mô phỏng tiếp theo; không tự trộn vào dữ liệu thật hay thay trọng số đang chạy.')
 
     def status(self):
         active = self.active()
@@ -153,48 +215,53 @@ class Learning:
             runs = [json.loads(r['report']) for r in db.execute('SELECT report FROM learning_runs ORDER BY rowid DESC LIMIT 30')]
             datasets = [json.loads(r['report']) for r in db.execute('SELECT report FROM learning_datasets ORDER BY rowid DESC LIMIT 20')]
             events = [dict(r) for r in db.execute('SELECT id,action,detail,created FROM audit WHERE session_id IS NULL ORDER BY id DESC LIMIT 30')]
-        return {'active': active.version, 'frozen': self.frozen.version, 'counts': counts, 'runs': runs, 'datasets': datasets, 'events': events,
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL
+        simulation=self.resolve(VOLUME_MODEL)
+        return {'active': active.version, 'simulation_model':simulation.version,'simulation_training':simulation.manifest,'frozen': self.frozen.version, 'counts': counts, 'runs': runs, 'datasets': datasets, 'events': events,
                 'minimum_days': {'m2': 63, 'm1': 42}, 'trained_until': active.manifest.get('trained_until', '2022-08-15')}
 
     def train(self,*args,**kwargs):raise ValueError('V4 đã khóa; ứng dụng không train/tune lại.')
     def fresh_holdout(self,*args,**kwargs):raise ValueError('Không tạo nhãn holdout mù mới cho kết quả V4 đã khóa. Xem hồ sơ kiểm định V4.')
     def promote(self,*args,**kwargs):raise ValueError('V4 là phiên bản duy nhất đã chốt; không có ứng viên khác để promotion.')
     def registry(self):
-        e=self.frozen
+        e=self.active()
         try:e.require_integrity();integrity=True;error=None
         except Exception as exc:integrity=False;error=str(exc)
         with self.store.read() as db:
             checkpoints=[json.loads(r['payload']) for r in db.execute('SELECT payload FROM v4_checkpoints ORDER BY rowid DESC')]
             events=[dict(r) for r in db.execute("SELECT * FROM audit WHERE action LIKE 'MODEL_%' ORDER BY id DESC LIMIT 100")]
-        return dict(active=e.version,versions=[dict(version=e.version,active=True,frozen=True,integrity=integrity,error=error,manifest_sha256=digest(e.manifest),parent=None,origin='provided_V4_locked',status='frozen',report=None,compatibility={},holdouts=[])],checkpoints=checkpoints,events=events,
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL
+        simulation=self.resolve(VOLUME_MODEL)
+        simulation.require_integrity()
+        return dict(active=e.version,simulation_model=simulation.version,simulation_manifest=simulation.manifest,versions=[dict(version=e.version,active=True,frozen=True,integrity=integrity,error=error,manifest_sha256=digest(e.manifest),parent=self.frozen.version,origin='primary_joint_operating_model',status='active',report=None,compatibility={},holdouts=[]),dict(version=self.frozen.version,active=False,frozen=True,integrity=True,error=None,manifest_sha256=digest(self.frozen.manifest),parent=None,origin='historical_archive',status='archived',report=None,compatibility={},holdouts=[])],checkpoints=checkpoints,events=events,
             protocol='POST_TEST_DEVELOPMENT_ITERATION',manifest=e.manifest,
-            note='Chỉ V4 đã khóa. Giữ registry/hash, ghim ca, lịch sử và snapshot/khôi phục triển khai V4. Snapshot là bản sao cùng trọng số, không phải model V4.1. Train/tune/promotion phiên bản mới được khóa theo quyết định nhóm.')
+            note='JOINT là model mặc định cho ca mới và dữ liệu POS nhập. Quy mô cơ sở đã cập nhật; không có chế độ ×1/×10 riêng. Mỗi ca ghim model/hash; bản V4 cũ chỉ phục vụ lịch sử.')
     def checkpoint(self,reason):
         if len(reason.strip())<3:raise ValueError('Cần lý do tạo snapshot.')
         with self.lock:
-            self.frozen.require_integrity();ident=uuid.uuid4().hex;target=self.root/ident;target.mkdir()
-            for rel,h in self.frozen._hashes.items():
-                if not rel.startswith('v4/'):continue
+            active=self.active();active.require_integrity();ident=uuid.uuid4().hex;target=self.root/ident;target.mkdir()
+            for rel,h in active.manifest['native_model_hashes'].items():
                 p=target/rel;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/rel,p)
-            payload=dict(id=ident,model_version=MODEL_VERSION,created=datetime.now(timezone.utc).isoformat(),actor=actor.get()['username'],reason=reason,hashes=self.frozen.manifest['native_model_hashes'])
+            payload=dict(id=ident,model_version=active.version,created=datetime.now(timezone.utc).isoformat(),actor=actor.get()['username'],reason=reason,hashes=active.manifest['native_model_hashes'])
             with self.store.connect() as db:
                 db.execute('INSERT INTO v4_checkpoints VALUES(?,?)',(ident,json.dumps(payload)))
                 db.execute('INSERT INTO audit(action,detail) VALUES(?,?)',('MODEL_CHECKPOINT',json.dumps(payload)))
             return self.registry()
     def rollback(self,expected_active,reason,checkpoint_id=None):
-        if expected_active!=MODEL_VERSION or len(reason.strip())<3:raise ValueError('Cần đúng phiên bản active V4 và lý do khôi phục.')
+        active=self.active()
+        if expected_active!=active.version or len(reason.strip())<3:raise ValueError('Cần đúng phiên bản active và lý do khôi phục.')
         with self.lock:
             with self.store.read() as db:
                 row=db.execute('SELECT payload FROM v4_checkpoints WHERE id=?',(checkpoint_id,)).fetchone() if checkpoint_id else db.execute('SELECT payload FROM v4_checkpoints ORDER BY rowid DESC LIMIT 1').fetchone()
             if row is None:raise ValueError('Tạo snapshot V4 nguyên vẹn trước khi khôi phục.')
             snap=json.loads(row['payload']);target=self.root/snap['id']
-            if snap['hashes']!=self.frozen.manifest['native_model_hashes']:raise ValueError('Snapshot không khớp model V4 đã khóa.')
+            if snap['hashes']!=active.manifest['native_model_hashes']:raise ValueError('Snapshot không khớp model đang dùng.')
             for rel,h in snap['hashes'].items():
                 if hashlib.sha256((target/rel).read_bytes()).hexdigest()!=h:raise ValueError('Snapshot hỏng: '+rel)
             for rel in snap['hashes']:
                 p=ROOT/rel;temp=p.with_suffix(p.suffix+'.restore');shutil.copyfile(target/rel,temp);temp.replace(p)
-            self.frozen.require_integrity();self.frozen.reload_if_needed()
-            with self.store.connect() as db:db.execute('INSERT INTO audit(action,detail) VALUES(?,?)',('MODEL_ROLLBACK',json.dumps(dict(checkpoint=snap['id'],from_version=MODEL_VERSION,to_version=MODEL_VERSION,reason=reason,actor=actor.get(),verified_hashes=snap['hashes']))))
+            active.require_integrity();active.reload_if_needed()
+            with self.store.connect() as db:db.execute('INSERT INTO audit(action,detail) VALUES(?,?)',('MODEL_ROLLBACK',json.dumps(dict(checkpoint=snap['id'],from_version=active.version,to_version=active.version,reason=reason,actor=actor.get(),verified_hashes=snap['hashes']))))
         return self.registry()
 
 def demo_data(kind,skus):raise ValueError('V4 đã khóa; không sinh data huấn luyện cũ trong ứng dụng.')

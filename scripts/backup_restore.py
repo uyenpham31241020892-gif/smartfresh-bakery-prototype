@@ -58,13 +58,20 @@ def restore(archive,destination,server_stopped=False):
                 active=db.execute('SELECT version FROM model_active WHERE id=1').fetchone()
                 required={r[0] for r in db.execute("SELECT DISTINCT json_extract(state,'$.model_version') FROM sessions")}
                 if active:required.add(active[0])
-                if any(v!='SMARTFRESH_V4_LOCKED' for v in required):raise ValueError('Backup có model/data ngoài V4; không trộn workspace.')
+                sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+                from services.volume_scenario import MODEL_VERSION as VOLUME_MODEL, LEGACY_MODEL_VERSION
+                if required-{'SMARTFRESH_V4_LOCKED',VOLUME_MODEL,LEGACY_MODEL_VERSION}:raise ValueError('Backup có model chưa đăng ký; không trộn workspace.')
+                for version in required & {VOLUME_MODEL,LEGACY_MODEL_VERSION}:
+                    from services.volume_engine import VolumeEngine
+                    volume=VolumeEngine(version);volume.require_integrity()
+                    for row in db.execute("SELECT state FROM sessions WHERE json_extract(state,'$.model_version')=?",(version,)):
+                        if json.loads(row[0])['model_hashes']!=volume.manifest['native_model_hashes']:raise ValueError('Bundle ×10 hiện tại không khớp model ghim trong backup.')
                 if 'v4_checkpoints' in tables:
                     for row in db.execute('SELECT payload FROM v4_checkpoints'):
                         checkpoint=json.loads(row[0]);folder=stage/'learning'/checkpoint['id']
                         if len(checkpoint['id'])!=32 or not all(c in '0123456789abcdef' for c in checkpoint['id']):raise ValueError('Snapshot ID không hợp lệ.')
                         for rel,expected_hash in checkpoint['hashes'].items():
-                            if not rel.startswith('v4/') or '..' in Path(rel).parts:raise ValueError('Snapshot path không hợp lệ.')
+                            if not rel.startswith(('v4/','models/joint/','TRAINED_TESTED/agent_sandbox/','services/joint_policy.py')) or '..' in Path(rel).parts or Path(rel).is_absolute():raise ValueError('Snapshot path không hợp lệ.')
                             if sha((folder/rel).read_bytes())!=expected_hash:raise ValueError('Snapshot V4 trong backup thiếu/sai hash.')
                 # Invalidate old login sessions, stop clocks/jobs; retain users and business audit.
                 if 'login_sessions' in tables:db.execute('DELETE FROM login_sessions')

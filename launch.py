@@ -15,10 +15,30 @@ else:
    subprocess.run([str(py),'-m','pip','install','-r','requirements.txt'],check=True);stamp.write_text(digest)
  except Exception as e:print('Loi tao venv:',e);sys.exit(1)
 try:
- # A local listener is not assumed to belong to this app. Never kill processes automatically.
+ # Determine an available port automatically — never crash because port 8000 is busy.
  import socket
- with socket.socket() as sock:
-  if sock.connect_ex(('127.0.0.1',8000))==0:raise RuntimeError('Port 8000 dang duoc su dung. Dong cua so SmartFresh cu hoac dung port khac bang uvicorn.')
+ def _find_free_port(start=int(os.environ.get('SMARTFRESH_PORT','8000')),end=8010):
+  # Check if port is already used by an old SmartFresh uvicorn process and terminate it cleanly
+  if os.name=='nt':
+   try:
+    chk=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    if chk.connect_ex(('127.0.0.1',start))==0:
+     chk.close()
+     out=subprocess.check_output(f'powershell -NoProfile -Command "(Get-NetTCPConnection -LocalPort {start} -ErrorAction SilentlyContinue).OwningProcess"',shell=True,text=True).strip()
+     if out and out.isdigit():
+      pid=int(out)
+      cmdline=subprocess.check_output(f'powershell -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \\"ProcessId = {pid}\\").CommandLine"',shell=True,text=True)
+      if 'uvicorn' in cmdline.lower() and 'app:app' in cmdline.lower():
+       print(f'Phat hien tien trinh SmartFresh cu (PID {pid}) tren port {start}, dang giai phong...')
+       subprocess.run(f'taskkill /F /PID {pid}',shell=True,capture_output=True)
+       time.sleep(1)
+    else:chk.close()
+   except Exception:pass
+  for p in range(start,end+1):
+   with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s:
+    if s.connect_ex(('127.0.0.1',p))!=0:return p
+  raise RuntimeError(f'Khong tim duoc port trong khoang {start}-{end}')
+ PORT=_find_free_port()
  # Reuse an existing optional Ollama installation only when that provider is selected.
  provider=os.environ.get('AI_PROVIDER','')
  if not provider and (R/'.env').exists():
@@ -32,17 +52,17 @@ try:
    with open(runtime/'ollama.log','a',encoding='utf-8') as ollama_log:
     subprocess.Popen([str(local_exe),'serve'],env=ollama_env,stdout=ollama_log,stderr=ollama_log,creationflags=subprocess.CREATE_NO_WINDOW)
  with open(runtime/'server.log','w',encoding='utf8') as log:
-  proc=subprocess.Popen([str(py),'-m','uvicorn','app:app','--host','127.0.0.1','--port','8000','--workers','1'],stdout=log,stderr=log)
-  print('Dang khoi dong server, xem runtime/server.log neu co loi...',flush=True)
+  proc=subprocess.Popen([str(py),'-m','uvicorn','app:app','--host','127.0.0.1','--port',str(PORT),'--workers','1'],stdout=log,stderr=log)
+  print(f'Dang khoi dong server tren port {PORT}, xem runtime/server.log neu co loi...',flush=True)
   for _ in range(120):
    if proc.poll() is not None:raise RuntimeError('Server dung. Xem runtime/server.log')
    try:
-    with urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=1) as r:
+    with urllib.request.urlopen(f'http://127.0.0.1:{PORT}/api/health',timeout=1) as r:
      if json.load(r).get('ok'):break
    except Exception:time.sleep(.5)
   else:
    proc.terminate();raise RuntimeError('Health check khong dat. Xem runtime/server.log')
-  print('SmartFresh V4: http://127.0.0.1:8000 - dong cua so/Ctrl+C de dung.',flush=True);webbrowser.open('http://127.0.0.1:8000')
+  print(f'SmartFresh V4: http://127.0.0.1:{PORT} - dong cua so/Ctrl+C de dung.',flush=True);webbrowser.open(f'http://127.0.0.1:{PORT}')
   try:proc.wait()
   except KeyboardInterrupt:proc.terminate();proc.wait()
 except Exception as e:print('LOI:',e);sys.exit(1)

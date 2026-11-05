@@ -144,7 +144,7 @@ class Monitoring:
         if r and r['state_hash']==state_hash:return json.loads(r['payload'])
         if s['mode']=='simulation':
             if s.get('simulator_hash')!=self.simulator.hash_for(s.get('simulator_version')):return []
-            try:actual=self.simulator.evaluation_counts(s['day'],s.get('simulator_version'))
+            try:actual=self.simulator.evaluation_counts(s['day'],s.get('simulator_version'),s.get('market_context'),s.get('seed',42))
             except ValueError:return []
             target='V4_organic_simulated_requests' if s.get('simulator_version')==self.simulator.version else 'V4_observed_POS_replay'
             target_note='Nhu cầu gốc mô phỏng V4 chỉ đọc sau chốt ca; không đưa vào feature.' if target=='V4_organic_simulated_requests' else 'Lượng bán quan sát replay V4, có thể bị censored; không phải nhu cầu tiềm ẩn.'
@@ -187,11 +187,14 @@ class Monitoring:
         return result
 
     def reference(self,engine,sku=''):
-        if engine.manifest.get('parent'):return [],{'available':False,'reason':'Không có reference feature tương thích đã đăng ký.'}
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL, scaled
+        volume=engine.version==VOLUME_MODEL
+        if engine.manifest.get('parent') and not volume:return [],{'available':False,'reason':'Không có reference feature tương thích đã đăng ký.'}
         path=DATA/'fit_features.csv'
         try:
             engine.require_integrity();sha=hashlib.sha256(path.read_bytes()).hexdigest()
             frame=pd.read_csv(path)
+            if volume:frame=pd.DataFrame([scaled(r) for r in frame.to_dict('records')])
         except (OSError,ValueError):return [],{'available':False,'reason':'Reference V4 không vượt kiểm tra hash.'}
         frame=frame[frame['date']<=engine.manifest['trained_until']]
         if sku:frame=frame[frame.sku_code==sku]
@@ -331,12 +334,17 @@ class Monitoring:
     def sandbox(self):
         # Separate demonstration dataset. No session, model, learning or price is modified.
         self.engine.require_integrity()
-        if self.engine.manifest.get('parent'):raise ValueError('Bộ minh họa này dùng model V4 đã khóa; model đang chọn đã học mới. Chọn ca dùng V4 đã khóa để minh họa.')
+        from .volume_scenario import MODEL_VERSION as VOLUME_MODEL
+        volume=self.engine.version==VOLUME_MODEL
+        if self.engine.manifest.get('parent') and not volume:raise ValueError('Model chưa đăng ký dữ liệu minh họa tương thích.')
+        version=self.simulator.version if volume else self.simulator.original_version
         visible=dict(self.simulator.seed);rows=[];sid='monitor-demo-'+uuid.uuid4().hex
-        dates=sorted(d for d in self.simulator.calendar if d>='2022-05-01')[:28]
+        dates=(self.simulator.report()['dates'][:28] if volume else
+               sorted(d for d in self.simulator.calendar if d>='2022-05-01')[:28])
         for index,day in enumerate(dates):
-            weather=self.simulator.calendar[day];plans=self.engine.plan(day,self.simulator.history_before(day),weather,self.simulator.outcomes_before(day))
-            actual=self.simulator.evaluation_counts(day,self.simulator.version)
+            weather=self.simulator.generated_weather(day) if volume else self.simulator.calendar[day]
+            plans=self.engine.plan(day,self.simulator.history_before(day,version=version),weather,self.simulator.outcomes_before(day,version=version))
+            actual=self.simulator.evaluation_counts(day,version)
             for p in plans:
                 value=int(round(actual[p['sku']]*(2.5 if index>=21 else 1.0)))
                 rows.append({'session_id':sid,'day':day,'sku':p['sku'],'model_version':self.engine.version,'origin':'AI_M2',

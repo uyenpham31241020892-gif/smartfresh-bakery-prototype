@@ -3,7 +3,7 @@ let businessTab='overview',businessSku='all',reportAiBusy=false;
 let baselineDays=180,baselineData=null,baselineBusy=false,baselineLoadedKey='';
 const reportAiResults=new Map(),reportAiRefresh=new Map();
 const basicBusinessHistoryPanel=businessHistoryPanel;
-function reportScopeKey(){return state.id+':'+(businessTab==='baseline'?baselineDays:businessDays)+':'+businessTab+':'+(businessTab==='products'?businessSku:'all')+':'+(state.phase==='closed'?'closed':'open')}
+function reportScopeKey(){return state.id+':'+businessDays+':'+businessTab+':'+(businessTab==='products'?businessSku:'all')+':'+(state.phase==='closed'?'closed':'open')}
 function analysisKey(){const key=reportScopeKey();return key+':'+(reportAiRefresh.get(key)??'initial')}
 function insightData(){return businessData?.session_id===state.id&&businessData.days===businessDays?businessData:null}
 function smallMetric(label,value,detail=''){return '<article><small>'+label+'</small><strong>'+value+'</strong>'+(detail?'<span class="trend-muted">'+detail+'</span>':'')+'</article>'}
@@ -13,9 +13,9 @@ function horizontalBars(rows,value,cash=false,color='#b72c82'){
 }
 function reportAiPanel(){
  const r=reportAiResults.get(analysisKey());
- const labels={overview:'xu hướng bán hàng',prices:'giá bán & giảm giá',baseline:'lịch sử baseline tham chiếu',products:businessSku==='all'?'cơ cấu sản phẩm':state.plan.find(p=>p.sku===businessSku)?.name||businessSku};
- let body='<p class="muted">AI đang đọc số liệu và biểu đồ '+esc(labels[businessTab])+'…</p>';
- if(r?.status==='ready')body='<small class="muted">Ảnh chụp '+dateVN(r.as_of_day||(businessTab==='baseline'?baselineData?.end_day:state.day))+' · '+hour(businessTab==='baseline'?1320:r.as_of_minute)+' · '+(businessTab==='baseline'?baselineDays:businessDays)+' ngày</small>'+copilotResponse(r,true);
+ const labels={overview:'xu hướng bán hàng',prices:'giá bán & giảm giá',products:businessSku==='all'?'cơ cấu sản phẩm':state.plan.find(p=>p.sku===businessSku)?.name||businessSku};
+ let body='<p class="muted">AI đang đọc số liệu và biểu đồ '+esc(labels[businessTab]||'báo cáo')+'…</p>';
+ if(r?.status==='ready')body='<small class="muted">Ảnh chụp '+dateVN(r.as_of_day||state.day)+' · '+hour(r.as_of_minute)+' · '+businessDays+' ngày</small>'+copilotResponse(r,true);
  if(r?.status==='unavailable')body='<p>Chưa nhận được phân tích AI: '+esc(r.error)+'</p><p>Các số liệu và nhận xét tính từ sổ bán vẫn dùng được.</p><button data-go="settings">Kiểm tra kết nối AI</button>';
  return '<aside class="panel report-ai"><div class="panel-head"><h2>'+icon('spark')+' AI phân tích '+esc(labels[businessTab])+'</h2></div><div class="panel-body" id="report-ai-text">'+body+'</div><div class="report-ai-actions"><button data-report-ai-refresh>Phân tích lại số mới</button><button class="small" data-chat>Hỏi sâu hơn</button><small>AI đọc đúng mục, khoảng ngày và SKU đang chọn. Bấm phân tích lại khi số liệu đổi.</small></div></aside>';
 }
@@ -44,45 +44,35 @@ function productInsights(r){
  return '<section class="panel"><div class="panel-head"><div><h2>Hiệu quả từng loại bánh</h2><p>Ngày '+dateVN(state.day)+' · '+(r.current_status==='closed'?'Đã chốt':'Tạm tính')+'</p></div><label>Sản phẩm <select data-business-sku aria-label="Sản phẩm phân tích"><option value="all">Tất cả sản phẩm</option>'+r.products.map(p=>'<option value="'+esc(p.sku)+'" '+(businessSku===p.sku?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label></div><div class="panel-body"><h3>Đóng góp doanh thu</h3>'+horizontalBars(sorted,'revenue',true)+'<h3 class="report-subtitle">Bán được bao nhiêu trong lượng đã chuẩn bị?</h3>'+stack+'<details class="business-details"><summary>Bảng giá, bán, tồn và giá vốn theo từng món</summary>'+table+'</details></div></section><section class="panel"><div class="panel-head"><h2>Chuẩn bị · bán · tồn qua các ngày</h2></div><div class="panel-body">'+businessChart(history,[{key:'prepared',label:'Chuẩn bị',color:'#8c79bd'},{key:'sold',label:'Đã bán',color:'#b72c82'},{key:'stock',label:'Tồn',color:'#31857c'}])+'</div></section><section class="panel"><div class="panel-head"><h2>Doanh thu cộng dồn các ngày đã chốt trong khoảng xem</h2></div><div class="panel-body">'+horizontalBars(period,'revenue',true)+'<p class="business-note">'+r.closed_days+' ngày đủ dữ liệu, không tính ca đang chạy. Hàng còn là tồn cuối ngày, chưa xác nhận hủy vật lý.</p></div></section>';
 }
 function baselineBusinessPanel(){
- const r=baselineData;
- const filter='<div class="report-filter"><label>Lịch sử baseline <select data-baseline-days>'+[30,90,180].map(n=>'<option value="'+n+'" '+(n===baselineDays?'selected':'')+'>'+n+' ngày'+(n===180?' · toàn bộ Jan–Jun':'')+'</option>').join('')+'</select></label></div>';
- if(!r||baselineLoadedKey!==state.id+':'+baselineDays)return filter+'<section class="panel panel-body">Đang đọc lịch sử baseline…</section>';
- const m=r.summary,cards='<div class="business-kpis">'+smallMetric('Doanh thu baseline',money(m.revenue),'Tổng '+r.closed_days+' ngày có dữ liệu')+smallMetric('Đã bán',units(m.sold)+' chiếc','Dữ liệu quan sát lịch sử')+smallMetric('Đã chuẩn bị',units(m.prepared)+' chiếc','Tổng sản lượng trong khoảng')+smallMetric('Khoảng nguồn',dateVN(r.start_day)+' – '+dateVN(r.end_day),'Không cộng vào doanh thu POS mới')+'</div>';
- const table='<div class="table-scroll"><table><thead><tr><th>Ngày</th><th>Doanh thu</th><th>Chuẩn bị</th><th>Đã bán</th><th>Tồn cuối ngày</th></tr></thead><tbody>'+r.rows.filter(d=>d.metrics).map(d=>'<tr><td>'+dateVN(d.day)+'</td><td>'+money(d.metrics.revenue)+'</td>'+['prepared','sold','stock'].map(k=>'<td>'+units(d.metrics[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
- return filter+'<section class="panel"><div class="panel-head"><div><h2>Lịch sử baseline · trước khi chạy POS mới</h2><p>'+esc(r.note)+'</p></div></div><div class="panel-body">'+cards+'<h3>Doanh thu baseline qua các ngày</h3>'+businessChart(r.rows,[{key:'revenue',label:'Doanh thu baseline',color:'#8c79bd'}],true)+'<h3>Chuẩn bị · bán · tồn của baseline</h3>'+businessChart(r.rows,[{key:'prepared',label:'Chuẩn bị',color:'#8c79bd'},{key:'sold',label:'Đã bán',color:'#b72c82'},{key:'stock',label:'Tồn cuối ngày',color:'#31857c'}])+'<details class="business-details"><summary>Số liệu baseline từng ngày</summary>'+table+'</details></div></section>';
+ return '';
 }
-async function refreshBaselineHistory(){
- if(currentView!=='reports'||businessTab!=='baseline'||baselineBusy||baselineLoadedKey===state.id+':'+baselineDays)return;
- baselineBusy=true;const key=state.id+':'+baselineDays;
- try{const r=await api('/api/baseline-history/'+state.id+'?days='+baselineDays);if(key===state.id+':'+baselineDays){baselineData=r;baselineLoadedKey=key;render();refreshReportAnalysis()}}finally{baselineBusy=false}
-}
+async function refreshBaselineHistory(){}
 businessHistoryPanel=function(){
- const r=insightData();if(businessSku!=='all'&&r&&!r.products.some(p=>p.sku===businessSku))businessSku='all';const tabs='<div class="report-tabs" role="tablist" aria-label="Nội dung báo cáo">'+[['overview','Tổng quan'],['prices','Giá & chiết khấu'],['products','Từng loại bánh'],['baseline','Lịch sử baseline']].map(([v,t])=>'<button role="tab" aria-selected="'+(businessTab===v)+'" data-business-tab="'+v+'">'+t+'</button>').join('')+'</div>';
- const range=['overview','baseline'].includes(businessTab)?'':'<div class="report-filter"><label>Khoảng xem <select data-business-days aria-label="Khoảng lịch sử">'+[7,30,90].map(n=>'<option '+(businessDays===n?'selected':'')+' value="'+n+'">'+n+' ngày</option>').join('')+'</select></label><small>'+dateVN(state.day)+' · '+(r?.closed_days??0)+' ngày đã chốt</small></div>';
- const body=businessTab==='baseline'?baselineBusinessPanel():businessTab==='overview'?basicBusinessHistoryPanel():!r?'<section class="panel panel-body">'+esc(businessError||'Đang tải báo cáo…')+'</section>':businessTab==='prices'?priceInsights(r):productInsights(r);
+ const r=insightData();if(businessSku!=='all'&&r&&!r.products.some(p=>p.sku===businessSku))businessSku='all';if(businessTab==='baseline')businessTab='overview';const tabs='<div class="report-tabs" role="tablist" aria-label="Nội dung báo cáo">'+[['overview','Tổng quan'],['prices','Giá & chiết khấu'],['products','Từng loại bánh']].map(([v,t])=>'<button role="tab" aria-selected="'+(businessTab===v)+'" data-business-tab="'+v+'">'+t+'</button>').join('')+'</div>';
+ const range=businessTab==='overview'?'':'<div class="report-filter"><label>Khoảng xem <select data-business-days aria-label="Khoảng lịch sử">'+[7,30,63,90].map(n=>'<option '+(businessDays===n?'selected':'')+' value="'+n+'">'+n+' ngày</option>').join('')+'</select></label><small>'+dateVN(state.day)+' · '+(r?.closed_days??0)+' ngày đã chốt</small></div>';
+ const body=businessTab==='overview'?basicBusinessHistoryPanel():!r?'<section class="panel panel-body">'+esc(businessError||'Đang tải báo cáo…')+'</section>':businessTab==='prices'?priceInsights(r):productInsights(r);
  return tabs+range+'<div class="report-analysis-layout"><div class="report-charts">'+body+'</div>'+reportAiPanel()+'</div>';
 };
 async function refreshReportAnalysis(){
- if(currentView!=='reports'||!insightData()||reportAiBusy||businessTab==='baseline'&&baselineLoadedKey!==state.id+':'+baselineDays)return;
+ if(currentView!=='reports'||!insightData()||reportAiBusy)return;
  const key=analysisKey();if(['ready','unavailable'].includes(reportAiResults.get(key)?.status))return;
  reportAiBusy=true;
  try{
   const scope=reportScopeKey(),revision=reportAiRefresh.get(scope);
-  const q=new URLSearchParams({days:businessTab==='baseline'?baselineDays:businessDays,section:businessTab,sku:businessTab==='products'?businessSku:'all'});
+  const q=new URLSearchParams({days:businessDays,section:businessTab,sku:businessTab==='products'?businessSku:'all'});
   if(revision!==undefined){q.set('refresh_revision',revision);q.set('retry','true');}
   const result=await api('/api/report-explanation/'+state.id+'?'+q);
   reportAiResults.set(key,result);
   if(key===analysisKey()&&currentView==='reports'){
    const target=document.getElementById('report-ai-text');
-   if(target)target.innerHTML=result.status==='ready'?'<small class="muted">Ảnh chụp '+dateVN(result.as_of_day||(businessTab==='baseline'?baselineData?.end_day:state.day))+' · '+hour(businessTab==='baseline'?1320:result.as_of_minute)+' · '+(businessTab==='baseline'?baselineDays:businessDays)+' ngày</small>'+copilotResponse(result,true):result.status==='unavailable'?'<p>AI chưa phản hồi: '+esc(result.error)+'</p><button data-go="settings">Kiểm tra kết nối AI</button>':'<p>AI đang đọc đúng báo cáo này tại '+hour(result.as_of_minute)+'…</p>';
+   if(target)target.innerHTML=result.status==='ready'?'<small class="muted">Ảnh chụp '+dateVN(result.as_of_day||state.day)+' · '+hour(result.as_of_minute)+' · '+businessDays+' ngày</small>'+copilotResponse(result,true):result.status==='unavailable'?'<p>AI chưa phản hồi: '+esc(result.error)+'</p><button data-go="settings">Kiểm tra kết nối AI</button>':'<p>AI đang đọc đúng báo cáo này tại '+hour(result.as_of_minute)+'…</p>';
   }
  }catch(e){reportAiResults.set(key,{status:'unavailable',error:e.message});const t=document.getElementById('report-ai-text');if(t&&key===analysisKey())t.textContent='Chưa nhận được phân tích AI: '+e.message}
  finally{reportAiBusy=false}
 }
 document.addEventListener('click',e=>{
- const tab=e.target.closest('[data-business-tab]');if(tab){businessTab=tab.dataset.businessTab;render();refreshBaselineHistory();refreshReportAnalysis()}
+ const tab=e.target.closest('[data-business-tab]');if(tab){businessTab=tab.dataset.businessTab;render();refreshReportAnalysis()}
  if(e.target.closest('[data-report-ai-refresh]')){reportAiRefresh.set(reportScopeKey(),state.revision);reportAiResults.delete(analysisKey());render();refreshReportAnalysis()}
 });
 document.addEventListener('change',e=>{if(e.target.hasAttribute('data-business-sku')){businessSku=e.target.value;render();refreshReportAnalysis()}});
-document.addEventListener('change',e=>{if(e.target.hasAttribute('data-baseline-days')){baselineDays=Number(e.target.value);render();refreshBaselineHistory()}});
 setInterval(()=>{if(!document.hidden)refreshReportAnalysis()},2500);

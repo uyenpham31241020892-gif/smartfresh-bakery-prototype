@@ -16,6 +16,10 @@ class Store:
                 CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY, state TEXT NOT NULL, updated TEXT DEFAULT CURRENT_TIMESTAMP);
                 CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT, action TEXT, detail TEXT, created TEXT DEFAULT CURRENT_TIMESTAMP);
                 CREATE TABLE IF NOT EXISTS imports(id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+                CREATE INDEX IF NOT EXISTS sessions_closed_scope_day ON sessions(
+                    json_extract(state,'$.phase'),json_extract(state,'$.mode'),
+                    json_extract(state,'$.model_version'),json_extract(state,'$.simulator_hash'),
+                    json_extract(state,'$.seed'),json_extract(state,'$.day'));
             ''')
 
     @contextmanager
@@ -71,10 +75,45 @@ class Store:
 
     def sessions(self):
         with self.read() as db:
-            return [json.loads(r['state']) for r in db.execute('SELECT state FROM sessions ORDER BY rowid DESC LIMIT 30')]
+            return [json.loads(r['state']) for r in db.execute('SELECT state FROM sessions ORDER BY rowid DESC LIMIT 100')]
+
+    def session_summaries(self,start_day='2022-07-01'):
+        with self.read() as db:
+            rows=db.execute("SELECT id,json_extract(state,'$.day') AS day,"
+                            "json_extract(state,'$.phase') AS phase,"
+                            "json_extract(state,'$.mode') AS mode,"
+                            "json_extract(state,'$.created') AS created,"
+                            "json_extract(state,'$.model_hashes') AS model_hashes,"
+                            "json_extract(state,'$.simulator_hash') AS simulator_hash "
+                            "FROM sessions WHERE json_extract(state,'$.day')>=? ORDER BY rowid DESC LIMIT 100",
+                            (start_day,))
+            return [dict(row) for row in rows]
 
     def closed_before(self,day,mode,seed=None):
         with self.read() as db:
             rows=db.execute("SELECT state FROM sessions WHERE json_extract(state,'$.phase')='closed' AND json_extract(state,'$.day')<? AND json_extract(state,'$.mode')=? ORDER BY rowid",(day,mode))
             result=[json.loads(r['state']) for r in rows]
         return [s for s in result if seed is None or s['seed']==seed]
+
+    def closed_recent(self,day,mode,seed,model_version,simulator_hash,limit=7,weekend_group=None):
+        """Read only the latest distinct closed days of a comparable scenario."""
+        where=["json_extract(state,'$.phase')='closed'", "json_extract(state,'$.day')<?",
+               "json_extract(state,'$.mode')=?", "json_extract(state,'$.model_version')=?"]
+        values=[day,mode,model_version]
+        if simulator_hash is None:
+            where.append("json_extract(state,'$.simulator_hash') IS NULL")
+        else:
+            where.append("json_extract(state,'$.simulator_hash')=?")
+            values.append(simulator_hash)
+        if seed is not None:
+            where.append("json_extract(state,'$.seed')=?")
+            values.append(seed)
+        if weekend_group is not None:
+            where.append("(COALESCE(json_extract(state,'$.weather.is_weekend'),0)!=0 OR "
+                         "COALESCE(json_extract(state,'$.weather.is_public_holiday'),0)!=0)=?")
+            values.append(int(bool(weekend_group)))
+        sql=("SELECT state FROM (SELECT state,json_extract(state,'$.day') AS day,"
+             "ROW_NUMBER() OVER (PARTITION BY json_extract(state,'$.day') ORDER BY rowid DESC) AS rank "
+             "FROM sessions WHERE "+' AND '.join(where)+") WHERE rank=1 ORDER BY day DESC LIMIT ?")
+        with self.read() as db:
+            return [json.loads(row['state']) for row in db.execute(sql,(*values,limit))]

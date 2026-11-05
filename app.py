@@ -28,6 +28,7 @@ from services.store import Store
 from services.workflow import Workflow
 from services.ingestion import MAX_BYTES, inspect
 from services.quality import sales_quality, POLICY
+from services.weather_api import fetch_weather
 from services.workflow import now
 from services.identity import Identity, actor, AccessError, request_trace
 from services.safety import GuardError
@@ -424,7 +425,7 @@ def state(session_id: str | None = None):
         if session_id:
             raise
         if actor.get()['role']=='viewer':raise AccessError('Chưa có ca để xem; cần Staff/Manager tạo ca đầu tiên.')
-        s = workflow.create(auto_run=True)
+        s = workflow.create(day='2022-09-01',auto_run=True)
     return snapshot(s)
 
 
@@ -441,7 +442,7 @@ def report_explanation(sid: str, days: int=30, section: str='overview', sku: str
     if refresh_revision is not None and not 0<=refresh_revision<=s['revision']:raise ValueError('Invalid report refresh revision')
     if section=='baseline':
         from services.baseline_history import report as baseline_report
-        data=baseline_report(s['day'],days)
+        data=baseline_report(s['day'],days,scale=s['weather'].get('volume_scale',1))
     else:data=report(store,sid,days,selected=s)
     context=analysis_context(data,section,sku,refresh_revision)
     if retry:explanations.invalidate_errors()
@@ -449,23 +450,41 @@ def report_explanation(sid: str, days: int=30, section: str='overview', sku: str
 
 
 class NewSession(BaseModel):
-    day: str = '2022-05-02'
+    day: str = '2022-09-01'
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
     mode: str = 'simulation'
     auto_run: bool = True
     operation_mode: str = 'assisted'
     market_version: str | None = None
+    weather_api: bool = False
+    latitude: float | None = None
+    longitude: float | None = None
+
+
+@app.get('/api/weather/forecast')
+def weather_forecast(day: str, latitude: float, longitude: float):
+    return fetch_weather(day, latitude, longitude)
 
 
 @app.post('/api/sessions')
 def create_session(body: NewSession):
     if body.operation_mode!='assisted' and actor.get()['role']!='manager':raise AccessError('Chỉ Manager chọn chế độ vận hành đặc biệt.')
-    return snapshot(workflow.create(**body.model_dump()))
+    values=body.model_dump()
+    use_api=values.pop('weather_api')
+    latitude,longitude=values.pop('latitude'),values.pop('longitude')
+    if use_api:
+        if latitude is None or longitude is None:raise ValueError('Cần nhập vĩ độ và kinh độ của cửa hàng để lấy forecast API.')
+        values['weather']=fetch_weather(values['day'],latitude,longitude)
+    return snapshot(workflow.create(**values))
 
 
 @app.get('/api/sessions')
 def sessions():
-    return [{'id': s['id'], 'day': s['day'], 'phase': s['phase'], 'mode': s['mode'], 'created': s['created']} for s in store.sessions()]
+    active_hashes=learning.active().manifest['native_model_hashes']
+    active_simulator_hash=simulator.hash_for(simulator.version)
+    return [{k:s[k] for k in ('id','day','phase','mode','created')}
+            for s in store.session_summaries() if json.loads(s['model_hashes'] or 'null')==active_hashes
+            and (s['mode']!='simulation' or s['simulator_hash']==active_simulator_hash)]
 
 
 class Action(BaseModel):
@@ -482,7 +501,7 @@ def act(sid: str, action: str, body: Action):
     if action=='prepared' and result.get('auto_run'):
         realtime.configure(sid,True)
         result=store.get(sid)
-    if action == 'close' and result['mode'] == 'live':
+    if action == 'close' and (result['mode'] == 'live' or result.get('weather',{}).get('volume_scale')==10):
         try:
             result['learning_collection'] = learning.collect(result)
         except ValueError as exc:
@@ -568,7 +587,7 @@ def registry_checkpoint(body:LifecycleRequest):
 @app.post('/api/registry/restore')
 def registry_restore(body:LifecycleRequest):
     if actor.get()['role']!='manager':raise AccessError('Chỉ Manager khôi phục model.')
-    return learning.rollback(engine.version,body.reason,body.checkpoint_id)
+    return learning.rollback(learning.active().version,body.reason,body.checkpoint_id)
 
 @app.get('/api/registry')
 def model_registry():
@@ -645,8 +664,9 @@ def audit(sid: str):
 
 @app.get('/api/metadata')
 def metadata():
-    active = learning.active()
-    return {'model':active.version,'original_frozen_model':engine.version,'skus':engine.skus,'selection':active.selection,'archive':'V4 locked model + V4 Validation inputs','archive_sha256':__import__('hashlib').sha256((ROOT/'MODEL_DATA_HASHES.json').read_bytes()).hexdigest(),'original_observations_available':False,'reference_run':{},'ai':assistant.status(),'training_review':engine.training_review,'simulation_scenarios':simulator.report()['scenarios'],'demo_dates':sorted(simulator.calendar),'model_manifest':engine.manifest}
+    from services.volume_scenario import MODEL_VERSION as VOLUME_MODEL
+    active = learning.resolve(VOLUME_MODEL)
+    return {'model':active.version,'live_model':active.version,'original_frozen_model':engine.version,'skus':active.skus,'selection':active.selection,'archive':'JOINT primary operating model','archive_sha256':__import__('hashlib').sha256((ROOT/'MODEL_DATA_HASHES.json').read_bytes()).hexdigest(),'original_observations_available':False,'reference_run':{},'ai':assistant.status(),'training_review':active.training_review,'simulation_scenarios':simulator.report()['scenarios'],'demo_dates':simulator.report()['dates'],'model_manifest':active.manifest}
 
 
 @app.get('/api/history')
@@ -667,6 +687,43 @@ def business_report(sid: str, days: int = 30):
     return report(store, sid, days)
 
 
+@app.get('/api/test-month-report')
+def test_month_report():
+    joint_path=ROOT/'docs/JOINT_TWO_MONTH_JOINT_V3FULL2.json'
+    baseline_path=ROOT/'docs/JOINT_TWO_MONTH_SEASONAL_V3FULL.json'
+    evaluation_path=ROOT/'docs/JOINT_TWO_MONTH_V3_EVALUATION.json'
+    if not joint_path.exists() or not baseline_path.exists() or not evaluation_path.exists():
+        return {'status':'pending','period':'2022-07-01..2022-08-31','rows':[]}
+    evaluation=json.loads(evaluation_path.read_text(encoding='utf-8'))
+    if not evaluation.get('passed'):
+        return {'status':'pending','period':'2022-07-01..2022-08-31','rows':[]}
+    joint=json.loads(joint_path.read_text(encoding='utf-8'))
+    baseline=json.loads(baseline_path.read_text(encoding='utf-8'))
+    if len(joint['rows'])!=62 or len(baseline['rows'])!=62:
+        raise ValueError('Đối chứng hai tháng test thiếu ngày; không công bố kết quả.')
+    rows=[]
+    for a,b in zip(joint['rows'],baseline['rows']):
+        if a['day']!=b['day'] or a['base_intent']!=b['base_intent'] or a['market_context']!=b['market_context']:
+            raise ValueError('Đối chứng hai tháng không dùng cùng POS; không công bố kết quả.')
+        rows.append({'day':a['day'],'base_intent':a['base_intent'],
+                     'online_updates':sum((p.get('online') or {}).get('online_updates',0) for p in a['skus']),
+                     'mean_online_factor':round(sum((p.get('online') or {}).get('online_factor',1) for p in a['skus'])/len(a['skus']),3),
+                     'joint':{k:a[k] for k in ('prepared','sold','stock','revenue_vnd','contribution_vnd','stockout_skus')},
+                     'baseline':{k:b[k] for k in ('prepared','sold','stock','revenue_vnd','contribution_vnd','stockout_skus')}})
+    return {'status':'complete','period':joint['period'],'seed':joint['seed'],
+            'simulator_version':joint['simulator_version'],'model_version':joint['model_version'],
+            'weather_source':joint['weather_source'],'weather_coordinates':joint['weather_coordinates'],
+            'policy_revision':joint['policy_revision'],'baseline_policy':evaluation['baseline_policy'],
+            'evaluation_gates':evaluation['gates'],
+            'shelf_at_2130':{month:evaluation['periods'][month]['shelf_at_2130']
+                             for month in ('july','august','all')},
+            'monthly_diagnostics':{month:{k:evaluation['periods'][month][k]
+                                          for k in ('days_with_less_waste','days_with_more_waste','days_with_higher_revenue')}
+                                   for month in ('july','august')},
+            'base_intent_range':evaluation['base_intent_range'],
+            'joint_sold_range':evaluation['joint_sold_range'],'rows':rows}
+
+
 @app.get('/api/simulation-comparison')
 def simulation_comparison(day: str = '2022-05-02', seed: int = 42):
     return simulator.comparison(day,seed)
@@ -675,7 +732,8 @@ def simulation_comparison(day: str = '2022-05-02', seed: int = 42):
 @app.get('/api/baseline-history/{sid}')
 def baseline_history(sid: str,days: int=180):
     from services.baseline_history import report
-    return report(store.get(sid)['day'],days)
+    s=store.get(sid)
+    return report(s['day'],days,scale=s['weather'].get('volume_scale',1))
 
 
 @app.get('/api/reference')
@@ -709,7 +767,7 @@ def import_history():
 async def upload(file: UploadFile = File(...), day: str = Form(...), source_name: str = Form('Người dùng nhập; chưa xác thực')):
     raw = await file.read(MAX_BYTES + 1)
     try:
-        preview = await run_in_threadpool(inspect, file.filename or 'upload', raw, day, engine.master)
+        preview = await run_in_threadpool(inspect, file.filename or 'upload', raw, day, learning.active().master)
     except (ValueError, zipfile.BadZipFile, UnicodeError) as exc:
         import hashlib
         rejected = {'filename':Path(file.filename or 'upload').name,'day':day,'sha256':hashlib.sha256(raw).hexdigest(),
@@ -721,7 +779,7 @@ async def upload(file: UploadFile = File(...), day: str = Form(...), source_name
     unknown = [t for t in preview['tables'] if t['kind'] == 'unknown']
     if unknown and assistant.status()['configured'] and len(preview['tables']) == 1:
         mapping = await run_in_threadpool(assistant.map_columns, unknown[0]['columns'])
-        preview = await run_in_threadpool(inspect, file.filename or 'upload', raw, day, engine.master, mapping)
+        preview = await run_in_threadpool(inspect, file.filename or 'upload', raw, day, learning.active().master, mapping)
         preview['ai_column_mapping'] = mapping
     preview.update({'created_at':now(),'source_name':source_name[:200],'status':'PREVIEW' if preview['valid'] else 'QUARANTINED'})
     iid = uuid.uuid4().hex
@@ -735,6 +793,9 @@ class ImportConfirm(BaseModel):
     session_id: str | None = None
     revision: int | None = None
     seed: int = Field(default=42, ge=0, le=2**31 - 1)
+    weather_api: bool = False
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 @app.post('/api/imports/{iid}/confirm')
@@ -775,6 +836,10 @@ def _confirm_import(iid: str, body: ImportConfirm):
         s = workflow.mutate(s['id'], body.revision, 'sales', {'rows': p['transactions']}, iid)
     else:
         visible = {(r['date'], r['sku_code']): r['sold_qty'] for r in p['history']} if p['history'] else None
+        if body.weather_api and p['weather'] is None:
+            if body.latitude is None or body.longitude is None:
+                raise ValueError('Cần tọa độ cửa hàng để lấy forecast API.')
+            p['weather']=fetch_weather(p['day'],body.latitude,body.longitude)
         feature_demo=bool(p.get('feature_rows')) and p['weather'] is None
         if feature_demo:
             if p['day'] not in simulator.calendar:raise ValueError('Ngày ngoài lịch mẫu V4 cần weather.csv có issued_at; không tự tạo forecast.')

@@ -41,6 +41,16 @@ def test_hashes_and_health(client):
     assert client.get('/api/health').json()['ok']
     assert app.engine.version=='SMARTFRESH_V4_LOCKED'
     assert len(app.engine.master)==7
+
+def test_july_operating_audit_is_available_in_business_reports(client):
+    response=client.get('/api/test-month-report')
+    assert response.status_code==200,response.text
+    data=response.json()
+    assert data['status']=='complete'
+    assert len(data['rows'])==31
+    assert data['rows'][0]['day']=='2022-07-01'
+    assert data['rows'][-1]['day']=='2022-07-31'
+    assert data['weather_source']=='OPEN_METEO_JMA_GSM_PREVIOUS_DAY1'
 def test_original_v4_m2_adapter_parity(client):
     e=app.engine
     for day in ['2022-05-02','2022-05-07','2022-06-15','2022-06-26']:
@@ -181,12 +191,12 @@ def test_cooldown_blocks_second_change_same_clock(client):
     act(client,s,'price_apply',dict(proposal_id=s['pending']['id']),expect=400)
     assert app.store.get(s['id'])['products'][sku]['discount']==20
 
-def test_50_available_at_2030_and_max_two_changes(client):
+def test_manual_50_available_at_2030_and_cooldown_still_applies(client):
     s=manual(client);sku=s['pending']['rows'][0]['sku'];s=act(client,s,'price_reject',{'proposal_id':s['pending']['id'],'reason':'Giữ để kiểm tra 20:30'})
     s=act(client,s,'advance',{'target':1200});s=act(client,s,'price_reject',{'proposal_id':s['pending']['id'],'reason':'Giữ để kiểm tra 20:30'})
     s=act(client,s,'advance',{'target':1230});s=set_price(client,s,sku,50)
     assert s['products'][sku]['discount']==50
-    # A separate SKU can change twice, but a third change cannot be applied.
+    # A third change ten minutes later is blocked by the 30-minute cooldown.
     other=next(r['sku'] for r in s['plan'] if r['sku']!=sku and s['products'][r['sku']]['stock']>0)
     s=act(client,s,'advance',{'target':1260});s=set_price(client,s,other,20)
     s=act(client,s,'advance',{'target':1290});s=set_price(client,s,other,30)
@@ -228,6 +238,6 @@ def test_v4_simulation_retains_price_response_and_no_future_output(client):
     s=new(client)
     assert all(not {'unit_events','base_intent_qty','discount_sensitive_pool_qty','response_draw'} & set(p['features']) for p in s['plan'])
 
-def test_replay_remains_separate_option(client):
+def test_new_sessions_have_one_primary_source(client):
     r=client.post('/api/sessions',json=dict(day='2022-05-02',auto_run=False,market_version=app.simulator.replay_version))
-    assert r.status_code==200,r.text
+    assert r.status_code==400,r.text
