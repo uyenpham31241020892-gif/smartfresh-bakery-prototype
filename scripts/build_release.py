@@ -14,9 +14,7 @@ def build(root=ROOT):
         for name in names:
             p=Path(folder)/name;rel=p.relative_to(root).as_posix()
             if rel in ['release_manifest.json','.env'] or p.is_symlink() or p.suffix=='.pyc':continue
-            data=p.read_bytes()
-            if not any(rel.endswith(ext) for ext in ('.joblib','.sqlite3','.png','.jpg','.docx','.xlsx','.zip')):
-                data=data.replace(b'\r\n',b'\n')
+            data=p.read_bytes();data=data.replace(b'\r\n',b'\n') if rel.endswith('.cmd') else data
             files[rel]=hashlib.sha256(data).hexdigest()
     core={k:v for k,v in sorted(files.items()) if k not in EVIDENCE}
     ident=hashlib.sha256(json.dumps(core,sort_keys=True).encode()).hexdigest()

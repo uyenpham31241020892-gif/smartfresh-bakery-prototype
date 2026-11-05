@@ -1,14 +1,9 @@
-* text=auto eol=lf
-*.csv text eol=lf
-*.py text eol=lf
-*.json text eol=lf
-*.md text eol=lf
-*.html text eol=lf
-*.js text eol=lf
+# Preserve exact bytes for model artifacts and locked metadata
+models/** -text
+v4/artifacts_build/models/** -text
 *.joblib binary
 *.sqlite3 binary
 *.docx binary
 *.xlsx binary
 *.png binary
 *.jpg binary
-
